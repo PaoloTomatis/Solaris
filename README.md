@@ -2,15 +2,15 @@
 
 #### _Indice_
 
--   [Descrizione](#### _Descrizione_)
--   Funzionalità
--   Logica
--   Installazione
--   Pagine Solaris Hub
--   Palette Solaris Hub
--   Database SOlaris Hub
--   Hardware Solaris Vega Lite
--   Contatti
+-   [Descrizione](#descrizione)
+-   [Funzionalità](#funzionalità)
+-   [Logica](#logica)
+-   [Installazione](#installazione)
+-   [Pagine Solaris Hub](#pagine-solaris-hub)
+-   [Palette Solaris Hub](#palette-solaris-hub)
+-   [Database Solaris Hub](#database-solaris-hub)
+-   [Hardware Solaris Vega](#hardware-solaris-vega)
+-   [Contatti](#contatti)
 
 #### _Descrizione_
 
@@ -29,65 +29,65 @@ Solaris è un sistema scalabile orientato alla automatizzazione di una serra, ge
 
 #### _Logica_
 
--   mod1. CONFIG
-    DEVICE --> attesa evento irrigazione
-    CLIENT --> premuto tasto irrigazione
-    CLIENT --> invio segnale al server
-    SERVER --> invio segnale al device
-    DEVICE --> lettura dati sensori
-    DEVICE --> irrigazione
-    DEVICE --> attesa 90''
-    DEVICE --> lettura dati sensori
-    DEVICE --> invio dati al server
-    SERVER --> salvataggio dati nel database (data(id: -, date: 2025-08-28T11:42:43.158Z, hum_i: [25, 75], hum_e: 56, temp: 23, device_id: 1, type: irrigation_config))
+-   mod1. CONFIG\
+    DEVICE --> attesa evento irrigazione\
+    CLIENT --> premuto tasto irrigazione\
+    CLIENT --> invio segnale al server\
+    SERVER --> invio segnale al device\
+    DEVICE --> lettura dati sensori \
+    DEVICE --> irrigazione \
+    DEVICE --> attesa 90'' \
+    DEVICE --> lettura dati sensori \
+    DEVICE --> invio dati al server \
+    SERVER --> salvataggio dati nel database _(data(id: -, date: 2025-08-28T11:42:43.158Z, hum_i: [25, 75], hum_e: 56, temp: 23, device_id: 1, type: irrigation_config))_ \
 
--   TRANSIZIONE
-    CLIENT --> premuto tasto automazione
-    CLIENT --> invio segnale al server
-    SERVER --> controllo dati raccolti
-    SERVER --> esecuzione algoritmo per soglie
-    SERVER --> salvataggio dati nel database (device_settings(id: -, hum_max: 80, hum_min: 23, interval: 27, device_id: 1, updated_at: 2025-08-29T09:25:45.225Z))
-    SERVER --> invio soglie al device
-    DEVICE --> salvataggio soglie in memoria locale
+-   TRANSIZIONE \
+    CLIENT --> premuto tasto automazione \
+    CLIENT --> invio segnale al server \
+    SERVER --> controllo dati raccolti \
+    SERVER --> esecuzione algoritmo per soglie \
+    SERVER --> salvataggio dati nel database _(device_settings(id: -, hum_max: 80, hum_min: 23, interval: 27, device_id: 1, updated_at: 2025-08-29T09:25:45.225Z))_ \
+    SERVER --> invio soglie al device \
+    DEVICE --> salvataggio soglie in memoria locale \
 
--   mod2. AUTO
-    DEVICE --> lettura dati sensori ogni 90''
-    DEVICE --> invio dati al server
-    SERVER --> salvataggio dati nel database (data(id: -, date: 2025-09-12T07:32:59.618Z, hum_i: 43, hum_e: 60, temp: 19, device_id: 1, type: data))
-    DEVICE --> controllo soglie
-    DEVICE --> irrigazione in base ai dati
-    DEVICE --> attesa 90''
-    DEVICE --> lettura dati sensori
-    DEVICE --> invio dati al server
-    SERVER --> salvataggio dati nel database (data(id: -, date: 2025-09-12T10:43:27.642Z, hum_i: [24, 65], hum_e: 57, temp: 24, device_id: 1, type: irrigation_auto))
+-   mod2. AUTO \
+    DEVICE --> lettura dati sensori ogni 90'' \
+    DEVICE --> invio dati al server \
+    SERVER --> salvataggio dati nel database _(data(id: -, date: 2025-09-12T07:32:59.618Z, hum_i: 43, hum_e: 60, temp: 19, device_id: 1, type: data))_ \
+    DEVICE --> controllo soglie \
+    DEVICE --> irrigazione in base ai dati \
+    DEVICE --> attesa 90'' \
+    DEVICE --> lettura dati sensori \
+    DEVICE --> invio dati al server \
+    SERVER --> salvataggio dati nel database _(data(id: -, date: 2025-09-12T10:43:27.642Z, hum_i: [24, 65], hum_e: 57, temp: 24, device_id: 1, type: irrigation_auto))_ \
 
--   mod3. SAFE
-    DEVICE --> lettura dati sensori ogni 120''
-    DEVICE --> invio dati al server
-    DEVICE --> invio notifiche errore al server
-    SERVER --> salvataggio dati nel database (data(id: -, date: 2025-09-12T07:32:59.618Z, hum_i: 43, hum_e: 60, temp: 19, device_id: 1, type: data) + notifications(id: -, tit: Tanica Vuota, desc: ..., link: /dashboard/1, user_id: 1, type: error, created_at: 2025-09-12T07:32:59.618Z, read: false))
-    CLIENT --> visualizzazione notifiche errore
+-   mod3. SAFE \
+    DEVICE --> lettura dati sensori ogni 120'' \
+    DEVICE --> invio dati al server \
+    DEVICE --> invio notifiche errore al server \
+    SERVER --> salvataggio dati nel database _(data(id: -, date: 2025-09-12T07:32:59.618Z, hum_i: 43, hum_e: 60, temp: 19, device_id: 1, type: data) + notifications(id: -, tit: Tanica Vuota, desc: ..., link: /dashboard/1, user_id: 1, type: error, created_at: 2025-09-12T07:32:59.618Z, read: false))_ \
+    CLIENT --> visualizzazione notifiche errore \
 
--   BOOTSTRAP
-    DEVICE --> richiesta autenticazione al server
-    SERVER --> autenticazione del device
-    SERVER --> invio evento al device
-    DEVICE --> cambio modalità (fornita dal server)
+-   BOOTSTRAP \
+    DEVICE --> richiesta autenticazione al server \
+    SERVER --> autenticazione del device \
+    SERVER --> invio evento al device \
+    DEVICE --> cambio modalità (fornita dal server) \
 
--   errore1. TANICA ACQUA VUOTA
-    DEVICE --> lettura dati sensori
-    DEVICE --> irrigazione in base ai dati
-    DEVICE --> lettura dati sensori
-    DEVICE --> dati sensori 2 = dati sensori 1
-    DEVICE --> cambio modalità in safe (tanica acqua vuota)
-    SERVER --> salvataggio dati nel database
+-   errore1. TANICA ACQUA VUOTA \
+    DEVICE --> lettura dati sensori \
+    DEVICE --> irrigazione in base ai dati \
+    DEVICE --> lettura dati sensori \
+    DEVICE --> dati sensori 2 = dati sensori 1 \
+    DEVICE --> cambio modalità in safe (tanica acqua vuota) \
+    SERVER --> salvataggio dati nel database \
 
--   errore2. COLLEGAMENTO WIFI
-    DEVICE --> lettura dati sensori ogni 90''
-    DEVICE --> collegamento wifi non avvenuto
-    DEVICE --> utilizzo soglie in memoria locale
-    DEVICE --> irrigazione in base ai dati
-    DEVICE --> salvataggio dati in memoria locale (in attesa connessione)
+-   errore2. COLLEGAMENTO WIFI \
+    DEVICE --> lettura dati sensori ogni 90'' \
+    DEVICE --> collegamento wifi non avvenuto \
+    DEVICE --> utilizzo soglie in memoria locale \
+    DEVICE --> irrigazione in base ai dati \
+    DEVICE --> salvataggio dati in memoria locale (in attesa connessione) \
 
 #### _Installazione_
 
@@ -165,7 +165,7 @@ Per testare Solaris bisogna utilizzare questi comandi nel terminale (avendo già
 #### _Contatti_
 
 Per consigli, dubbi o problemi è possibile contattarmi qui:
-Email🟣: tomatis.pol@gmail.com
-Discord🔵: pol_tomatis
-GitHub⚪: Paolo Tomatis
-Instagram🔴: Paolo Tomatis
+Email🟣: [tomatis.pol@gmail.com](mailto:tomatis.pol@gmail.com) \
+Discord🔵: [pol_tomatis](https://discord.com/users/792080055236821013) \
+GitHub⚪: [PaoloTomatis](https://github.com/PaoloTomatis) \
+Instagram🔴: [paolo_tom](https://www.instagram.com/paolo__tom/) \
