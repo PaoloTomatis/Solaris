@@ -29,6 +29,12 @@ Solaris è un sistema scalabile orientato alla automatizzazione di una serra, ge
 
 ### _Logica_
 
+-   BOOTSTRAP \
+    DEVICE --> richiesta autenticazione al server \
+    SERVER --> autenticazione del device \
+    SERVER --> invio evento al device \
+    DEVICE --> cambio modalità (fornita dal server) \
+
 -   mod1. CONFIG\
     DEVICE --> attesa evento irrigazione \
     CLIENT --> premuto tasto irrigazione \
@@ -39,9 +45,9 @@ Solaris è un sistema scalabile orientato alla automatizzazione di una serra, ge
     DEVICE --> attesa 90'' \
     DEVICE --> lettura dati sensori \
     DEVICE --> invio dati al server \
-    SERVER --> salvataggio dati nel database _(data(id: -, desc: ..., link: /dashboard/1/controls, read: false, date: 2025-08-28T11:42:43.158Z, hum_i: [25, 75], hum_e: 56, temp: 23, device_id: 1, type: irrigation_config))_ \
+    SERVER --> salvataggio dati nel database _(data(id: -, desc: ..., link: /dashboard/1/controls, read: false, date: 2025-08-28T11:42:43.158Z, hum_i: [25, 75], hum_e: 56, temp: 23, lum: 78, device_id: 1, type: irrigation_config))_ \
 
--   TRANSIZIONE \
+-   TRANSIZIONE config --> auto \
     CLIENT --> premuto tasto automazione \
     CLIENT --> invio segnale al server \
     SERVER --> controllo dati raccolti \
@@ -53,26 +59,20 @@ Solaris è un sistema scalabile orientato alla automatizzazione di una serra, ge
 -   mod2. AUTO \
     DEVICE --> lettura dati sensori ogni 90'' \
     DEVICE --> invio dati al server \
-    SERVER --> salvataggio dati nel database _(data(id: -, desc: ..., link: /dashboard/1, read: false, date: 2025-09-12T07:32:59.618Z, hum_i: 43, hum_e: 60, temp: 19, device_id: 1, type: data))_ \
+    SERVER --> salvataggio dati nel database _(data(id: -, desc: ..., link: /dashboard/1, read: false, date: 2025-09-12T07:32:59.618Z, hum_i: 43, hum_e: 60, temp: 19, lum: 68, device_id: 1, type: data))_ \
     DEVICE --> controllo soglie \
     DEVICE --> irrigazione in base ai dati \
     DEVICE --> attesa 90'' \
     DEVICE --> lettura dati sensori \
     DEVICE --> invio dati al server \
-    SERVER --> salvataggio dati nel database _(data(id: -, desc: ..., link: /dashboard/1, read: false, date: 2025-09-12T10:43:27.642Z, hum_i: [24, 65], hum_e: 57, temp: 24, device_id: 1, type: irrigation_auto))_ \
+    SERVER --> salvataggio dati nel database _(data(id: -, desc: ..., link: /dashboard/1, read: false, date: 2025-09-12T10:43:27.642Z, hum_i: [24, 65], hum_e: 57, temp: 24, lum: 67, device_id: 1, type: irrigation_auto))_ \
 
 -   mod3. SAFE \
     DEVICE --> lettura dati sensori ogni 120'' \
     DEVICE --> invio dati al server \
     DEVICE --> invio log errore al server \
-    SERVER --> salvataggio dati nel database _(data(id: -, desc: ..., link: /dashboard/1, read: false, date: 2025-09-12T07:32:59.618Z, hum_i: 43, hum_e: 60, temp: 19, device_id: 1, type: data))_ \
+    SERVER --> salvataggio dati nel database _(data(id: -, desc: ..., link: /dashboard/1, read: false, date: 2025-09-12T07:32:59.618Z, hum_i: 43, hum_e: 60, temp: 19, lum: 56, device_id: 1, type: data))_ \
     CLIENT --> visualizzazione log errore \
-
--   BOOTSTRAP \
-    DEVICE --> richiesta autenticazione al server \
-    SERVER --> autenticazione del device \
-    SERVER --> invio evento al device \
-    DEVICE --> cambio modalità (fornita dal server) \
 
 -   errore1. TANICA ACQUA VUOTA \
     DEVICE --> lettura dati sensori \
@@ -112,22 +112,22 @@ Per testare Solaris bisogna utilizzare questi comandi nel terminale (avendo già
 -   /auth/login --> accesso account
 -   /auth/signup --> registrazione account
 -   /account --> informazione e controlli account
+-   /settings --> impostazioni account
 -   /credits --> crediti
 -   /policy --> privacy e cookie policy
 -   /dashboard --> selezione e configurazione device
 -   /dashboard/:id --> informazioni device
--   /dashboard/:id/live --> dati live device
 -   /dashboard/:id/controls --> controllo device
 -   /dashboard/:id/settings --> impostazioni device
--   /data/log/:id --> eventi device
--   /data/stats/:id --> statistiche device
+-   /dashboard/:id/log --> eventi device
+-   /dashboard/:id/stats --> statistiche device
 -   /\* --> errori 404
 
 ### _Palette Solaris Hub_
 
 _Colore_ --> _mod. Chiara_ | _mod. Scura_ (i pallini colorati non sono accurati):
 
--   Primario --> #00A9A5 | #00D4D8
+-   Primario --> 🔵 #00A9A5 | 🔵 #00D4D8
 -   Secondario --> 🟡 #FFD60A | 🟡 #FFE34D
 -   Decorazione --> 🔵 #9333EA | 🔵 #A855F7
 -   Sfondo Primario --> ⚪ #F8FAFC | ⚫ #0F172A
@@ -142,11 +142,12 @@ _Colore_ --> _mod. Chiara_ | _mod. Scura_ (i pallini colorati non sono accurati)
 ### _Database Solaris Hub_
 
 -   Utenti --> users (id, email, psw, refresh_token, created_at)
--   Dispositivi --> devices (id, key, model, activated, user_id, mode)
--   Dati --> data (id, desc, link, read, date, hum_i, hum_e, temp, device_id, type)
+-   Dispositivi --> devices (id, key, name, model, activated, user_id, mode)
+-   Dati --> data (id, desc, link, read, date, hum_i, hum_e, temp, lum, device_id, type)
 -   Impostazioni Dispositivi --> device_settings (id, hum_max, hum_min, interval, device_id, updated_at)
+-   Impostazioni Utente --> user_settings (id, style_mode, units, user_id, updated_at)
 
-### _Hardware Solaris Vega_
+### _Hardware Solaris Vega V1_
 
 -   ESP32
 -   Breadboard

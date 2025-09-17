@@ -5,6 +5,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { configDotenv } from 'dotenv';
 import connectDB from './database/connection.database.js';
+import resHandler from './utils/responseHandler.js';
 // Configurazione
 configDotenv();
 // Definizione porta
@@ -33,21 +34,11 @@ app.use(express.json());
 app.use(express.urlencoded());
 // Rotta default
 app.get('/', (req, res) => {
-    res.status(200).send({
-        success: true,
-        data: [],
-        message: `API SOLARIS HUB --> status online`,
-        status: 200,
-    });
+    return resHandler(res, 200, null, "This is the API of SOLARIS HUB, the use is forbidden for commercial use. Normally your requests would be blocked by CORS if the url isn't recognized in the whitelist. USE AT YOUR OWN RISK (for private use only, not commercial)", true);
 });
 // Rotta 404
 app.use((req, res) => {
-    res.status(404).send({
-        success: false,
-        data: [],
-        message: 'Pagina non trovata o disponibile!',
-        status: 404,
-    });
+    return resHandler(res, 404, null, 'Pagina non trovata o disponibile!', false);
 });
 async function start() {
     // Connessione database

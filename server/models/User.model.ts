@@ -1,6 +1,15 @@
 // Importazione moduli
 import mongoose from 'mongoose';
 
+// Interfaccia utente
+interface User {
+    _id: number;
+    email: string;
+    psw: string;
+    refreshToken: string;
+    createdAt: string;
+}
+
 // Schema utente
 const userSchema = new mongoose.Schema({
     email: String,
@@ -10,4 +19,4 @@ const userSchema = new mongoose.Schema({
 });
 
 // Esportazione modello
-export default mongoose.model('User', userSchema);
+export default mongoose.model<User>('User', userSchema);

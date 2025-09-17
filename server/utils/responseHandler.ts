@@ -8,8 +8,8 @@ function resHandler<T>(
     data: T | null = null,
     message: string = 'Errore interno del server!',
     success: boolean = false
-): void {
-    res.status(status).json({ success, message, data, status });
+): Response {
+    return res.status(status).json({ success, message, data, status });
 }
 
 // Esportazione funzione
