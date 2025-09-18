@@ -15,8 +15,7 @@ async function register(req: Request, res: Response): Promise<Response> {
         if (
             !email ||
             typeof email !== 'string' ||
-            !email?.includes('@') ||
-            email?.length > 255
+            /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)
         )
             return resHandler(res, 400, null, "L'Email è invalida!", false);
 
@@ -24,8 +23,7 @@ async function register(req: Request, res: Response): Promise<Response> {
         if (
             !psw ||
             typeof psw !== 'string' ||
-            psw?.length < 8 ||
-            psw?.length > 255
+            /^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,255}$/.test(psw)
         )
             return resHandler(
                 res,

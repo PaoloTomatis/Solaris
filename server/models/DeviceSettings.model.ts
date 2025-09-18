@@ -1,6 +1,16 @@
 // Importazione moduli
 import mongoose from 'mongoose';
 
+// Interfaccia impostazioni dispositivo
+interface DeviceSettings {
+    _id: string;
+    humMax: number;
+    humMin: number;
+    interval: number;
+    deviceId: string;
+    updatedAt: string;
+}
+
 // Schema impostazioni dispositivo
 const deviceSettingsSchema = new mongoose.Schema({
     humMax: Number,
@@ -11,4 +21,7 @@ const deviceSettingsSchema = new mongoose.Schema({
 });
 
 // Esportazione modello
-export default mongoose.model('DeviceSettings', deviceSettingsSchema);
+export default mongoose.model<DeviceSettings>(
+    'DeviceSettings',
+    deviceSettingsSchema
+);

@@ -6,6 +6,8 @@ import cors from 'cors';
 import { configDotenv } from 'dotenv';
 import connectDB from './database/connection.database.js';
 import resHandler from './utils/responseHandler.js';
+import cookieParser from 'cookie-parser';
+import authRouter from './routers/auth.router.js';
 
 // Configurazione
 configDotenv();
@@ -40,6 +42,8 @@ app.use(
 app.use(express.json());
 // Middleware url
 app.use(express.urlencoded());
+// Middleware cookie
+app.use(cookieParser());
 
 // Rotta default
 app.get('/', (req, res) => {
@@ -51,6 +55,9 @@ app.get('/', (req, res) => {
         true
     );
 });
+
+// Rotta autenticazione
+app.use('/auth', authRouter);
 
 // Rotta 404
 app.use((req, res) => {

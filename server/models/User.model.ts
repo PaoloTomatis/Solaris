@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 // Interfaccia utente
 interface User {
-    _id: number;
+    _id: string;
     email: string;
     psw: string;
     refreshToken: string;
