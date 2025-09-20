@@ -26,32 +26,22 @@ async function login(req: Request, res: Response): Promise<Response> {
             );
 
         // Controllo email
-        if (
-            !email ||
-            typeof email !== 'string' ||
-            !email?.includes('@') ||
-            email?.length > 255
-        )
+        if (!email || typeof email !== 'string')
             return resHandler(
                 res,
-                401,
+                400,
                 null,
-                'Email o Password errati!',
+                'Email o Password invalidi o mancanti!',
                 false
             );
 
         // Controllo password
-        if (
-            !psw ||
-            typeof psw !== 'string' ||
-            psw?.length < 8 ||
-            psw?.length > 255
-        )
+        if (!psw || typeof psw !== 'string')
             return resHandler(
                 res,
-                401,
+                400,
                 null,
-                'Email o Password errati!',
+                'Email o Password invalidi o mancanti!',
                 false
             );
 
