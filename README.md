@@ -141,11 +141,11 @@ _Colore_ --> _mod. Chiara_ | _mod. Scura_ (i pallini colorati non sono accurati)
 
 ### _Database Solaris Hub_
 
--   Utenti --> users (id, email, psw, refresh_token, created_at)
--   Dispositivi --> devices (id, key, name, model, activated, user_id, mode)
--   Dati --> data (id, desc, link, read, date, hum_i, hum_e, temp, lum, device_id, type)
--   Impostazioni Dispositivi --> device_settings (id, hum_max, hum_min, interval, device_id, updated_at)
--   Impostazioni Utente --> user_settings (id, style_mode, units, user_id, updated_at)
+-   Utenti --> users (id, email, role, psw, refresh_token, createdAt, updatedAt)
+-   Dispositivi --> devices (id, key, name, prototype, userId, mode, activatedAt, createdAt, updatedAt)
+-   Dati --> data (id, desc, link, read, date, humI, humE, temp, lum, deviceId, type, createdAt, updatedAt)
+-   Impostazioni Dispositivi --> device_settings (id, humMax, humMin, interval, deviceId createdAt, updatedAt)
+-   Impostazioni Utente --> user_settings (id, styleMode, units, userId, createdAt, updatedAt)
 
 ### _Hardware Solaris Vega V1_
 

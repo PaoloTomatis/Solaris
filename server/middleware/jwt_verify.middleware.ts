@@ -80,6 +80,8 @@ async function jwtVerify(
         req.body.user = {
             id: user._id,
             email: user.email,
+            role: user.role,
+            createdAt: user.createdAt,
         };
 
         // Passaggio prossimo gestore

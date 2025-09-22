@@ -8,6 +8,8 @@ import connectDB from './database/connection.database.js';
 import resHandler from './utils/responseHandler.js';
 import cookieParser from 'cookie-parser';
 import authRouter from './routers/auth.router.js';
+import apiRouter from './routers/api.router.js';
+import jwtVerify from './middleware/jwt_verify.middleware.js';
 
 // Configurazione
 configDotenv();
@@ -59,6 +61,9 @@ app.get('/', (req, res) => {
 // Rotta autenticazione
 app.use('/auth', authRouter);
 
+// Rotta api
+app.use('/api', jwtVerify, apiRouter);
+
 // Rotta 404
 app.use((req, res) => {
     return resHandler(
@@ -70,6 +75,7 @@ app.use((req, res) => {
     );
 });
 
+// Funzione avvio
 async function start() {
     // Connessione database
     await connectDB();

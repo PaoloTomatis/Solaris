@@ -2,14 +2,21 @@
 import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import UserSettingsModel from '../models/UserSettings.model.js';
-import type { ObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 
 // Gestore get user settings
 async function getUserSettings(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: { id: ObjectId; email: string } | undefined = req.body.user;
+        const user:
+            | {
+                  id: mongoose.Types.ObjectId;
+                  email: string;
+                  role: string;
+                  createdAt: Date;
+              }
+            | undefined = req.body.user;
 
         // Controllo utente
         if (!user)
@@ -46,6 +53,7 @@ async function getUserSettings(req: Request, res: Response): Promise<Response> {
                 units: userSettings.units,
                 userId: userSettings.userId,
                 updatedAt: userSettings.updatedAt,
+                createdAt: userSettings.createdAt,
             },
             'Impostazioni utente ricavate con successo!',
             true
@@ -70,7 +78,14 @@ async function patchUserSettings(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: { id: ObjectId; email: string } | undefined = req.body.user;
+        const user:
+            | {
+                  id: mongoose.Types.ObjectId;
+                  email: string;
+                  role: string;
+                  createdAt: Date;
+              }
+            | undefined = req.body.user;
         let {
             style_mode: styleMode,
             units,
@@ -79,7 +94,6 @@ async function patchUserSettings(
             units: string | undefined;
         } = req.body;
         const errors: string[] = [];
-        let status: 200 | 201;
 
         // Controllo utente
         if (!user)
@@ -109,45 +123,12 @@ async function patchUserSettings(
             errors.push('il tipo di unità è invalido o mancante');
         }
 
-        // Ricavo impostazioni utente database
-        const dupUserSettings = await UserSettingsModel.findOne({
-            userId: user.id,
-        });
-
-        // Definizione impostazioni utente
-        let userSettings: {
-            _id?: ObjectId | string | number;
-            userId: ObjectId | string | number;
-            styleMode?: string;
-            units?: string;
-            updatedAt?: string;
-        } | null;
-
-        // Controllo impostazioni utente
-        if (dupUserSettings) {
-            userSettings = await UserSettingsModel.findOneAndUpdate(
-                { userId: user.id },
-                { styleMode, units, updatedAt: new Date().toISOString() },
-                { new: true }
-            );
-
-            // Impostazione stato
-            status = 200;
-        } else {
-            // Creazione impostazioni utente database
-            const newUserSettings = new UserSettingsModel({
-                styleMode,
-                units,
-                userId: user.id,
-                updatedAt: new Date().toISOString(),
-            });
-
-            // Salvataggio utente
-            userSettings = await newUserSettings.save();
-
-            // Impostazione stato
-            status = 201;
-        }
+        // Aggiornamento o creazione impostazioni utente database
+        const userSettings = await UserSettingsModel.findOneAndUpdate(
+            { userId: user.id },
+            { styleMode, units },
+            { new: true, upsert: true }
+        );
 
         // Controllo impostazioni utente
         if (!userSettings)
@@ -162,13 +143,14 @@ async function patchUserSettings(
         // Risposta finale
         return resHandler(
             res,
-            status,
+            200,
             {
                 id: userSettings._id,
                 styleMode: userSettings.styleMode,
                 units: userSettings.units,
                 userId: userSettings.userId,
                 updatedAt: userSettings.updatedAt,
+                createdAt: userSettings.createdAt,
             },
             'Impostazioni utente modificate con successo!' +
                 (errors.length ? ` (${errors.join(', ')})` : ''),
@@ -186,5 +168,74 @@ async function patchUserSettings(
     }
 }
 
+// Gestore delete user settings
+async function deleteUserSettings(
+    req: Request,
+    res: Response
+): Promise<Response> {
+    // Gestione errori
+    try {
+        // Ricavo dati richiesta
+        const user:
+            | {
+                  id: mongoose.Types.ObjectId;
+                  email: string;
+                  role: string;
+                  createdAt: Date;
+              }
+            | undefined = req.body.user;
+
+        // Controllo utente
+        if (!user)
+            return resHandler(
+                res,
+                401,
+                null,
+                'Autenticazione non eseguita correttamente!',
+                false
+            );
+
+        // Aggiornamento o creazione utente database
+        const userSettings = await UserSettingsModel.findOneAndDelete({
+            userId: user.id,
+        });
+
+        // Controllo impostazioni utente
+        if (!userSettings)
+            return resHandler(
+                res,
+                404,
+                null,
+                'Impostazioni utente non trovate!',
+                false
+            );
+
+        // Risposta finale
+        return resHandler(
+            res,
+            200,
+            {
+                id: userSettings._id,
+                styleMode: userSettings.styleMode,
+                units: userSettings.units,
+                userId: userSettings.userId,
+                updatedAt: userSettings.updatedAt,
+                createdAt: userSettings.createdAt,
+            },
+            'Impostazioni utente eliminate con successo!',
+            true
+        );
+    } catch (error: unknown) {
+        // Errore in console
+        console.error(error);
+        const errorMsg =
+            error instanceof Error
+                ? error?.message || 'Errore interno del server!'
+                : 'Errore sconosciuto!';
+        // Risposta finale
+        return resHandler(res, 500, null, errorMsg, false);
+    }
+}
+
 // Esportazione gestore
-export { getUserSettings, patchUserSettings };
+export { getUserSettings, patchUserSettings, deleteUserSettings };

@@ -1,22 +1,27 @@
 // Importazione moduli
-import mongoose from 'mongoose';
+import { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia utente
 interface User {
-    _id: string;
+    _id: ObjectId;
+    role: 'admin' | 'user';
     email: string;
     psw: string;
     refreshToken: string;
-    createdAt: string;
+    updatedAt: Date;
+    createdAt: Date;
 }
 
 // Schema utente
-const userSchema = new mongoose.Schema({
-    email: String,
-    psw: String,
-    refreshToken: String,
-    createdAt: String,
-});
+const UserSchema = new Schema(
+    {
+        role: { type: String, default: 'user', enum: ['admin', 'user'] },
+        email: { type: String, required: true, unique: true },
+        psw: { type: String, required: true },
+        refreshToken: { type: String, required: false },
+    },
+    { timestamps: true }
+);
 
 // Esportazione modello
-export default mongoose.model<User>('User', userSchema);
+export default model<User>('User', UserSchema);

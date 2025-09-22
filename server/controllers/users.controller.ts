@@ -3,14 +3,21 @@ import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
 import bcrypt from 'bcrypt';
-import type { ObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 
 // Gestore get user
 async function getUser(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: { id: ObjectId; email: string } | undefined = req.body.user;
+        const user:
+            | {
+                  id: mongoose.Types.ObjectId;
+                  email: string;
+                  role: string;
+                  createdAt: Date;
+              }
+            | undefined = req.body.user;
 
         // Controllo utente
         if (!user)
@@ -34,11 +41,11 @@ async function getUser(req: Request, res: Response): Promise<Response> {
             res,
             200,
             {
-                user: {
-                    id: userRes._id,
-                    email: userRes.email,
-                    createdAt: userRes.createdAt,
-                },
+                id: userRes._id,
+                role: userRes.role,
+                email: userRes.email,
+                createdAt: userRes.createdAt,
+                updatedAt: userRes.updatedAt,
             },
             'Utente ricavato con successo!',
             true
@@ -60,7 +67,14 @@ async function patchUser(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: { id: ObjectId; email: string } | undefined = req.body.user;
+        const user:
+            | {
+                  id: mongoose.Types.ObjectId;
+                  email: string;
+                  role: string;
+                  createdAt: Date;
+              }
+            | undefined = req.body.user;
         const {
             email,
             psw,
@@ -145,11 +159,11 @@ async function patchUser(req: Request, res: Response): Promise<Response> {
             res,
             200,
             {
-                user: {
-                    id: userRes._id,
-                    email: userRes.email,
-                    createdAt: userRes.createdAt,
-                },
+                id: userRes._id,
+                role: userRes.role,
+                email: userRes.email,
+                createdAt: userRes.createdAt,
+                updatedAt: userRes.updatedAt,
             },
             'Modifiche effettuate con successo!',
             true
@@ -171,7 +185,14 @@ async function deleteUser(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: { id: ObjectId; email: string } | undefined = req.body.user;
+        const user:
+            | {
+                  id: mongoose.Types.ObjectId;
+                  email: string;
+                  role: string;
+                  createdAt: Date;
+              }
+            | undefined = req.body.user;
 
         // Controllo utente
         if (!user)
@@ -184,10 +205,10 @@ async function deleteUser(req: Request, res: Response): Promise<Response> {
             );
 
         // Eliminazione utente database
-        const userDelete = await UserModel.deleteOne({ _id: user.id });
+        const userDelete = await UserModel.findOneAndDelete({ _id: user.id });
 
         // Controllo eliminazione
-        if (userDelete.deletedCount <= 0)
+        if (!userDelete)
             return resHandler(
                 res,
                 500,
@@ -200,7 +221,13 @@ async function deleteUser(req: Request, res: Response): Promise<Response> {
         return resHandler(
             res,
             200,
-            null,
+            {
+                id: userDelete._id,
+                role: userDelete.role,
+                email: userDelete.email,
+                createdAt: userDelete.createdAt,
+                updatedAt: userDelete.updatedAt,
+            },
             'Eliminazione utente effettuata con successo!',
             true
         );

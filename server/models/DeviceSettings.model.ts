@@ -1,5 +1,5 @@
 // Importazione moduli
-import mongoose from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 // Interfaccia impostazioni dispositivo
 interface DeviceSettings {
@@ -12,16 +12,15 @@ interface DeviceSettings {
 }
 
 // Schema impostazioni dispositivo
-const deviceSettingsSchema = new mongoose.Schema({
-    humMax: Number,
-    humMin: Number,
-    interval: Number,
-    deviceId: String,
-    updatedAt: String,
-});
+const DeviceSettingsSchema = new Schema(
+    {
+        humMax: { type: Number, default: null },
+        humMin: { type: Number, default: null },
+        interval: { type: Number, default: null },
+        deviceId: { type: Schema.Types.ObjectId, required: true, unique: true },
+    },
+    { timestamps: true }
+);
 
 // Esportazione modello
-export default mongoose.model<DeviceSettings>(
-    'DeviceSettings',
-    deviceSettingsSchema
-);
+export default model<DeviceSettings>('DeviceSettings', DeviceSettingsSchema);

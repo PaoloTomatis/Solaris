@@ -1,22 +1,34 @@
 // Importazione moduli
-import mongoose from 'mongoose';
+import { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia impostazioni utente
 interface UserSettings {
-    _id: string;
+    _id: ObjectId;
     styleMode: 'dark' | 'light';
     units: 'metric' | 'imperial';
     userId: number;
-    updatedAt: string;
+    updatedAt: Date;
+    createdAt: Date;
 }
 
 // Schema impostazioni utente
-const userSettingsSchema = new mongoose.Schema({
-    styleMode: String,
-    units: String,
-    userId: String,
-    updatedAt: String,
-});
+const UserSettingsSchema = new Schema(
+    {
+        userId: {
+            type: Schema.Types.ObjectId,
+            required: true,
+            unique: true,
+            ref: 'User',
+        },
+        styleMode: { type: String, enum: ['light', 'dark'], default: 'light' },
+        units: {
+            type: String,
+            enum: ['metric', 'imperial'],
+            default: 'metric',
+        },
+    },
+    { timestamps: true }
+);
 
 // Esportazione modello
-export default mongoose.model<UserSettings>('UserSettings', userSettingsSchema);
+export default model<UserSettings>('UserSettings', UserSettingsSchema);
