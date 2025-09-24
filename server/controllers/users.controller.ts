@@ -3,21 +3,14 @@ import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
 import bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
+import type { UserType } from '../types/types.js';
 
 // Gestore get user
 async function getUser(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
 
         // Controllo utente
         if (!user)
@@ -67,14 +60,7 @@ async function patchUser(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
         const {
             email,
             psw,
@@ -185,14 +171,7 @@ async function deleteUser(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
 
         // Controllo utente
         if (!user)
@@ -243,5 +222,5 @@ async function deleteUser(req: Request, res: Response): Promise<Response> {
     }
 }
 
-// Esportazione gestore
+// Esportazione gestori
 export { getUser, patchUser, deleteUser };

@@ -3,20 +3,14 @@ import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import UserSettingsModel from '../models/UserSettings.model.js';
 import mongoose from 'mongoose';
+import type { UserType } from '../types/types.js';
 
 // Gestore get user settings
 async function getUserSettings(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
 
         // Controllo utente
         if (!user)
@@ -78,14 +72,7 @@ async function patchUserSettings(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
         let {
             style_mode: styleMode,
             units,
@@ -176,14 +163,7 @@ async function deleteUserSettings(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
 
         // Controllo utente
         if (!user)
@@ -237,5 +217,5 @@ async function deleteUserSettings(
     }
 }
 
-// Esportazione gestore
+// Esportazione gestori
 export { getUserSettings, patchUserSettings, deleteUserSettings };

@@ -4,6 +4,9 @@ import { Schema, model, type ObjectId } from 'mongoose';
 // Interfaccia dati
 interface Data {
     _id: ObjectId;
+    desc: string;
+    link: string;
+    read: boolean;
     date: Date;
     humI: number | [number, number];
     humE: number;
@@ -25,6 +28,7 @@ interface Data {
 // Schema dato
 const DataSchema = new Schema(
     {
+        read: { type: Boolean, default: false },
         date: { type: Date, default: () => new Date() },
         humI: { type: Schema.Types.Mixed },
         humE: { type: Number },

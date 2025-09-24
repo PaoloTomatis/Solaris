@@ -144,7 +144,7 @@ _Colore_ --> _mod. Chiara_ | _mod. Scura_ (i pallini colorati non sono accurati)
 -   Utenti --> users (id, email, role, psw, refresh_token, createdAt, updatedAt)
 -   Dispositivi --> devices (id, key, name, prototype, userId, mode, activatedAt, createdAt, updatedAt)
 -   Dati --> data (id, desc, link, read, date, humI, humE, temp, lum, deviceId, type, createdAt, updatedAt)
--   Impostazioni Dispositivi --> device_settings (id, humMax, humMin, interval, deviceId createdAt, updatedAt)
+-   Impostazioni Dispositivi --> device_settings (id, humMax, humMin, interval, deviceId, createdAt, updatedAt)
 -   Impostazioni Utente --> user_settings (id, styleMode, units, userId, createdAt, updatedAt)
 
 ### _Hardware Solaris Vega V1_

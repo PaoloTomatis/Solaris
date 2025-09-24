@@ -4,14 +4,14 @@ import resHandler from '../utils/responseHandler.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
+import type { UserType } from '../types/types.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: { id: mongoose.Types.ObjectId; email: string } | undefined =
-            req.body.user;
+        const user: UserType | undefined = req.body.user;
         const {
             id,
             key,
@@ -97,7 +97,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     false
                 );
 
-            // Impostazione key
+            // Impostazione name
             filter.name = name;
         }
 
@@ -133,10 +133,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
 
         // Controllo mode
         if (mode) {
-            if (
-                typeof mode !== 'string' ||
-                !['config', 'auto', 'safe'].includes(mode)
-            )
+            if (!['config', 'auto', 'safe'].includes(mode))
                 return resHandler(
                     res,
                     400,
@@ -198,14 +195,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
         const {
             key,
             name,
@@ -380,14 +370,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
         const {
             name,
             activatedAt,
@@ -559,14 +542,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user:
-            | {
-                  id: mongoose.Types.ObjectId;
-                  email: string;
-                  role: string;
-                  createdAt: Date;
-              }
-            | undefined = req.body.user;
+        const user: UserType | undefined = req.body.user;
         let { id: deviceId }: { id?: string | mongoose.Types.ObjectId } =
             req.params;
 
@@ -650,5 +626,5 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
     }
 }
 
-// Esportazione gestore
+// Esportazione gestori
 export { getDevices, postDevice, patchDevice, deleteDevice };
