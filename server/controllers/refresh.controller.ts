@@ -65,7 +65,7 @@ async function refresh(req: Request, res: Response): Promise<Response> {
             );
 
         // Controllo dati utente e decoded
-        if (decoded.id !== user._id || decoded.email !== user.email)
+        if (decoded.id !== user._id.toString() || decoded.email !== user.email)
             return resHandler(
                 res,
                 401,

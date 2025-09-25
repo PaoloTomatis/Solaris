@@ -34,7 +34,7 @@ async function getUser(req: Request, res: Response): Promise<Response> {
             res,
             200,
             {
-                id: userRes._id,
+                id: userRes._id.toString(),
                 role: userRes.role,
                 email: userRes.email,
                 createdAt: userRes.createdAt,
@@ -61,12 +61,9 @@ async function patchUser(req: Request, res: Response): Promise<Response> {
     try {
         // Ricavo dati richiesta
         const user: UserType | undefined = req.body.user;
-        const {
-            email,
-            psw,
-        }: { email: string | undefined; psw: string | undefined } = req.body;
+        const { email, psw }: { email?: string; psw?: string } = req.body;
 
-        // Liste modifiche
+        // Lista modifiche
         const data: { email?: string; psw?: string } = {};
 
         // Controllo utente
@@ -145,7 +142,7 @@ async function patchUser(req: Request, res: Response): Promise<Response> {
             res,
             200,
             {
-                id: userRes._id,
+                id: userRes._id.toString(),
                 role: userRes.role,
                 email: userRes.email,
                 createdAt: userRes.createdAt,
@@ -201,7 +198,7 @@ async function deleteUser(req: Request, res: Response): Promise<Response> {
             res,
             200,
             {
-                id: userDelete._id,
+                id: userDelete._id.toString(),
                 role: userDelete.role,
                 email: userDelete.email,
                 createdAt: userDelete.createdAt,

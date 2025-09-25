@@ -2,7 +2,6 @@
 import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import UserSettingsModel from '../models/UserSettings.model.js';
-import mongoose from 'mongoose';
 import type { UserType } from '../types/types.js';
 
 // Gestore get user settings
@@ -42,10 +41,10 @@ async function getUserSettings(req: Request, res: Response): Promise<Response> {
             res,
             200,
             {
-                id: userSettings._id,
+                id: userSettings._id.toString(),
                 styleMode: userSettings.styleMode,
                 units: userSettings.units,
-                userId: userSettings.userId,
+                userId: userSettings.userId.toString(),
                 updatedAt: userSettings.updatedAt,
                 createdAt: userSettings.createdAt,
             },
@@ -74,11 +73,11 @@ async function patchUserSettings(
         // Ricavo dati richiesta
         const user: UserType | undefined = req.body.user;
         let {
-            style_mode: styleMode,
+            styleMode,
             units,
         }: {
-            style_mode: string | undefined;
-            units: string | undefined;
+            styleMode?: string;
+            units?: string;
         } = req.body;
         const errors: string[] = [];
 
@@ -132,10 +131,10 @@ async function patchUserSettings(
             res,
             200,
             {
-                id: userSettings._id,
+                id: userSettings._id.toString(),
                 styleMode: userSettings.styleMode,
                 units: userSettings.units,
-                userId: userSettings.userId,
+                userId: userSettings.userId.toString(),
                 updatedAt: userSettings.updatedAt,
                 createdAt: userSettings.createdAt,
             },
@@ -175,7 +174,7 @@ async function deleteUserSettings(
                 false
             );
 
-        // Aggiornamento o creazione utente database
+        // Eliminazione impostazioni utente database
         const userSettings = await UserSettingsModel.findOneAndDelete({
             userId: user.id,
         });
@@ -195,10 +194,10 @@ async function deleteUserSettings(
             res,
             200,
             {
-                id: userSettings._id,
+                id: userSettings._id.toString(),
                 styleMode: userSettings.styleMode,
                 units: userSettings.units,
-                userId: userSettings.userId,
+                userId: userSettings.userId.toString(),
                 updatedAt: userSettings.updatedAt,
                 createdAt: userSettings.createdAt,
             },

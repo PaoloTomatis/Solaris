@@ -9,7 +9,7 @@ import {
 // Creazione router
 const userSettingsRouter = Router();
 
-// Rotte get, patch, delete user
+// Rotte get, patch, delete user settings
 userSettingsRouter
     .get('/', getUserSettings)
     .patch('/', patchUserSettings)

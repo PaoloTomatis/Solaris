@@ -1,10 +1,10 @@
 // Importazione moduli
 import { Router } from 'express';
 import {
-    deleteDevice,
     getDevices,
-    patchDevice,
     postDevice,
+    patchDevice,
+    deleteDevice,
 } from '../controllers/devices.controller.js';
 
 // Creazione router

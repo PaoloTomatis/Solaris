@@ -164,11 +164,11 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
             200,
             devices.map((device) => {
                 return {
-                    id: device._id,
+                    id: device._id.toString(),
                     key: device.key,
                     name: device.name,
                     prototype: device.prototype,
-                    userId: device.userId,
+                    userId: device.userId.toString(),
                     mode: device.mode,
                     activatedAt: device.activatedAt,
                     updatedAt: device.updatedAt,
@@ -340,11 +340,11 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
             res,
             201,
             {
-                id: device._id,
+                id: device._id.toString(),
                 key: device.key,
                 name: device.name,
                 prototype: device.prototype,
-                userId: device.userId,
+                userId: device.userId.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,
                 updatedAt: device.updatedAt,
@@ -385,7 +385,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
         let { id: deviceId }: { id?: string | mongoose.Types.ObjectId } =
             req.params;
 
-        // Lista filtri
+        // Lista modifiche
         const data: {
             name?: string;
             activatedAt?: Date;
@@ -512,11 +512,11 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             res,
             200,
             {
-                id: device._id,
+                id: device._id.toString(),
                 key: device.key,
                 name: device.name,
                 prototype: device.prototype,
-                userId: device.userId,
+                userId: device.userId.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,
                 updatedAt: device.updatedAt,
@@ -601,11 +601,11 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
             res,
             200,
             {
-                id: device._id,
+                id: device._id.toString(),
                 key: device.key,
                 name: device.name,
                 prototype: device.prototype,
-                userId: device.userId,
+                userId: device.userId.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,
                 updatedAt: device.updatedAt,

@@ -1,14 +1,15 @@
 // Importazione moduli
-import { Schema, model } from 'mongoose';
+import { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia impostazioni dispositivo
 interface DeviceSettings {
-    _id: string;
+    _id: ObjectId;
     humMax: number;
     humMin: number;
     interval: number;
     deviceId: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 // Schema impostazioni dispositivo
