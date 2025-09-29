@@ -1,5 +1,6 @@
 // Importazione moduli
-import express from 'express';
+import express, { type Request, type Response } from 'express';
+import type { AuthenticatedSocket } from './types/types.js';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -9,7 +10,12 @@ import resHandler from './utils/responseHandler.js';
 import cookieParser from 'cookie-parser';
 import authRouter from './routers/auth.router.js';
 import apiRouter from './routers/api.router.js';
-import jwtVerify from './middleware/jwt_verify.middleware.js';
+import {
+    jwtMiddlewareRest,
+    jwtMiddlewareWS,
+} from './middleware/jwt_verify.middleware.js';
+import status from './controllers/status.controller.js';
+import irrigation from './controllers/irrigation.controller.js';
 
 // Configurazione
 configDotenv();
@@ -33,6 +39,27 @@ const io = new Server(server, {
     },
 });
 
+// Middleware autenticazione (socket)
+io.use(jwtMiddlewareWS);
+
+// Connessione socket
+io.on('connection', (socket: AuthenticatedSocket) => {
+    // Controllo utente o dispositivo
+    if (socket.user) {
+        // Inserimento stanza privata
+        socket.join(`USER-${socket.user.id}`);
+
+        // Gestore evento irrigazione
+        socket.on('irrigation', async (data) => await irrigation(socket, data));
+    } else if (socket.device) {
+        // Inserimento stanza privata
+        socket.join(`DEVICE-${socket.device.id}`);
+
+        // Gestore evento stato
+        socket.on('status', (data) => status(socket, data));
+    }
+});
+
 // Middleware cors
 app.use(
     cors({
@@ -48,7 +75,7 @@ app.use(express.urlencoded());
 app.use(cookieParser());
 
 // Rotta default
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
     return resHandler(
         res,
         200,
@@ -62,10 +89,10 @@ app.get('/', (req, res) => {
 app.use('/auth', authRouter);
 
 // Rotta api
-app.use('/api', jwtVerify, apiRouter);
+app.use('/api', jwtMiddlewareRest, apiRouter);
 
 // Rotta 404
-app.use((req, res) => {
+app.use((req: Request, res: Response) => {
     return resHandler(
         res,
         404,
@@ -85,3 +112,5 @@ async function start() {
 
 // Attivazione script
 start();
+
+export { io };

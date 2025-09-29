@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import DeviceModel from '../models/Device.model.js';
-import type { UserType } from '../types/types.js';
+import type { DeviceType, UserType } from '../types/types.js';
 import mongoose from 'mongoose';
 
 // Gestore get devices settings
@@ -15,6 +15,7 @@ async function getDeviceSettings(
     try {
         // Ricavo dati richiesta
         const user: UserType | undefined = req.body.user;
+        const device: DeviceType | undefined = req.body.device;
         const { deviceId, id: settingsId }: { deviceId?: string; id?: string } =
             req.query;
 
@@ -25,7 +26,7 @@ async function getDeviceSettings(
         } = {};
 
         // Controllo utente
-        if (!user)
+        if (!user && !device)
             return resHandler(
                 res,
                 401,
@@ -62,6 +63,8 @@ async function getDeviceSettings(
 
             // Impostazione deviceId
             filter.deviceId = new mongoose.Types.ObjectId(deviceId);
+        } else if (device) {
+            filter.deviceId = new mongoose.Types.ObjectId(device.id);
         }
 
         // Ricavo impostazioni dispositivo database
@@ -77,25 +80,27 @@ async function getDeviceSettings(
                 false
             );
 
-        // Ricavo dispositivo database
-        const userDevices = await DeviceModel.find({ userId: user.id });
+        if (user) {
+            // Ricavo dispositivo database
+            const userDevices = await DeviceModel.find({ userId: user.id });
 
-        // Lista id dispositivi
-        const devicesId = userDevices.map((userDevice) => userDevice._id);
+            // Lista id dispositivi
+            const devicesId = userDevices.map((userDevice) => userDevice._id);
 
-        // Controllo impostazioni dispositivo
-        if (
-            !devicesId
-                .map((d) => d.toString())
-                .includes(deviceSettings.deviceId.toString())
-        )
-            return resHandler(
-                res,
-                403,
-                null,
-                "Il dispositivo che possiede queste impostazioni non appartiene all'account autenticato!",
-                false
-            );
+            // Controllo impostazioni dispositivo
+            if (
+                !devicesId
+                    .map((d) => d.toString())
+                    .includes(deviceSettings.deviceId.toString())
+            )
+                return resHandler(
+                    res,
+                    403,
+                    null,
+                    "Il dispositivo che possiede queste impostazioni non appartiene all'account autenticato!",
+                    false
+                );
+        }
 
         // Risposta finale
         return resHandler(

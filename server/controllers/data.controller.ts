@@ -4,7 +4,8 @@ import resHandler from '../utils/responseHandler.js';
 import DataModel from '../models/Data.model.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
-import type { UserType } from '../types/types.js';
+import type { DeviceType, UserType } from '../types/types.js';
+import { io } from '../server.js';
 
 // Gestore get data
 async function getData(req: Request, res: Response): Promise<Response> {
@@ -269,24 +270,26 @@ async function postData(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const device: DeviceType | undefined = req.body.device;
         const {
+            desc,
+            link,
             date,
             read,
             humI,
             humE,
             temp,
             lum,
-            deviceId,
             type,
         }: {
-            date?: Date;
+            desc?: string;
+            link?: string;
+            date?: string;
             read?: boolean;
-            humI?: number | [number, number];
-            humE?: number;
-            temp?: number;
-            lum?: number;
-            deviceId?: string;
+            humI?: string | [string, string];
+            humE?: string;
+            temp?: string;
+            lum?: string;
             type?: string;
         } = req.body;
 
@@ -306,7 +309,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
         } = {};
 
         // Controllo utente
-        if (!user)
+        if (!device)
             return resHandler(
                 res,
                 401,
@@ -371,7 +374,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
             }
 
             // Impostazione humI
-            data.humI = humI;
+            data.humI = Number(humI);
         }
 
         // Controllo humE
@@ -444,67 +447,45 @@ async function postData(req: Request, res: Response): Promise<Response> {
             data.type = type;
         }
 
-        // Controllo deviceId
-        if (!deviceId)
-            return resHandler(
-                res,
-                400,
-                null,
-                'Campo "deviceId" necessario!',
-                false
-            );
-        if (!mongoose.isValidObjectId(deviceId))
-            return resHandler(
-                res,
-                400,
-                null,
-                'Campo "deviceId" invalido nella richiesta!',
-                false
-            );
-
         // Impostazione deviceId
-        data.deviceId = new mongoose.Types.ObjectId(deviceId);
-
-        // Ricavo dispositivo database
-        const userDevices = await DeviceModel.find({ userId: user.id });
-
-        // Lista id dispositivi
-        const devicesId = userDevices.map((userDevice) => userDevice._id);
-
-        // Controllo deviceId
-        if (!devicesId.map((d) => d.toString()).includes(deviceId))
-            return resHandler(
-                res,
-                403,
-                null,
-                "Il dispositivo non appartiene all'account autenticato!",
-                false
-            );
+        data.deviceId = new mongoose.Types.ObjectId(device.id);
 
         // Creazione dati database
         const dato = new DataModel(data);
         // Salvataggio dati
         await dato.save();
 
+        // Dato risposta
+        const returnData = {
+            id: dato._id.toString(),
+            desc: dato.desc,
+            link: dato.link,
+            read: dato.read,
+            date: dato.date,
+            humI: dato.humI,
+            humE: dato.humE,
+            temp: dato.temp,
+            lum: dato.lum,
+            deviceId: dato.deviceId.toString(),
+            type: dato.type,
+            updatedAt: dato.updatedAt,
+            createdAt: dato.createdAt,
+        };
+
+        // Controllo stanza
+        const isRoomActive: boolean =
+            (io.sockets.adapter.rooms.get(`USER-${device.userId}`)?.size || 0) >
+            0;
+        // Invio dati stanza
+        if (isRoomActive) {
+            io.to(`USER-${device.userId}`).emit('data', returnData);
+        }
+
         // Risposta finale
         return resHandler(
             res,
             200,
-            {
-                id: dato._id.toString(),
-                desc: dato.desc,
-                link: dato.link,
-                read: dato.read,
-                date: dato.date,
-                humI: dato.humI,
-                humE: dato.humE,
-                temp: dato.temp,
-                lum: dato.lum,
-                deviceId: dato.deviceId.toString(),
-                type: dato.type,
-                updatedAt: dato.updatedAt,
-                createdAt: dato.createdAt,
-            },
+            returnData,
             'Dati creati con successo!',
             true
         );

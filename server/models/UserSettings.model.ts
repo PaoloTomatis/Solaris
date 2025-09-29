@@ -2,7 +2,7 @@
 import { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia impostazioni utente
-interface UserSettings {
+interface UserSettingsType {
     _id: ObjectId;
     styleMode: 'dark' | 'light';
     units: 'metric' | 'imperial';
@@ -31,4 +31,5 @@ const UserSettingsSchema = new Schema(
 );
 
 // Esportazione modello
-export default model<UserSettings>('UserSettings', UserSettingsSchema);
+export default model<UserSettingsType>('UserSettings', UserSettingsSchema);
+export type { UserSettingsType };

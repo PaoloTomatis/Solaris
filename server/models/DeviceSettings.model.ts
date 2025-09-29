@@ -2,7 +2,7 @@
 import { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia impostazioni dispositivo
-interface DeviceSettings {
+interface DeviceSettingsType {
     _id: ObjectId;
     humMax: number;
     humMin: number;
@@ -24,4 +24,8 @@ const DeviceSettingsSchema = new Schema(
 );
 
 // Esportazione modello
-export default model<DeviceSettings>('DeviceSettings', DeviceSettingsSchema);
+export default model<DeviceSettingsType>(
+    'DeviceSettings',
+    DeviceSettingsSchema
+);
+export type { DeviceSettingsType };

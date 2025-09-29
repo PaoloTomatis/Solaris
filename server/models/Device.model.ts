@@ -2,9 +2,10 @@
 import { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia dispositivo
-interface Device {
+interface DeviceType {
     _id: ObjectId;
     key: string;
+    psw: string;
     prototype: string;
     name: string;
     activatedAt: Date;
@@ -14,10 +15,17 @@ interface Device {
     createdAt: Date;
 }
 
+// const passwordAlphabet =
+//     'abcdefghijklmnopqrstuvwxyz' +
+//     'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+//     '0123456789' +
+//     '!@#$%^&*()_-+=[]{}|;:,.<>?';
+
 // Schema dispositivo
 const DeviceSchema = new Schema(
     {
         key: { type: String, required: true, unique: true },
+        psw: { type: String, required: true },
         prototype: { type: String, default: 'Solaris Vega V1' },
         name: { type: String, default: 'My Device' },
         activatedAt: { type: Date, default: () => new Date() },
@@ -32,4 +40,5 @@ const DeviceSchema = new Schema(
 );
 
 // Esportazione modello
-export default model<Device>('Device', DeviceSchema);
+export default model<DeviceType>('Device', DeviceSchema);
+export type { DeviceType };

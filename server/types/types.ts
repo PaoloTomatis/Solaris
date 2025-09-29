@@ -1,12 +1,33 @@
 // Importazione moduli
-import mongoose from 'mongoose';
+import type { Socket } from 'socket.io';
 
+// Interfaccia utente
 interface UserType {
-    id: mongoose.Types.ObjectId;
+    id: string;
     email: string;
     role: string;
+    updatedAt: Date;
     createdAt: Date;
 }
 
+// Interfaccia dispositivo
+interface DeviceType {
+    id: string;
+    key: string;
+    name: string;
+    prototype: string;
+    userId: string;
+    mode: string;
+    activatedAt: Date;
+    updatedAt: Date;
+    createdAt: Date;
+}
+
+// Interfaccia socket
+interface AuthenticatedSocket extends Socket {
+    user?: UserType;
+    device?: DeviceType;
+}
+
 // Esportazione interfacce
-export type { UserType };
+export type { UserType, DeviceType, AuthenticatedSocket };

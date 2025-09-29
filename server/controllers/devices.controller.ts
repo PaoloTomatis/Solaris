@@ -5,6 +5,7 @@ import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
 import type { UserType } from '../types/types.js';
+import { io } from '../server.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
@@ -147,7 +148,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
         }
 
         // Impostazione userId
-        filter.userId = user.id;
+        filter.userId = new mongoose.Types.ObjectId(user.id);
 
         // Costruzione query
         const query = DeviceModel.find(filter);
@@ -382,8 +383,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             mode?: 'config' | 'auto' | 'safe';
             userId?: string;
         } = req.body;
-        let { id: deviceId }: { id?: string | mongoose.Types.ObjectId } =
-            req.params;
+        const { key: key }: { key?: string } = req.params;
 
         // Lista modifiche
         const data: {
@@ -404,21 +404,14 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             );
 
         // Controllo id dispositivo
-        if (!deviceId)
+        if (!key || typeof key !== 'string')
             return resHandler(
                 res,
                 400,
                 null,
-                'Id del dispositivo mancante!',
+                'Chiave del dispositivo mancante o invalida!',
                 false
             );
-
-        // Controllo deviceId
-        if (!mongoose.isValidObjectId(deviceId))
-            return resHandler(res, 400, null, 'Campo "id" invalido!', false);
-
-        // Parsing deviceId
-        deviceId = new mongoose.Types.ObjectId(deviceId);
 
         // Controllo name
         if (name) {
@@ -465,6 +458,8 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 );
             // Impostazione activatedAt
             data.activatedAt = date;
+        } else if (userId) {
+            data.activatedAt = new Date();
         }
 
         // Controllo mode
@@ -493,7 +488,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             );
 
         // Aggiornamento dispositivo database
-        const device = await DeviceModel.findByIdAndUpdate(deviceId, data, {
+        const device = await DeviceModel.findOneAndUpdate({ key }, data, {
             new: true,
         });
 
@@ -506,6 +501,14 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 'Modifiche non apportate correttamente!',
                 false
             );
+
+        // Invio eventi ws
+        if (device && userId) {
+            io.to(`DEVICE-${device.id}`).emit('activate', { activate: true });
+        }
+        if (device && mode) {
+            io.to(`DEVICE-${device.id}`).emit('mode', { mode });
+        }
 
         // Risposta finale
         return resHandler(

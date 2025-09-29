@@ -4,34 +4,41 @@ import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import resHandler from '../utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
+import type { UserType } from '../models/User.model.js';
+import type { DeviceType } from '../models/Device.model.js';
+import DeviceModel from '../models/Device.model.js';
 
 // Gestore login
 async function login(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const { email, psw } = req.body;
+        const {
+            email,
+            key,
+            psw,
+            type,
+        }: { email?: string; key?: string; psw?: string; type?: string } =
+            req.body;
 
-        // Ricavo utente database
-        const user = await UserModel.findOne({ email });
+        // Dichiarazione soggetto
+        let subject: UserType | DeviceType | undefined | null;
 
-        // Controllo utente
-        if (!user)
-            return resHandler(
-                res,
-                401,
-                null,
-                'Email o Password errati!',
-                false
-            );
+        type LoginSubject =
+            | ({ type: 'user' } & UserType)
+            | ({ type: 'device' } & DeviceType);
 
-        // Controllo email
-        if (!email || typeof email !== 'string')
+        // Controllo email/key
+        if (
+            type === 'user'
+                ? !email || typeof email !== 'string'
+                : !key || typeof key !== 'string'
+        )
             return resHandler(
                 res,
                 400,
                 null,
-                'Email o Password invalidi o mancanti!',
+                'Email/Chiave invalida o mancante!',
                 false
             );
 
@@ -41,17 +48,38 @@ async function login(req: Request, res: Response): Promise<Response> {
                 res,
                 400,
                 null,
-                'Email o Password invalidi o mancanti!',
+                'Password invalida o mancante!',
+                false
+            );
+
+        // Ricavo soggetto database
+        subject =
+            type === 'user'
+                ? await UserModel.findOne({ email })
+                : await DeviceModel.findOne({ key });
+
+        // Controllo soggetto
+        if (!subject)
+            return resHandler(
+                res,
+                401,
+                null,
+                'Email/Chiave o Password errati!',
                 false
             );
 
         // Controllo psw
         let pswCheck: boolean = false;
-        if (user.psw) {
-            pswCheck = await bcrypt.compare(psw, user.psw);
+        if (subject.psw) {
+            pswCheck = await bcrypt.compare(psw, subject.psw);
         }
         if (!pswCheck)
-            return resHandler(res, 401, null, 'Email o Password errati!');
+            return resHandler(
+                res,
+                401,
+                null,
+                'Email/Chiave o Password errati!'
+            );
 
         // Controllo chiavi
         if (!process.env.JWT_ACCESS || !process.env.JWT_REFRESH)
@@ -65,14 +93,18 @@ async function login(req: Request, res: Response): Promise<Response> {
 
         // Firma access token
         const accessToken = jwt.sign(
-            { id: user._id, email: user.email },
+            type === 'user'
+                ? { id: subject._id, email: (subject as UserType).email }
+                : { id: subject._id, key: (subject as DeviceType).key },
             process.env.JWT_ACCESS,
             { expiresIn: '1h' }
         );
 
         // Firma refresh token
         const refreshToken = jwt.sign(
-            { id: user._id, email: user.email },
+            type === 'user'
+                ? { id: subject._id, email: (subject as UserType).email }
+                : { id: subject._id, key: (subject as DeviceType).key },
             process.env.JWT_REFRESH,
             { expiresIn: '3d' }
         );
@@ -91,11 +123,20 @@ async function login(req: Request, res: Response): Promise<Response> {
             200,
             {
                 accessToken,
-                user: {
-                    id: user._id,
-                    email: user.email,
-                    createdAt: user.createdAt,
-                },
+                data:
+                    type === 'user'
+                        ? {
+                              id: subject._id,
+                              email: (subject as UserType).email,
+                              updatedAt: subject.updatedAt,
+                              createdAt: subject.createdAt,
+                          }
+                        : {
+                              id: subject._id,
+                              key: (subject as DeviceType).key,
+                              updatedAt: subject.updatedAt,
+                              createdAt: subject.createdAt,
+                          },
             },
             'Login effettuato con successo!',
             true

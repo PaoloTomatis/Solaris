@@ -2,7 +2,7 @@
 import { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia utente
-interface User {
+interface UserType {
     _id: ObjectId;
     role: 'admin' | 'user';
     email: string;
@@ -24,4 +24,5 @@ const UserSchema = new Schema(
 );
 
 // Esportazione modello
-export default model<User>('User', UserSchema);
+export default model<UserType>('User', UserSchema);
+export type { UserType };

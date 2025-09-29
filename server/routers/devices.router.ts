@@ -14,7 +14,7 @@ const deviceRouter = Router();
 deviceRouter
     .get('/devices', getDevices)
     .post('/device', postDevice)
-    .patch('/device/:id', patchDevice)
+    .patch('/device/:key', patchDevice)
     .delete('/device/:id', deleteDevice);
 
 // Esportazione router

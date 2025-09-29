@@ -2,7 +2,7 @@
 import { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia dati
-interface Data {
+interface DataType {
     _id: ObjectId;
     desc: string;
     link: string;
@@ -57,4 +57,5 @@ const DataSchema = new Schema(
 );
 
 // Esportazione modello
-export default model<Data>('Data', DataSchema);
+export default model<DataType>('Data', DataSchema);
+export type { DataType };
