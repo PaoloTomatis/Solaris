@@ -12,6 +12,7 @@ interface DataType {
     humE: number;
     temp: number;
     lum: number;
+    interval: number;
     deviceId: ObjectId;
     type:
         | 'log_error'
@@ -28,12 +29,15 @@ interface DataType {
 // Schema dato
 const DataSchema = new Schema(
     {
+        desc: { type: String },
+        link: { type: String, default: process.env.CLIENT_URL || null },
         read: { type: Boolean, default: false },
         date: { type: Date, default: () => new Date() },
         humI: { type: Schema.Types.Mixed },
         humE: { type: Number },
         temp: { type: Number },
         lum: { type: Number },
+        interval: { type: Number },
         deviceId: {
             type: Schema.Types.ObjectId,
             required: true,

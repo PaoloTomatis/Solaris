@@ -16,6 +16,7 @@ function status(
         if (!lastSeen || isNaN(new Date(lastSeen).getTime())) {
             lastSeen = new Date();
         }
+
         // Controllo stanza
         const isRoomActive: boolean =
             (io.sockets.adapter.rooms.get(`USER-${socket.device.userId}`)

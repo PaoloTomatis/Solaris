@@ -21,6 +21,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
             humE,
             temp,
             lum,
+            interval,
             deviceId,
             type,
             limit,
@@ -32,6 +33,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
             humE?: string;
             temp?: string;
             lum?: string;
+            interval?: string;
             deviceId?: string;
             type?: string;
             limit?: string;
@@ -46,6 +48,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
             humE?: number;
             temp?: number;
             lum?: number;
+            interval?: number;
             type?: string;
             userId?: mongoose.Types.ObjectId;
             deviceId?: mongoose.Types.ObjectId;
@@ -169,6 +172,21 @@ async function getData(req: Request, res: Response): Promise<Response> {
             filter.lum = Number(lum);
         }
 
+        // Controllo interval
+        if (interval) {
+            if (isNaN(Number(interval)))
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "interval" invalido nella richiesta!',
+                    false
+                );
+
+            // Impostazione interval
+            filter.interval = Number(interval);
+        }
+
         // Controllo type
         if (type) {
             if (
@@ -244,6 +262,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     humE: dato.humE,
                     temp: dato.temp,
                     lum: dato.lum,
+                    interval: dato.interval,
                     deviceId: dato.deviceId.toString(),
                     type: dato.type,
                     updatedAt: dato.updatedAt,
@@ -280,6 +299,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
             humE,
             temp,
             lum,
+            interval,
             type,
         }: {
             desc?: string;
@@ -290,18 +310,22 @@ async function postData(req: Request, res: Response): Promise<Response> {
             humE?: string;
             temp?: string;
             lum?: string;
+            interval?: string;
             type?: string;
         } = req.body;
 
         // Lista filtri
         const data: {
             _id?: mongoose.Types.ObjectId;
+            desc?: string;
+            link?: string;
             date?: Date;
             read?: boolean;
             humI?: number | [number, number];
             humE?: number;
             temp?: number;
             lum?: number;
+            interval?: number;
             type?: string;
             userId?: mongoose.Types.ObjectId;
             deviceId?: mongoose.Types.ObjectId;
@@ -317,6 +341,44 @@ async function postData(req: Request, res: Response): Promise<Response> {
                 'Autenticazione non eseguita correttamente!',
                 false
             );
+
+        // Controllo desc
+        if (desc) {
+            if (
+                desc.length <= 0 ||
+                desc.length > 255 ||
+                typeof link !== 'string'
+            )
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "desc" invalido nella richiesta!',
+                    false
+                );
+
+            // Impostazione desc
+            data.desc = desc;
+        }
+
+        // Controllo link
+        if (link) {
+            if (
+                link.length <= 0 ||
+                link.length > 255 ||
+                typeof link !== 'string'
+            )
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "link" invalido nella richiesta!',
+                    false
+                );
+
+            // Impostazione link
+            data.link = link;
+        }
 
         // Controllo date
         if (date) {
@@ -422,6 +484,21 @@ async function postData(req: Request, res: Response): Promise<Response> {
             data.lum = Number(lum);
         }
 
+        // Controllo interval
+        if (interval) {
+            if (isNaN(Number(interval)))
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "interval" invalido nella richiesta!',
+                    false
+                );
+
+            // Impostazione interval
+            data.interval = Number(interval);
+        }
+
         // Controllo type
         if (type) {
             if (
@@ -466,6 +543,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
             humE: dato.humE,
             temp: dato.temp,
             lum: dato.lum,
+            interval: dato.interval,
             deviceId: dato.deviceId.toString(),
             type: dato.type,
             updatedAt: dato.updatedAt,
@@ -605,6 +683,7 @@ async function patchData(req: Request, res: Response): Promise<Response> {
                 humE: dato.humE,
                 temp: dato.temp,
                 lum: dato.lum,
+                interval: dato.interval,
                 deviceId: dato.deviceId.toString(),
                 type: dato.type,
                 updatedAt: dato.updatedAt,
@@ -704,6 +783,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
                 humE: dato.humE,
                 temp: dato.temp,
                 lum: dato.lum,
+                interval: dato.interval,
                 deviceId: dato.deviceId.toString(),
                 type: dato.type,
                 updatedAt: dato.updatedAt,

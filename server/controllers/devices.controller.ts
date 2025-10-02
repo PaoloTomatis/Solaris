@@ -6,6 +6,8 @@ import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
 import type { UserType } from '../types/types.js';
 import { io } from '../server.js';
+import bcrypt from 'bcrypt';
+import pswGenerator from '../utils/pswGenerator.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
@@ -199,12 +201,14 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
         const user: UserType | undefined = req.body.user;
         const {
             key,
+            psw,
             name,
             prototype,
             activatedAt,
             mode,
         }: {
             key?: string;
+            psw?: string;
             name?: string;
             prototype?: string;
             activatedAt?: string;
@@ -214,6 +218,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
         // Lista filtri
         const data: {
             key?: string;
+            psw?: string;
             name?: string;
             prototype?: string;
             activatedAt?: Date;
@@ -321,6 +326,26 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
             data.mode = mode;
         }
 
+        // Controllo psw
+        if (psw) {
+            if (psw.length < 8 || psw.length > 255)
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "psw" invalido nella richiesta!',
+                    false
+                );
+
+            // Hash password
+            const hashedPsw = await bcrypt.hash(psw, 10);
+
+            // Impostazione psw
+            data.psw = hashedPsw;
+        } else {
+            data.psw = pswGenerator();
+        }
+
         // Creazione dispositivo database
         const device = new DeviceModel();
         // Salvataggio dispositivo
@@ -383,7 +408,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             mode?: 'config' | 'auto' | 'safe';
             userId?: string;
         } = req.body;
-        const { key: key }: { key?: string } = req.params;
+        const { key }: { key?: string } = req.params;
 
         // Lista modifiche
         const data: {
@@ -502,14 +527,6 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 false
             );
 
-        // Invio eventi ws
-        if (device && userId) {
-            io.to(`DEVICE-${device.id}`).emit('activate', { activate: true });
-        }
-        if (device && mode) {
-            io.to(`DEVICE-${device.id}`).emit('mode', { mode });
-        }
-
         // Risposta finale
         return resHandler(
             res,
@@ -526,6 +543,210 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 createdAt: device.createdAt,
             },
             'Dispositivo aggiornato con successo!',
+            true
+        );
+    } catch (error: unknown) {
+        // Errore in console
+        console.error(error);
+        const errorMsg =
+            error instanceof Error
+                ? error?.message || 'Errore interno del server!'
+                : 'Errore sconosciuto!';
+        // Risposta finale
+        return resHandler(res, 500, null, errorMsg, false);
+    }
+}
+
+// Gestore attivazione device
+async function activateDevice(req: Request, res: Response): Promise<Response> {
+    // Gestione errori
+    try {
+        // Ricavo dati richiesta
+        const user: UserType | undefined = req.body.user;
+        const { key }: { key?: string } = req.params;
+
+        // Controllo utente
+        if (!user)
+            return resHandler(
+                res,
+                401,
+                null,
+                'Autenticazione non eseguita correttamente!',
+                false
+            );
+
+        // Ricavo dispositivo database
+        const device = await DeviceModel.findOne({ key });
+
+        // Controllo dispositivo
+        if (!device || device?.userId)
+            return resHandler(
+                res,
+                403,
+                null,
+                'Dispositivo inesistente, non disponibile o in utilizzo!',
+                false
+            );
+
+        // Aggiornamento dispositivo database
+        const deviceUpdate = await DeviceModel.findOneAndUpdate(
+            { key },
+            { userId: user.id, mode: 'config', activatedAt: new Date() },
+            { new: true }
+        );
+
+        // Controllo modifiche
+        if (!deviceUpdate)
+            return resHandler(
+                res,
+                500,
+                null,
+                'Attivazione non apportata correttamente!',
+                false
+            );
+
+        // Invio eventi ws
+        io.to(`DEVICE-${device._id.toString()}`).emit('activate', {
+            activate: true,
+        });
+        io.to(`DEVICE-${device._id.toString()}`).emit('mode', {
+            mode: 'config',
+        });
+
+        // Risposta finale
+        return resHandler(
+            res,
+            200,
+            {
+                id: deviceUpdate._id.toString(),
+                key: deviceUpdate.key,
+                name: deviceUpdate.name,
+                prototype: deviceUpdate.prototype,
+                userId: deviceUpdate.userId.toString(),
+                mode: deviceUpdate.mode,
+                activatedAt: deviceUpdate.activatedAt,
+                updatedAt: deviceUpdate.updatedAt,
+                createdAt: deviceUpdate.createdAt,
+            },
+            'Dispositivo attivato con successo!',
+            true
+        );
+    } catch (error: unknown) {
+        // Errore in console
+        console.error(error);
+        const errorMsg =
+            error instanceof Error
+                ? error?.message || 'Errore interno del server!'
+                : 'Errore sconosciuto!';
+        // Risposta finale
+        return resHandler(res, 500, null, errorMsg, false);
+    }
+}
+
+// Gestore modifica modalità
+async function updateModeDevice(
+    req: Request,
+    res: Response
+): Promise<Response> {
+    // Gestione errori
+    try {
+        // Ricavo dati richiesta
+        const user: UserType | undefined = req.body.user;
+        const mode: string | undefined = req.body.mode;
+        const key: string | undefined = req.params.key;
+
+        // Controllo utente
+        if (!user)
+            return resHandler(
+                res,
+                401,
+                null,
+                'Autenticazione non eseguita correttamente!',
+                false
+            );
+
+        // Controllo mode
+        if (!mode || !['config', 'auto', 'safe'].includes(mode))
+            return resHandler(
+                res,
+                400,
+                null,
+                'Campo "mode" invalido nella richiesta!',
+                false
+            );
+
+        // Ricavo dispositivo database
+        const device = await DeviceModel.findOne({ key });
+
+        // Controllo dispositivo
+        if (!device || device?.userId.toString() !== user.id)
+            return resHandler(
+                res,
+                403,
+                null,
+                "Dispositivo inesistente o non appartenente all'utente autenticato!",
+                false
+            );
+
+        //TODO - Calcolo MODALITA'
+        //TODO - Salvo IMPOSTAZIONI DISPOSITIVO
+
+        // Aggiornamento dispositivo database
+        const deviceUpdate = await DeviceModel.findOneAndUpdate(
+            { key },
+            { mode },
+            { new: true }
+        );
+
+        // Controllo modifiche
+        if (!deviceUpdate)
+            return resHandler(
+                res,
+                500,
+                null,
+                'Modifica non apportata correttamente!',
+                false
+            );
+
+        // Controllo stanza
+        const isRoomActive: boolean =
+            (io.sockets.adapter.rooms.get(`DEVICE-${device._id.toString()}`)
+                ?.size || 0) > 0;
+        if (!isRoomActive)
+            return resHandler(
+                res,
+                500,
+                null,
+                'Dispositivo non disponibile o non connesso alla rete!',
+                false
+            );
+
+        //TODO - Invio DATI delle IMPOSTAZIONI DISPOSITIVO
+
+        // Invio eventi ws
+        io.to(`DEVICE-${device._id.toString()}`).emit('activate', {
+            activate: true,
+        });
+        io.to(`DEVICE-${device._id.toString()}`).emit('mode', {
+            mode: 'config',
+        });
+
+        // Risposta finale
+        return resHandler(
+            res,
+            200,
+            {
+                id: deviceUpdate._id.toString(),
+                key: deviceUpdate.key,
+                name: deviceUpdate.name,
+                prototype: deviceUpdate.prototype,
+                userId: deviceUpdate.userId.toString(),
+                mode: deviceUpdate.mode,
+                activatedAt: deviceUpdate.activatedAt,
+                updatedAt: deviceUpdate.updatedAt,
+                createdAt: deviceUpdate.createdAt,
+            },
+            'Dispositivo attivato con successo!',
             true
         );
     } catch (error: unknown) {
@@ -630,4 +851,11 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
 }
 
 // Esportazione gestori
-export { getDevices, postDevice, patchDevice, deleteDevice };
+export {
+    getDevices,
+    postDevice,
+    patchDevice,
+    deleteDevice,
+    activateDevice,
+    updateModeDevice,
+};
