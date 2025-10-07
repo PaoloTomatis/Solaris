@@ -8,6 +8,7 @@ import type { UserType } from '../types/types.js';
 import { io } from '../server.js';
 import bcrypt from 'bcrypt';
 import pswGenerator from '../utils/pswGenerator.js';
+import DataModel from '../models/Data.model.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
@@ -689,12 +690,128 @@ async function updateModeDevice(
             );
 
         //TODO - Calcolo MODALITA'
+
+        // Calcolo humMin e humMax
+        // Ricavo dati database
+        const dataDB = await DataModel.find({ type: 'data_config' });
+
+        // Controllo dati
+        if (!dataDB || dataDB?.length < 10)
+            return resHandler(
+                res,
+                404,
+                null,
+                'I dati delle irrigazioni sono mancanti o minori di 10!',
+                false
+            );
+
+        // Sort dei dati per humI1
+        const sortedData1 = dataDB
+            .sort((a, b) => {
+                return Array.isArray(a.humI) && Array.isArray(b.humI)
+                    ? a.humI[0] - b.humI[0]
+                    : 0;
+            })
+            .map((data) => (Array.isArray(data.humI) ? data.humI[0] : null));
+
+        // Dichiarazione lista dati per humI1
+        const data1: ({ humI: number; peso: number } | undefined)[] = [];
+
+        // Dichiarazione posizione centrale per humI1
+        const posC1: number | [number, number] =
+            sortedData1.length % 2 == 0
+                ? [sortedData1.length / 2 + 0.5, sortedData1.length / 2 - 0.5]
+                : sortedData1.length / 2;
+
+        // Dichiarazione media
+        let media1 = 0;
+
+        sortedData1.forEach((data): Response | void => {
+            // Dichiarazione peso
+            let peso: number;
+
+            // Controllo dato
+            if (data) {
+                // Controllo posC1
+                if (Array.isArray(posC1)) {
+                    // Calcolo pesi
+                    const pesoM1 =
+                        sortedData1.length / 2 +
+                        Math.abs(posC1[1] - sortedData1.indexOf(data));
+                    const pesoM2 =
+                        sortedData1.length / 2 +
+                        Math.abs(posC1[0] - sortedData1.indexOf(data));
+
+                    // Assegnazione peso
+                    peso = pesoM1 < pesoM2 ? pesoM1 : pesoM2;
+                } else if (!isNaN(posC1)) {
+                    // Assegnazione peso
+                    peso =
+                        sortedData1.length / 2 +
+                        0.5 +
+                        Math.abs(posC1 - sortedData1.indexOf(data));
+                } else {
+                    return resHandler(
+                        res,
+                        500,
+                        null,
+                        "Errore nel calcolo dei pesi per l'algoritmo di humMax e humMin!",
+                        false
+                    );
+                }
+
+                data1.push({
+                    humI: data,
+                    peso,
+                });
+            }
+        });
+
+        // Calcolo media
+        data1.forEach((data) => {
+            // Somma alla media
+            media1 += data ? data.humI * data.peso : 0;
+        });
+        const humMin =
+            sortedData1.length % 2 == 0
+                ? media1 /
+                  ((sortedData1.length / 2) * (sortedData1.length / 2 + 1))
+                : (media1 / (data1.length / 2)) ** 2;
+
+        // Calcolo kInterval
+        // Dichiarazione medie
+        let mediaInt1 = 0;
+        let mediaInt2 = 0;
+        let valsInt1 = 0;
+        let valsInt2 = 0;
+
+        // Calcolo medie
+        dataDB.forEach((data) => {
+            // Controllo interval
+            if (data.interval) {
+                // Somma alla media 1
+                mediaInt1 += data.interval;
+                // Somma valori 1
+                valsInt1 += 1;
+            }
+            // Controllo humI
+            if (Array.isArray(data.humI)) {
+                // Somma alla media 2
+                mediaInt2 += data.humI[1] - data.humI[0];
+                // Somma valori 2
+                valsInt2 += 1;
+            }
+        });
+        mediaInt1 = mediaInt1 / valsInt1;
+        mediaInt2 = mediaInt2 / valsInt2;
+        const interval = mediaInt1 / mediaInt2;
+
         //TODO - Salvo IMPOSTAZIONI DISPOSITIVO
 
         // Aggiornamento dispositivo database
         const deviceUpdate = await DeviceModel.findOneAndUpdate(
             { key },
-            { mode },
+            { mode, humMin, interval },
             { new: true }
         );
 
