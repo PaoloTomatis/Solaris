@@ -1,18 +1,23 @@
 // Importazione moduli
-import { io } from '../server.js';
-import type { AuthenticatedSocket } from '../types/types.js';
+import type { AuthenticatedWS } from '../types/types.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
+import { emitToRoom } from '../utils/wsRoomHandlers.js';
 
 // Gestore irrigazione
 async function irrigation(
-    socket: AuthenticatedSocket,
+    ws: AuthenticatedWS,
     data: { deviceId?: string; duration?: string; completed?: boolean }
 ): Promise<void> {
     // Controllo utente
-    if (!socket.user) {
-        socket.emit('error', 'Autenticazione non effettuata correttamente!');
-        socket.disconnect(true);
+    if (!ws.user) {
+        ws.send(
+            JSON.stringify({
+                event: 'error',
+                message: 'Autenticazione non effettuata correttamente!',
+            })
+        );
+        ws.close(4001, 'Autenticazione non effettuata correttamente!');
         return;
     }
 
@@ -21,20 +26,36 @@ async function irrigation(
 
     // Controllo deviceId
     if (!deviceId || !mongoose.isValidObjectId(deviceId)) {
-        socket.emit('error', 'Campo "deviceId" invalido o mancante!');
+        ws.send(
+            JSON.stringify({
+                event: 'error',
+                message: 'Campo "deviceId" invalido o mancante!',
+            })
+        );
         return;
     }
 
     // Controllo duration
     const parsedDuration = Number(duration);
     if (isNaN(parsedDuration) || parsedDuration <= 0) {
-        socket.emit('error', "Campo 'duration' invalido!");
+        ws.send(
+            JSON.stringify({
+                event: 'error',
+                message: "Campo 'duration' invalido!",
+            })
+        );
         return;
     }
 
     // Controllo completed
     if (typeof completed !== 'boolean') {
-        socket.emit('error', 'Campo "completed" invalido o mancante!');
+        ws.emit('error');
+        ws.send(
+            JSON.stringify({
+                event: 'error',
+                message: 'Campo "completed" invalido o mancante!',
+            })
+        );
         return;
     }
 
@@ -42,33 +63,32 @@ async function irrigation(
     const device = await DeviceModel.findById(deviceId);
 
     // Controllo dispositivo
-    if (!device || device?.userId.toString() !== socket.user.id) {
-        socket.emit(
-            'error',
-            "Il dispositivo è inesistente o non appartiene all'utente autenticato!"
+    if (!device || device?.userId.toString() !== ws.user.id) {
+        ws.send(
+            JSON.stringify({
+                event: 'error',
+                message:
+                    "Il dispositivo è inesistente o non appartiene all'utente autenticato!",
+            })
         );
         return;
     }
 
     // Controllo modalità dispositivo
     if (device.mode !== 'config' || device.activatedAt === null) {
-        socket.emit(
-            'error',
-            'Il dispositivo non è attivo o non è in modalità configurazione!'
+        ws.send(
+            JSON.stringify({
+                event: 'error',
+                message:
+                    'Il dispositivo non è attivo o non è in modalità configurazione!',
+            })
         );
         return;
     }
 
-    // Controllo stanza
-    const isRoomActive: boolean =
-        (io.sockets.adapter.rooms.get(`DEVICE-${deviceId}`)?.size || 0) > 0;
-    if (!isRoomActive) {
-        socket.emit('error', 'Il dispositivo non è connesso o attivo!');
-        return;
-    }
-
     // Invio evento finale
-    io.to(`DEVICE-${deviceId}`).emit('irrigation', {
+    emitToRoom(`DEVICE-${deviceId}`, {
+        event: 'irrigation',
         parsedDuration,
         completed,
     });

@@ -5,7 +5,7 @@ import DataModel from '../models/Data.model.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import type { DeviceType, UserType } from '../types/types.js';
-import { io } from '../server.js';
+import { emitToRoom } from '../utils/wsRoomHandlers.js';
 
 // Gestore get data
 async function getData(req: Request, res: Response): Promise<Response> {
@@ -550,14 +550,8 @@ async function postData(req: Request, res: Response): Promise<Response> {
             createdAt: dato.createdAt,
         };
 
-        // Controllo stanza
-        const isRoomActive: boolean =
-            (io.sockets.adapter.rooms.get(`USER-${device.userId}`)?.size || 0) >
-            0;
         // Invio dati stanza
-        if (isRoomActive) {
-            io.to(`USER-${device.userId}`).emit('data', returnData);
-        }
+        emitToRoom(`USER-${device.userId}`, { event: 'data', returnData });
 
         // Risposta finale
         return resHandler(

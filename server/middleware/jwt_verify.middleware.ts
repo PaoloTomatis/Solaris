@@ -4,10 +4,11 @@ import type { JwtPayload } from 'jsonwebtoken';
 import type { Request, Response, NextFunction } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
-import type { AuthenticatedSocket } from '../types/types.js';
+import type { AuthenticatedWS } from '../types/types.js';
 import type { UserType } from '../models/User.model.js';
 import type { DeviceType } from '../models/Device.model.js';
 import DeviceModel from '../models/Device.model.js';
+import type { IncomingMessage } from 'http';
 
 // Interfaccia payload
 interface JwtPayloadCustom extends JwtPayload {
@@ -143,29 +144,29 @@ async function jwtMiddlewareRest(
 }
 
 async function jwtMiddlewareWS(
-    socket: AuthenticatedSocket,
-    next: (err?: Error) => void
-): Promise<void> {
+    ws: AuthenticatedWS,
+    req: IncomingMessage
+): Promise<AuthenticatedWS> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const { token: accessToken, type }: { token?: string; type?: string } =
-            socket.handshake.auth;
+        const url = new URL(req.url ?? '', `http://${req.headers.host}`);
+        const accessToken = url.searchParams.get('token');
+        const type = url.searchParams.get('type');
 
         // Controllo access token
-        if (!accessToken)
-            return next(new Error('Token di autenticazione mancante!'));
+        if (!accessToken) throw new Error('Token di autenticazione mancante!');
 
         if (type === 'user') {
             // Impostazione utente
-            socket.user = await jwtVerify(accessToken, 'user');
+            ws.user = await jwtVerify(accessToken, 'user');
         } else {
             // Impostazione utente
-            socket.device = await jwtVerify(accessToken, 'device');
+            ws.device = await jwtVerify(accessToken, 'device');
         }
 
         // Passaggio prossimo gestore
-        next();
+        return ws;
     } catch (error: unknown) {
         // Errore in console
         console.error(error);
@@ -174,7 +175,7 @@ async function jwtMiddlewareWS(
                 ? error?.message || 'Errore interno del server!'
                 : 'Errore sconosciuto!';
         // Risposta finale
-        next(new Error(errorMsg));
+        throw new Error(errorMsg);
     }
 }
 

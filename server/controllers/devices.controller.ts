@@ -5,10 +5,10 @@ import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
 import type { UserType } from '../types/types.js';
-import { io } from '../server.js';
 import bcrypt from 'bcrypt';
 import pswGenerator from '../utils/pswGenerator.js';
 import DataModel from '../models/Data.model.js';
+import { emitToRoom } from '../utils/wsRoomHandlers.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
@@ -607,10 +607,12 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
             );
 
         // Invio eventi ws
-        io.to(`DEVICE-${device._id.toString()}`).emit('activate', {
+        emitToRoom(`DEVICE-${device._id.toString()}`, {
+            event: 'activate',
             activate: true,
         });
-        io.to(`DEVICE-${device._id.toString()}`).emit('mode', {
+        emitToRoom(`DEVICE-${device._id.toString()}`, {
+            event: 'mode',
             mode: 'config',
         });
 
@@ -825,26 +827,15 @@ async function updateModeDevice(
                 false
             );
 
-        // Controllo stanza
-        const isRoomActive: boolean =
-            (io.sockets.adapter.rooms.get(`DEVICE-${device._id.toString()}`)
-                ?.size || 0) > 0;
-        if (!isRoomActive)
-            return resHandler(
-                res,
-                500,
-                null,
-                'Dispositivo non disponibile o non connesso alla rete!',
-                false
-            );
-
         //TODO - Invio DATI delle IMPOSTAZIONI DISPOSITIVO
 
         // Invio eventi ws
-        io.to(`DEVICE-${device._id.toString()}`).emit('activate', {
+        emitToRoom(`DEVICE-${device._id.toString()}`, {
+            event: 'activate',
             activate: true,
         });
-        io.to(`DEVICE-${device._id.toString()}`).emit('mode', {
+        emitToRoom(`DEVICE-${device._id.toString()}`, {
+            event: 'mode',
             mode: 'config',
         });
 

@@ -1,8 +1,8 @@
 // Importazione moduli
 import express, { type Request, type Response } from 'express';
-import type { AuthenticatedSocket } from './types/types.js';
+import type { AuthenticatedWS } from './types/types.js';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import { configDotenv } from 'dotenv';
 import connectDB from './database/connection.database.js';
@@ -16,6 +16,7 @@ import {
 } from './middleware/jwt_verify.middleware.js';
 import status from './controllers/status.controller.js';
 import irrigation from './controllers/irrigation.controller.js';
+import { joinRoom, leaveRoom } from './utils/wsRoomHandlers.js';
 
 // Configurazione
 configDotenv();
@@ -32,32 +33,34 @@ const app = express();
 const server = createServer(app);
 
 // Definizione websocket
-const io = new Server(server, {
-    cors: {
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
-        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    },
-});
+const wss = new WebSocketServer({ server });
 
-// Middleware autenticazione (socket)
-io.use(jwtMiddlewareWS);
+// Definizione stanze
+const rooms: Map<string, Set<AuthenticatedWS>> = new Map();
 
 // Connessione socket
-io.on('connection', (socket: AuthenticatedSocket) => {
+wss.on('connection', async (ws: AuthenticatedWS, req) => {
+    // Middleware autenticazione (socket)
+    ws = await jwtMiddlewareWS(ws, req);
     // Controllo utente o dispositivo
-    if (socket.user) {
+    if (ws.user) {
         // Inserimento stanza privata
-        socket.join(`USER-${socket.user.id}`);
+        joinRoom(ws, `USER-${ws.user.id}`);
 
         // Gestore evento irrigazione
-        socket.on('irrigation', async (data) => await irrigation(socket, data));
-    } else if (socket.device) {
+        ws.on('irrigation', async (data) => await irrigation(ws, data));
+    } else if (ws.device) {
         // Inserimento stanza privata
-        socket.join(`DEVICE-${socket.device.id}`);
+        joinRoom(ws, `DEVICE-${ws.device.id}`);
 
         // Gestore evento stato
-        socket.on('status', (data) => status(socket, data));
+        ws.on('status', (data) => status(ws, data));
     }
+
+    // Evento disconnessione
+    ws.on('close', () => {
+        leaveRoom(ws);
+    });
 });
 
 // Middleware cors
@@ -113,4 +116,4 @@ async function start() {
 // Attivazione script
 start();
 
-export { io };
+export { wss, rooms };

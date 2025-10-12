@@ -1,5 +1,6 @@
 // Importazione moduli
 import type { Socket } from 'socket.io';
+import type { WebSocket } from 'ws';
 
 // Interfaccia utente
 interface UserType {
@@ -24,10 +25,10 @@ interface DeviceType {
 }
 
 // Interfaccia socket
-interface AuthenticatedSocket extends Socket {
+interface AuthenticatedWS extends WebSocket {
     user?: UserType;
     device?: DeviceType;
 }
 
 // Esportazione interfacce
-export type { UserType, DeviceType, AuthenticatedSocket };
+export type { UserType, DeviceType, AuthenticatedWS };
