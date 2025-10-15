@@ -172,7 +172,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     key: device.key,
                     name: device.name,
                     prototype: device.prototype,
-                    userId: device.userId.toString(),
+                    userId: device.userId?.toString(),
                     mode: device.mode,
                     activatedAt: device.activatedAt,
                     updatedAt: device.updatedAt,
@@ -214,7 +214,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
             prototype?: string;
             activatedAt?: string;
             mode?: 'config' | 'auto' | 'safe';
-        } = req.query;
+        } = req.body;
 
         // Lista filtri
         const data: {
@@ -329,6 +329,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
 
         // Controllo psw
         if (psw) {
+            console.log(psw);
             if (psw.length < 8 || psw.length > 255)
                 return resHandler(
                     res,
@@ -338,17 +339,19 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                     false
                 );
 
-            // Hash password
-            const hashedPsw = await bcrypt.hash(psw, 10);
+            // Impostazione psw
+            data.psw = await bcrypt.hash(psw, 10);
+        } else {
+            // Generazione password
+            const _psw = pswGenerator();
+            console.log(_psw);
 
             // Impostazione psw
-            data.psw = hashedPsw;
-        } else {
-            data.psw = pswGenerator();
+            data.psw = await bcrypt.hash(_psw, 10);
         }
 
         // Creazione dispositivo database
-        const device = new DeviceModel();
+        const device = new DeviceModel(data);
         // Salvataggio dispositivo
         await device.save();
 
@@ -371,7 +374,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                 key: device.key,
                 name: device.name,
                 prototype: device.prototype,
-                userId: device.userId.toString(),
+                userId: device.userId?.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,
                 updatedAt: device.updatedAt,
@@ -537,7 +540,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 key: device.key,
                 name: device.name,
                 prototype: device.prototype,
-                userId: device.userId.toString(),
+                userId: device.userId?.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,
                 updatedAt: device.updatedAt,
@@ -937,7 +940,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
                 key: device.key,
                 name: device.name,
                 prototype: device.prototype,
-                userId: device.userId.toString(),
+                userId: device.userId?.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,
                 updatedAt: device.updatedAt,

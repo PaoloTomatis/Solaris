@@ -62,10 +62,10 @@ async function jwtVerify(accessToken: string, type: 'user' | 'device') {
 
     if (type === 'user') {
         // Ricavo utente database
-        subject = await UserModel.findOne({ _id: decoded.id });
+        subject = await UserModel.findById(decoded.id);
     } else {
         // Ricavo dispositivo database
-        subject = await DeviceModel.findOne({ _id: decoded.id });
+        subject = await DeviceModel.findById(decoded.id);
     }
 
     // Controllo esistenza soggetto
@@ -86,7 +86,7 @@ async function jwtVerify(accessToken: string, type: 'user' | 'device') {
                   key: (subject as DeviceType).key,
                   name: (subject as DeviceType).name,
                   prototype: (subject as DeviceType).prototype,
-                  userId: (subject as DeviceType).userId.toString(),
+                  userId: (subject as DeviceType).userId?.toString(),
                   mode: (subject as DeviceType).mode,
                   activatedAt: (subject as DeviceType).activatedAt,
                   createdAt: subject.createdAt,
@@ -108,7 +108,7 @@ async function jwtMiddlewareRest(
             typeof accessTokenRes === 'string'
                 ? accessTokenRes.split(' ')[1]
                 : null;
-        const type = req.headers.type;
+        const type = req.body?.type;
 
         // Controllo access token
         if (!accessToken) {
@@ -175,7 +175,10 @@ async function jwtMiddlewareWS(
                 ? error?.message || 'Errore interno del server!'
                 : 'Errore sconosciuto!';
         // Risposta finale
-        throw new Error(errorMsg);
+        ws.send(JSON.stringify({ error: errorMsg }));
+        ws.close(4001, errorMsg);
+
+        return ws;
     }
 }
 

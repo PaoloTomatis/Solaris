@@ -123,7 +123,7 @@ async function login(req: Request, res: Response): Promise<Response> {
             200,
             {
                 accessToken,
-                data:
+                subject:
                     type === 'user'
                         ? {
                               id: subject._id,

@@ -42,6 +42,7 @@ const rooms: Map<string, Set<AuthenticatedWS>> = new Map();
 wss.on('connection', async (ws: AuthenticatedWS, req) => {
     // Middleware autenticazione (socket)
     ws = await jwtMiddlewareWS(ws, req);
+
     // Controllo utente o dispositivo
     if (ws.user) {
         // Inserimento stanza privata
@@ -53,13 +54,51 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
         // Inserimento stanza privata
         joinRoom(ws, `DEVICE-${ws.device.id}`);
 
-        // Gestore evento stato
-        ws.on('status', (data) => status(ws, data));
+        // Gestione eventi
+        ws.on('message', (raw) => {
+            // Gestione errori
+            try {
+                // Ricevo dati richiesta
+                const { event, data } = JSON.parse(raw.toString());
+
+                // Controllo dati richiesta
+                if (!event || !data)
+                    resHandler(
+                        `DEVICE-${ws.device?.id}`,
+                        400,
+                        null,
+                        'Evento o dati mancanti o invalidi!',
+                        false,
+                        'ws'
+                    );
+
+                // Gestore evento stato
+                if (event === 'status') status(ws, data);
+            } catch (error: unknown) {
+                // Errore in console
+                console.error(error);
+                const errorMsg =
+                    error instanceof Error
+                        ? error?.message || 'Errore interno del server!'
+                        : 'Errore sconosciuto!';
+                // Risposta finale
+                resHandler(
+                    `DEVICE-${ws.device?.id}`,
+                    500,
+                    null,
+                    errorMsg,
+                    false,
+                    'ws'
+                );
+            }
+        });
     }
 
     // Evento disconnessione
-    ws.on('close', () => {
+    ws.on('close', (code, reason) => {
         leaveRoom(ws);
+        // Debug disconnessione
+        // console.log('Connessione chiusa', code, reason.toString());
     });
 });
 

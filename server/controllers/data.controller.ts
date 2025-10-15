@@ -344,11 +344,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
 
         // Controllo desc
         if (desc) {
-            if (
-                desc.length <= 0 ||
-                desc.length > 255 ||
-                typeof link !== 'string'
-            )
+            if (desc.length > 255 || typeof desc !== 'string')
                 return resHandler(
                     res,
                     400,

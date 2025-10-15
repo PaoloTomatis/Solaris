@@ -29,7 +29,7 @@ const DeviceSchema = new Schema(
         prototype: { type: String, default: 'Solaris Vega V1' },
         name: { type: String, default: 'My Device' },
         activatedAt: { type: Date, default: () => new Date() },
-        userId: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+        userId: { type: Schema.Types.ObjectId, ref: 'User' },
         mode: {
             type: String,
             enum: ['config', 'auto', 'safe'],
