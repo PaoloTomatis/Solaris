@@ -54,6 +54,15 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
         // Inserimento stanza privata
         joinRoom(ws, `DEVICE-${ws.device.id}`);
 
+        //! Invio evento esempio
+        ws.send(
+            JSON.stringify({
+                event: 'irrigation',
+                duration: 10,
+                completed: true,
+            })
+        );
+
         // Gestione eventi
         ws.on('message', (raw) => {
             // Gestione errori
