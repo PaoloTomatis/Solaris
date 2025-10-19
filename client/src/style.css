@@ -1,1 +1,98 @@
 @import 'tailwindcss';
+
+/* Reset */
+@layer base {
+    body,
+    html {
+        font-family: 'Intro', Arial, Helvetica, sans-serif;
+        font-size: 16px;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+    *,
+    *:before,
+    *:after {
+        box-sizing: border-box;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    ol,
+    ul {
+        margin: 0;
+        padding: 0;
+    }
+    ol,
+    ul {
+        list-style-type: none;
+    }
+    img {
+        height: auto;
+    }
+    h1 {
+        font-size: 4rem;
+    }
+    h2 {
+        font-size: 3rem;
+    }
+    h3 {
+        font-size: 2rem;
+    }
+    h4 {
+        font-size: 1rem;
+    }
+    h5 {
+        font-size: 0.8rem;
+    }
+    h6 {
+        font-size: 0.6rem;
+    }
+    a {
+        text-decoration: none;
+    }
+}
+
+@theme {
+    /* Colori Tema Chiaro */
+    --color-info: #2563eb;
+    --color-warning: #f59e0b;
+    --color-error: #dc2626;
+    --color-success: #16a34a;
+    --color-secondary-bg: #ffffff;
+    --color-primary-bg: #f8fafc;
+    --color-secondary-text: #4b5563;
+    --color-primary-text: #111827;
+    --color-decoration: #9333ea;
+    --color-secondary: #ffd60a;
+    --color-primary: #00a9a5;
+
+    /* Grandezza Font */
+    --text-xsmall: 1rem; /* 12pt */
+    --text-small: 1.25rem; /* 15pt */
+    --text-medium: 1.5rem; /* 18pt */
+    --text-large: 1.75rem; /* 21pt */
+    --text-xlarge: 2.08rem; /* 25pt */
+    --text-xxlarge: 10rem; /* 43pt */
+}
+
+.dark {
+    /* Colori Tema Scuro */
+    --color-info: #3b82f6;
+    --color-warning: #fbbf24;
+    --color-error: #ef4444;
+    --color-success: #22c55e;
+    --color-secondary-bg: #1e293b;
+    --color-primary-bg: #0f172a;
+    --color-secondary-text: #94a3b8;
+    --color-primary-text: #f1f5f9;
+    --color-decoration: #a855f7;
+    --color-secondary: #ffe34d;
+    --color-primary: #00d4d8;
+}
