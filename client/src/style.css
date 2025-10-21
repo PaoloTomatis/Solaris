@@ -74,6 +74,7 @@
     --color-primary: #00a9a5;
 
     /* Grandezza Font */
+    --text-xxsmall: 0.75rem; /* 9pt */
     --text-xsmall: 1rem; /* 12pt */
     --text-small: 1.25rem; /* 15pt */
     --text-medium: 1.5rem; /* 18pt */

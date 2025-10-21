@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 // Importazione immagini
 import ArrowIcon from '../assets/icons/arrow.svg?react';
 
-// Componente barra navigazione
+// Componente info
 function Info({
     url,
     name,

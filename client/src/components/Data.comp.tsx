@@ -1,7 +1,7 @@
 // Importazione moduli
 import React from 'react';
 
-// Componente barra navigazione
+// Componente dati
 function Data({
     img: Img,
     dato,
