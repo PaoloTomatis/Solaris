@@ -10,8 +10,6 @@ import DashboardIcon from '../assets/icons/dashboard.svg?react';
 function BottomBar() {
     // Stato icona selezionata
     const [selected, setSelected] = useState('');
-    // Stato icona selezionata default
-    const [defSelected, setDefSelected] = useState('');
 
     // Navigatore
     const navigator = useNavigate();
@@ -44,23 +42,20 @@ function BottomBar() {
         pathnames.forEach((url) => {
             if (url.condition) {
                 setSelected(url.name);
-                setDefSelected(url.name);
             }
         });
     }, []);
 
     return (
         // Contenitore barra
-        <div className="w-screen min-h-[80px] bg-[#000] flex align-center justify-center fixed bottom-0 left-0 rounded-tl-4xl rounded-tr-4xl z-50">
-            <div className="h-[10vh] min-h-[80px] flex items-center justify-around bg-transparent max-w-[500px] w-[100%]">
+        <div className="w-screen min-h-[80px] bg-[#000] flex align-center justify-center fixed bottom-0 left-0 rounded-tl-4xl rounded-tr-4xl z-40">
+            <div className="h-[10vh] min-h-[80px] flex items-center justify-around bg-transparent max-w-[500px] w-[100%] g">
                 {/* Icona utente */}
                 <UserIcon
                     className={`w-[5vh] min-w-[30px] max-w-[35px] ${
                         selected == 'account' ? 'text-primary' : 'text-white'
-                    } fill-current cursor-pointer transition-all`}
+                    } fill-current cursor-pointer transition-all hover:text-secondary`}
                     onClick={() => navigator('/account')}
-                    onMouseEnter={() => setSelected('account')}
-                    onMouseLeave={() => setSelected(defSelected)}
                 />
                 {/* Icona aggiungi */}
                 <div className="w-[8vh] h-[8vh] rounded-full bg-secondary flex items-center justify-center cursor-pointer hover:scale-115 transition-all">
@@ -73,10 +68,8 @@ function BottomBar() {
                 <DashboardIcon
                     className={`w-[5vh] min-w-[30px] max-w-[35px] ${
                         selected == 'dashboard' ? 'text-primary' : 'text-white'
-                    } fill-current cursor-pointer transition-all`}
+                    } fill-current cursor-pointer transition-all hover:text-secondary`}
                     onClick={() => navigator('/dashboard')}
-                    onMouseEnter={() => setSelected('dashboard')}
-                    onMouseLeave={() => setSelected(defSelected)}
                 />
             </div>
         </div>

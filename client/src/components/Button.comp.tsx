@@ -6,19 +6,31 @@ import { Link } from 'react-router-dom';
 function Button({
     children,
     className,
+    type,
     link,
-    action,
+    onClick,
 }: {
     children: ReactNode;
     className?: string;
+    type?: 'info' | 'error' | 'warning' | 'success' | null;
     link?: string;
-    action?: () => void | Promise<void>;
+    onClick?: () => void | Promise<void>;
 }) {
     // Controllo link
     if (link) {
         return (
             <Link
-                className={`${className} text-primary-text text-small rounded-[20px] border-[2px] border-black font-bold pb-1 pt-1 pl-2.5 pr-2.5 cursor-pointer transition-all`}
+                className={`${className} ${
+                    type == 'error'
+                        ? 'bg-error'
+                        : type == 'warning'
+                        ? 'bg-warning'
+                        : type == 'success'
+                        ? 'bg-success'
+                        : type == 'info'
+                        ? 'bg-info'
+                        : ''
+                } hover:bg-black hover:text-white text-primary-text text-xsmall rounded-[20px] border-[2px] border-black font-bold pb-1 pt-1 pl-2.5 pr-2.5 cursor-pointer transition-all`}
                 to={link}
             >
                 {children}
@@ -28,8 +40,18 @@ function Button({
 
     return (
         <button
-            className={`${className} text-primary-text text-small rounded-[20px] border-[2px] border-black font-bold pb-1 pt-1 pl-2.5 pr-2.5 cursor-pointer transition-all`}
-            onClick={action}
+            className={`${className} ${
+                type == 'error'
+                    ? 'bg-error'
+                    : type == 'warning'
+                    ? 'bg-warning'
+                    : type == 'success'
+                    ? 'bg-success'
+                    : type == 'info'
+                    ? 'bg-info'
+                    : ''
+            } hover:bg-black hover:text-white text-primary-text text-xsmall rounded-[20px] border-[2px] border-black font-bold pb-1 pt-1 pl-2.5 pr-2.5 cursor-pointer transition-all`}
+            onClick={onClick}
         >
             {children}
         </button>
