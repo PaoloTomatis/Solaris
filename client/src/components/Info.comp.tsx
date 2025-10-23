@@ -10,20 +10,75 @@ function Info({
     name,
     icon: Icon,
     info,
+    onClick,
+    type = 'normal',
 }: {
-    url: string;
+    url?: string;
     name: string;
     icon: React.ComponentType<{ className?: string }>;
     info?: string;
+    onClick?: () => void | Promise<void>;
+    type?: 'normal' | 'error';
 }) {
+    if (url) {
+        return (
+            <Link
+                className="cursor-pointer flex items-center justify-center min-h-[5vh] w-[100%] pl-7 pr-7 hover:bg-gray-200 dark:hover:bg-blue-950"
+                to={url}
+            >
+                <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
+                    <Icon
+                        className={`fill-current text-primary-text w-[30px] aspect-square ${
+                            type == 'error' ? 'text-error' : ''
+                        }`}
+                    />
+                    <h3
+                        className={`text-primary-text text-small ${
+                            type == 'error' ? 'text-error' : ''
+                        }`}
+                    >
+                        {name}
+                    </h3>
+                    <div
+                        style={{
+                            justifyContent: info ? 'space-between' : 'end',
+                        }}
+                        className="flex items-center w-[20%]"
+                    >
+                        {info ? (
+                            <p className="text-info text-medium font-semibold">
+                                {info}
+                            </p>
+                        ) : (
+                            ''
+                        )}
+                        <ArrowIcon
+                            className={`fill-current text-primary-text w-[20px] aspect-square ${
+                                type == 'error' ? 'text-error' : ''
+                            }`}
+                        />
+                    </div>
+                </div>
+            </Link>
+        );
+    }
+
     return (
-        <Link
-            className="flex items-center justify-center min-h-[10vh] w-[100%] pl-7 pr-7"
-            to={url}
+        <div
+            className="cursor-pointer flex items-center justify-center min-h-[8vh] w-[100%] pl-7 pr-7 hover:bg-gray-200 dark:hover:bg-blue-950"
+            onClick={onClick}
         >
-            <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[10vh]">
-                <Icon className="fill-current text-primary-text w-[40px] aspect-square" />
-                <h3 className="text-primary-text text-small font-bold">
+            <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
+                <Icon
+                    className={`fill-current w-[30px] aspect-square ${
+                        type == 'error' ? 'text-error' : 'text-primary-text'
+                    }`}
+                />
+                <h3
+                    className={`text-small ${
+                        type == 'error' ? 'text-error' : 'text-primary-text'
+                    }`}
+                >
                     {name}
                 </h3>
                 <div
@@ -39,10 +94,14 @@ function Info({
                     ) : (
                         ''
                     )}
-                    <ArrowIcon className="fill-current text-primary-text w-[30px] aspect-square" />
+                    <ArrowIcon
+                        className={`fill-current w-[20px] aspect-square ${
+                            type == 'error' ? 'text-error' : 'text-primary-text'
+                        }`}
+                    />
                 </div>
             </div>
-        </Link>
+        </div>
     );
 }
 
