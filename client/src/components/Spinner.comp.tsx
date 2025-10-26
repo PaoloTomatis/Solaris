@@ -1,0 +1,9 @@
+// Componente caricamento
+function Spinner() {
+    return (
+        <div className="flex items-center justify-center">Caricamento...</div>
+    );
+}
+
+// Esportazione componente
+export default Spinner;

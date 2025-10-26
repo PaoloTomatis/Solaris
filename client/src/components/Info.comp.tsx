@@ -23,7 +23,7 @@ function Info({
     if (url) {
         return (
             <Link
-                className="cursor-pointer flex items-center justify-center min-h-[5vh] w-[100%] pl-7 pr-7 hover:bg-gray-200 dark:hover:bg-blue-950"
+                className="cursor-pointer flex items-center justify-center min-h-[5vh] w-[100%] pl-7 pr-7 hover:scale-105 transition-all"
                 to={url}
             >
                 <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
@@ -65,7 +65,7 @@ function Info({
 
     return (
         <div
-            className="cursor-pointer flex items-center justify-center min-h-[8vh] w-[100%] pl-7 pr-7 hover:bg-gray-200 dark:hover:bg-blue-950"
+            className="cursor-pointer flex items-center justify-center min-h-[8vh] w-[100%] pl-7 pr-7 hover:scale-105 transition-all"
             onClick={onClick}
         >
             <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">

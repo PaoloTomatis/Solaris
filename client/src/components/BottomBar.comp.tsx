@@ -20,9 +20,11 @@ function BottomBar() {
     // Dichiarazione controlli path
     const pathnames = [
         {
-            condition: pathname == '/' || pathname.includes('/dashboard'),
+            condition:
+                pathname.includes('/devices') ||
+                pathname.includes('/dashboard'),
             name: 'dashboard',
-            url: '/dashboard',
+            url: '/devices',
         },
         {
             condition:
@@ -61,7 +63,7 @@ function BottomBar() {
                 <div className="w-[45px] aspect-square rounded-full bg-secondary flex items-center justify-center cursor-pointer hover:scale-115 transition-all">
                     <AddIcon
                         className="w-[30px] text-black fill-current cursor-pointer"
-                        onClick={() => navigator('/dashboard#add')}
+                        onClick={() => navigator('/devices/add')}
                     />
                 </div>
                 {/* Icona dashboard */}
@@ -69,7 +71,7 @@ function BottomBar() {
                     className={`w-[25px] ${
                         selected == 'dashboard' ? 'text-primary' : 'text-white'
                     } fill-current cursor-pointer transition-all hover:text-secondary`}
-                    onClick={() => navigator('/dashboard')}
+                    onClick={() => navigator('/devices')}
                 />
             </div>
         </div>

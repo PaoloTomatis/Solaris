@@ -149,13 +149,15 @@ Per testare Solaris bisogna utilizzare questi comandi nel terminale (avendo già
 
 ### _Pagine Solaris Hub_
 
+-   / --> informazioni progetto
 -   /auth/login --> accesso account
 -   /auth/signup --> registrazione account
--   /account --> informazione e controlli account
+-   /account --> informazioni e controlli account
 -   /settings --> impostazioni account
 -   /credits --> crediti
--   /policy --> privacy e cookie policy
--   /dashboard --> selezione e configurazione device
+-   /privacy --> privacy policy
+-   /cookies --> cookie policy
+-   /devices --> selezione e configurazione device
 -   /dashboard/:id --> informazioni device
 -   /dashboard/:id/controls --> controllo device
 -   /dashboard/:id/settings --> impostazioni device

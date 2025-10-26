@@ -3,6 +3,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './style.css';
+import Home from './pages/Home.page';
+import Devices from './pages/Devices.page';
+import DeviceRegister from './pages/DeviceRegister.page';
 import Dashboard from './pages/Dashboard.page';
 import Controls from './pages/Controls.page';
 import DeviceSettings from './pages/DeviceSettings.page';
@@ -19,8 +22,9 @@ import Warning from './pages/Warning.page';
 
 // Creazione router
 const router = createBrowserRouter([
-    { path: '/', element: <Dashboard /> },
-    { path: '/dashboard', element: <Dashboard /> },
+    { path: '/', element: <Home /> },
+    { path: '/devices', element: <Devices /> },
+    { path: '/devices/add', element: <DeviceRegister /> },
     { path: '/dashboard/:id', element: <Dashboard /> },
     { path: '/dashboard/:id/controls', element: <Controls /> },
     { path: '/dashboard/:id/settings', element: <DeviceSettings /> },

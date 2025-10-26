@@ -1,6 +1,8 @@
 // Importazione moduli
 import BottomBar from '../components/BottomBar.comp';
 import Info from '../components/Info.comp';
+import Page from '../components/Page.comp';
+import Separator from '../components/Separator.comp';
 // Importazione icone
 import SettingsIcon from '../assets/icons/settings.svg?react';
 import CreditsIcon from '../assets/icons/credits.svg?react';
@@ -12,7 +14,7 @@ import DeleteIcon from '../assets/icons/delete.svg?react';
 // Pagina account
 function Account() {
     return (
-        <div className="w-screen min-h-screen bg-primary-bg flex flex-col items-center gap-[30px] pt-7 pb-[15vh]">
+        <Page className="gap-[30px] pt-7">
             <div className="flex justify-center items-center gap-[20px]">
                 <div className="bg-primary w-[80px] aspect-square rounded-full flex items-center justify-center">
                     <h3 className="text-white text-[2.5rem] font-bold">MR</h3>
@@ -37,7 +39,7 @@ function Account() {
                 />
                 <Info url="/privacy" name="Privacy Policy" icon={PolicyIcon} />
                 <Info url="/cookies" name="Cookies Policy" icon={PolicyIcon} />
-                <div className="w-[80%] bg-black dark:bg-white h-0.5 my-6"></div>
+                <Separator />
                 <Info
                     onClick={() => alert('LOGOUT')}
                     name="Logout"
@@ -52,7 +54,7 @@ function Account() {
                 />
             </div>
             <BottomBar />
-        </div>
+        </Page>
     );
 }
 

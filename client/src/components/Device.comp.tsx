@@ -35,8 +35,8 @@ function Device({
 
     return (
         <Link
-            to={`/${id}`}
-            className="flex items-center justify-between rounded-3xl bg-secondary-bg border-[2px] border-black pb-1.5 pt-1.5 pl-2.5 pr-2.5 w-[100%] max-w-[400px] min-h-[12vh]"
+            to={`/dashboard/${id}`}
+            className="flex items-center justify-between rounded-3xl bg-secondary-bg border-[2px] border-primary-text py-1.5 px-2.5 w-[100%] max-w-[400px] min-h-[12vh]"
         >
             <div className="bg-primary-text rounded-full flex flex-col items-center justify-center w-[50px] h-[50px] aspect-square">
                 <LogoIcon
@@ -45,10 +45,10 @@ function Device({
                 />
             </div>
             <div className="flex flex-col justify-center">
-                <h3 className="text-medium font-bold text-primary-txt leading-6">
+                <h3 className="text-medium font-bold text-primary-text leading-6">
                     {name}
                 </h3>
-                <p className="text-xsmall text-primary-txt">{prototype}</p>
+                <p className="text-xsmall text-primary-text">{prototype}</p>
             </div>
             <div className="flex items-center w-[20%] justify-between">
                 <SignalIcon

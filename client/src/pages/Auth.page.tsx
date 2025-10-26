@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import Input from '../components/Input.comp';
 import Button from '../components/Button.comp';
 import BottomBar from '../components/BottomBar.comp';
+import Page from '../components/Page.comp';
 
 // Pagina autenticazione
 function Auth() {
@@ -16,9 +17,9 @@ function Auth() {
 
     return (
         // Contenitore pagina
-        <div className="bg-primary-bg flex flex-col items-center justify-center w-screen min-h-screen">
+        <Page className="justify-center">
             {/* Contenitore campi */}
-            <div className="flex flex-col gap-[12px] border-black border-[2px] bg-secondary-bg rounded-3xl px-4 py-6 items-center justify-center w-[90%] max-w-[350px]">
+            <div className="flex flex-col gap-[12px] border-primary-text border-[2px] bg-secondary-bg rounded-3xl px-4 py-6 items-center justify-center w-[90%] max-w-[350px]">
                 {type == 'register' ? (
                     <>
                         {/* Titolo */}
@@ -52,12 +53,12 @@ function Auth() {
                                 setEmail('');
                                 setPassword('');
                             }}
-                            className="mt-[10px] bg-secondary"
+                            className="mt-[10px] bg-secondary dark:bg-primary"
                         >
                             Registrati
                         </Button>
                         {/* Testo cambio tipo autenticazione */}
-                        <p className="text-xxsmall text-primary-text max-w-[300px] leading-4 mt-[30px]">
+                        <p className="text-xsmall text-primary-text max-w-[300px] leading-4 mt-[30px]">
                             Possiedi già un account?{' '}
                             <Link
                                 to={'/auth/login'}
@@ -98,12 +99,12 @@ function Auth() {
                                 setEmail('');
                                 setPassword('');
                             }}
-                            className="mt-[10px] bg-secondary"
+                            className="mt-[10px] bg-secondary dark:bg-primary"
                         >
                             Accedi
                         </Button>
                         {/* Testo cambio tipo autenticazione */}
-                        <p className="text-xxsmall text-primary-text max-w-[300px] leading-4 mt-[30px]">
+                        <p className="text-xsmall text-primary-text max-w-[300px] leading-4 mt-[30px]">
                             Non hai ancora un account?{' '}
                             <Link
                                 to={'/auth/register'}
@@ -116,7 +117,7 @@ function Auth() {
                 )}
             </div>
             <BottomBar />
-        </div>
+        </Page>
     );
 }
 

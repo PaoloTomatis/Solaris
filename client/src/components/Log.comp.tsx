@@ -32,7 +32,7 @@ function Log({
             </div>
             {/* Contenitore data */}
             <p className="text-xxsmall absolute bottom-0.5 right-3">
-                {`${date.toDateString()} - ${date.toLocaleTimeString()}`}
+                {`${date.getDate()}/${date.getMonth()}/${date.getFullYear()} - ${date.toLocaleTimeString()}`}
             </p>
         </div>
     );

@@ -30,7 +30,7 @@ function Button({
                         : type == 'info'
                         ? 'bg-info'
                         : ''
-                } hover:bg-black hover:text-white text-primary-text text-xsmall rounded-[20px] border-[2px] border-black font-bold pb-1 pt-1 pl-2.5 pr-2.5 cursor-pointer transition-all`}
+                } hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black text-primary-text text-small rounded-[20px] border-[2px] border-primary-text font-bold pb-1 pt-1 pl-2.5 pr-2.5 cursor-pointer transition-all`}
                 to={link}
             >
                 {children}
@@ -50,7 +50,7 @@ function Button({
                     : type == 'info'
                     ? 'bg-info'
                     : ''
-            } hover:bg-black hover:text-white text-primary-text text-xsmall rounded-[20px] border-[2px] border-black font-bold pb-1 pt-1 pl-2.5 pr-2.5 cursor-pointer transition-all`}
+            } hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black text-primary-text text-small rounded-[20px] border-[2px] border-primary-text font-bold pb-1 pt-1 pl-2.5 pr-2.5 cursor-pointer transition-all`}
             onClick={onClick}
         >
             {children}
