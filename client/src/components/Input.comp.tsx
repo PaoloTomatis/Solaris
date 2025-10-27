@@ -12,14 +12,14 @@ function Input({
     placeholder?: string;
     className?: string;
     type?: string;
-    value: string;
-    setValue: React.Dispatch<React.SetStateAction<string>>;
+    value: any;
+    setValue: React.Dispatch<React.SetStateAction<any>>;
 }) {
     return (
         <input
             type={type}
             placeholder={placeholder}
-            className={`${className} text-xsmall text-secondary-text bg-primary-bg rounded-4xl border-[2px] px-2 py-1.5 w-[95%] max-w-[300px] focus:border-secondary`}
+            className={`${className} text-xsmall text-primary-text bg-primary-bg rounded-4xl border-[2px] px-2 py-1.5 w-[95%] max-w-[300px] focus:border-secondary`}
             value={value}
             onChange={(e) => setValue(e.target.value)}
         />

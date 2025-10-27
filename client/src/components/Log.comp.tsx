@@ -8,15 +8,21 @@ function Log({
     desc,
     type,
     date,
+    read = false,
 }: {
     tit: string;
     desc: string;
     type: string;
     date: Date;
+    read?: boolean;
 }) {
     return (
         // Contenitore principale
-        <div className="flex items-center relative justify-between rounded-3xl bg-secondary-bg border-[2px] border-black pb-4 pt-1.5 pl-2.5 pr-2.5 w-[95%] max-w-[500px] min-h-[12vh]">
+        <div
+            className={`flex items-center relative justify-start rounded-3xl ${
+                read ? 'bg-secondary-bg' : 'bg-primary-bg'
+            } border-[2px] border-primary-text pb-4 pt-1.5 pl-2.5 pr-2.5 w-[95%] max-w-[500px] min-h-[12vh]`}
+        >
             {/* Icona */}
             {type == 'log_error' ? (
                 <WarningIcon className="fill-current text-error w-[90px] h-[90px] aspect-square" />
@@ -27,11 +33,15 @@ function Log({
             )}
             {/* Contenitore testo */}
             <div className="flex flex-col items-start justify-around pl-4">
-                <h3 className="text-small font-semibold">{tit}</h3>
-                <p className="text-xsmall leading-4">{desc}</p>
+                <h3 className="text-small text-primary-text font-semibold">
+                    {tit}
+                </h3>
+                <p className="text-xsmall text-secondary-text leading-4 max-w-[250px]">
+                    {desc}
+                </p>
             </div>
             {/* Contenitore data */}
-            <p className="text-xxsmall absolute bottom-0.5 right-3">
+            <p className="text-xsmall text-primary-text absolute bottom-0.5 right-3">
                 {`${date.getDate()}/${date.getMonth()}/${date.getFullYear()} - ${date.toLocaleTimeString()}`}
             </p>
         </div>

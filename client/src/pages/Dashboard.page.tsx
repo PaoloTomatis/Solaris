@@ -1,11 +1,13 @@
 // Importazione moduli
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Page from '../components/Page.comp';
 import BottomBar from '../components/BottomBar.comp';
 import Data from '../components/Data.comp';
-// import Log from '../components/Log.comp';
-// import Info from '../components/Info.comp';
+import Log from '../components/Log.comp';
+import Separator from '../components/Separator.comp';
+import Info from '../components/Info.comp';
+import logTitle from '../utils/LogTitle.utils';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -13,15 +15,19 @@ import ArrowIcon from '../assets/icons/arrow.svg?react';
 import TemperatureIcon from '../assets/icons/temperature.svg?react';
 import LuminosityIcon from '../assets/icons/luminosity.svg?react';
 import HumidityIcon from '../assets/icons/humidity.svg?react';
-// import LogIcon from '../assets/icons/log.svg?react';
-// import SettingsIcon from '../assets/icons/settings.svg?react';
-// import StatsIcon from '../assets/icons/statistics.svg?react';
-// import ControlsIcon from '../assets/icons/joystick.svg?react';
+import LogIcon from '../assets/icons/log.svg?react';
+import SettingsIcon from '../assets/icons/settings.svg?react';
+import StatsIcon from '../assets/icons/statistics.svg?react';
+import ControlsIcon from '../assets/icons/joystick.svg?react';
+import DashboardIcon from '../assets/icons/dashboard.svg?react';
 
 // Pagina dashboard
 function Dashboard() {
     // Navigatore
     const navigator = useNavigate();
+
+    // Id device
+    const { id: deviceId } = useParams();
 
     // Dispositivo
     const device = {
@@ -32,6 +38,28 @@ function Dashboard() {
         lastSeen: new Date(),
     };
 
+    // Log
+    const logs = [
+        {
+            desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
+            type: 'log_error',
+            date: new Date(),
+            read: false,
+        },
+        {
+            desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
+            type: 'irrigation_auto',
+            date: new Date(),
+            read: false,
+        },
+        {
+            desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
+            type: 'log_warning',
+            date: new Date(),
+            read: true,
+        },
+    ];
+
     // Dati
     const data = { temp: 20, humI: 60, humE: 54, lum: 78 };
 
@@ -41,6 +69,7 @@ function Dashboard() {
     // Dichiarazione lista modelli
     const models = { vega: '#ffd60a', helios: '#00d4d8' };
 
+    // Caricamento componente
     useEffect(() => {
         // Controllo modello
         for (const [model, color] of Object.entries(models)) {
@@ -92,7 +121,7 @@ function Dashboard() {
                 </div>
             </div>
             {/* Contenitore principale dati live */}
-            <div className="flex flex-col items-center justify-center w-full">
+            <div className="flex flex-col items-center justify-center gap-5 w-full">
                 {/* Titolo */}
                 <div className="flex items-center justify-center gap-1.5 w-full">
                     <h2 className="text-primary-text text-medium font-bold">
@@ -101,17 +130,75 @@ function Dashboard() {
                     <SignalIcon className="fill-current text-primary w-[25px] aspect-square" />
                 </div>
                 {/* Contenitore dati */}
-                <div className="flex flex-col items-center justify-center w-full">
-                    <div className="flex-1 flex flex-column gap-2.5">
-                        <Data img={TemperatureIcon} dato={data.temp} />
-                        <Data img={LuminosityIcon} dato={data.lum} />
+                <div className="flex flex-col items-center justify-center gap-5 w-full">
+                    <div className="flex items-center justify-center gap-7 w-full">
+                        <Data img={TemperatureIcon} dato={`${data.temp}°C`} />
+                        <Data img={LuminosityIcon} dato={`${data.lum}%`} />
                     </div>
-                    <div className="flex-1 flex flex-column gap-2.5">
-                        <Data img={HumidityIcon} dato={data.humE} />
-                        <Data img={HumidityIcon} dato={data.humI} />
+                    <div className="flex items-center justify-center gap-7 w-full">
+                        <Data img={HumidityIcon} dato={`${data.humE}%`} />
+                        <Data img={HumidityIcon} dato={`${data.humI}%`} />
                     </div>
                 </div>
             </div>
+            <Separator />
+            {/* Contenitore principale ultimi log */}
+            <div className="flex flex-col items-center justify-center gap-5 w-full">
+                {/* Titolo */}
+                <div className="flex items-center justify-center gap-1.5 w-full">
+                    <h2 className="text-primary-text text-medium font-bold">
+                        Ultimi Log
+                    </h2>
+                    <LogIcon className="fill-current text-primary w-[25px] aspect-square" />
+                </div>
+                {/* Contenitore log */}
+                <div className="flex flex-col items-center justify-center gap-5 w-full">
+                    {logs.map((log) => (
+                        <Log
+                            tit={logTitle(log.type)}
+                            desc={log.desc}
+                            type={log.type}
+                            date={log.date}
+                            read={log.read}
+                        />
+                    ))}
+                </div>
+            </div>
+            <Separator />
+            {/* Contenitore principale info */}
+            <div className="flex flex-col items-center justify-center gap-5 w-full">
+                {/* Titolo */}
+                <div className="flex items-center justify-center gap-1.5 w-full">
+                    <h2 className="text-primary-text text-medium font-bold">
+                        Altre Sezioni
+                    </h2>
+                    <DashboardIcon className="fill-current text-primary w-[25px] aspect-square" />
+                </div>
+                {/* Contenitore info */}
+                <div className="flex flex-col items-center justify-center gap-3 w-full">
+                    <Info
+                        url={`/dashboard/${deviceId}/settings`}
+                        name="Impostazioni Dispositivo"
+                        icon={SettingsIcon}
+                    />
+                    <Info
+                        url={`/dashboard/${deviceId}/log`}
+                        name="Log"
+                        icon={LogIcon}
+                    />
+                    <Info
+                        url={`/dashboard/${deviceId}/stats`}
+                        name="Statistiche"
+                        icon={StatsIcon}
+                    />
+                    <Info
+                        url={`/dashboard/${deviceId}/controls`}
+                        name="Controlli Manuali"
+                        icon={ControlsIcon}
+                    />
+                </div>
+            </div>
+            {/* Barra inferiore */}
             <BottomBar />
         </Page>
     );
