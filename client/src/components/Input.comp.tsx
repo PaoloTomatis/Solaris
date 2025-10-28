@@ -21,7 +21,12 @@ function Input({
             placeholder={placeholder}
             className={`${className} text-xsmall text-primary-text bg-primary-bg rounded-4xl border-[2px] px-2 py-1.5 w-[95%] max-w-[300px] focus:border-secondary`}
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+                const val = e.target.value;
+                setValue(
+                    type === 'number' ? (val === '' ? '' : Number(val)) : val
+                );
+            }}
         />
     );
 }

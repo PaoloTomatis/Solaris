@@ -18,7 +18,7 @@ function Info({
     icon: React.ComponentType<{ className?: string }>;
     info?: string;
     onClick?: () => void | Promise<void>;
-    type?: 'normal' | 'error';
+    type?: 'normal' | 'error' | 'info';
 }) {
     if (url) {
         return (
@@ -28,13 +28,21 @@ function Info({
             >
                 <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
                     <Icon
-                        className={`fill-current text-primary-text w-[30px] aspect-square ${
-                            type == 'error' ? 'text-error' : ''
+                        className={`fill-current w-[30px] aspect-square ${
+                            type == 'error'
+                                ? 'text-error'
+                                : type == 'info'
+                                ? 'text-info'
+                                : 'text-primary-text'
                         }`}
                     />
                     <h3
-                        className={`text-primary-text text-small ${
-                            type == 'error' ? 'text-error' : ''
+                        className={`text-small ${
+                            type == 'error'
+                                ? 'text-error'
+                                : type == 'info'
+                                ? 'text-info'
+                                : 'text-primary-text'
                         }`}
                     >
                         {name}
@@ -54,7 +62,11 @@ function Info({
                         )}
                         <ArrowIcon
                             className={`fill-current text-primary-text w-[20px] aspect-square ${
-                                type == 'error' ? 'text-error' : ''
+                                type == 'error'
+                                    ? 'text-error'
+                                    : type == 'info'
+                                    ? 'text-info'
+                                    : 'text-primary-text'
                             }`}
                         />
                     </div>
@@ -71,12 +83,20 @@ function Info({
             <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
                 <Icon
                     className={`fill-current w-[30px] aspect-square ${
-                        type == 'error' ? 'text-error' : 'text-primary-text'
+                        type == 'error'
+                            ? 'text-error'
+                            : type == 'info'
+                            ? 'text-info'
+                            : 'text-primary-text'
                     }`}
                 />
                 <h3
                     className={`text-small ${
-                        type == 'error' ? 'text-error' : 'text-primary-text'
+                        type == 'error'
+                            ? 'text-error'
+                            : type == 'info'
+                            ? 'text-info'
+                            : 'text-primary-text'
                     }`}
                 >
                     {name}
@@ -96,7 +116,11 @@ function Info({
                     )}
                     <ArrowIcon
                         className={`fill-current w-[20px] aspect-square ${
-                            type == 'error' ? 'text-error' : 'text-primary-text'
+                            type == 'error'
+                                ? 'text-error'
+                                : type == 'info'
+                                ? 'text-info'
+                                : 'text-primary-text'
                         }`}
                     />
                 </div>

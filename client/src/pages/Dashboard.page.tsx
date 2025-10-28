@@ -41,18 +41,21 @@ function Dashboard() {
     // Log
     const logs = [
         {
+            id: '123abc',
             desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
             type: 'log_error',
             date: new Date(),
             read: false,
         },
         {
+            id: '456def',
             desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
             type: 'irrigation_auto',
             date: new Date(),
             read: false,
         },
         {
+            id: '789ghi',
             desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
             type: 'log_warning',
             date: new Date(),
@@ -160,6 +163,7 @@ function Dashboard() {
                             type={log.type}
                             date={log.date}
                             read={log.read}
+                            key={log.id}
                         />
                     ))}
                 </div>
