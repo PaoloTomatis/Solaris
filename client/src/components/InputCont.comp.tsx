@@ -1,6 +1,7 @@
 // Importazione moduli
 import type { ReactNode } from 'react';
 import Input from './Input.comp';
+import Select from './Select.comp';
 
 // Componente cotenitore input
 function InputCont({
@@ -8,11 +9,17 @@ function InputCont({
     setValue,
     type,
     children,
+    inputType = 'input',
+    placeholder,
+    options,
 }: {
     value: any;
     setValue: React.Dispatch<React.SetStateAction<any>>;
     type?: string;
+    placeholder?: string;
+    inputType?: 'input' | 'select';
     children: ReactNode;
+    options?: { value: any; text: string | number }[];
 }) {
     return (
         // Contenitore input
@@ -20,12 +27,17 @@ function InputCont({
             {/* Testo */}
             <h2 className="text-primary-text text-small">{children}</h2>
             {/* Input */}
-            <Input
-                type={type}
-                value={value}
-                setValue={setValue}
-                className="max-w-max text-xsmall text-center"
-            />
+            {inputType == 'select' && options ? (
+                <Select value={value} setValue={setValue} options={options} />
+            ) : (
+                <Input
+                    type={type}
+                    value={value}
+                    setValue={setValue}
+                    className="max-w-max text-xsmall text-center"
+                    placeholder={placeholder}
+                />
+            )}
         </div>
     );
 }

@@ -185,7 +185,7 @@ _Colore_ --> _mod. Chiara_ | _mod. Scura_ (i pallini colorati non sono accurati)
 
 -   Utenti --> users (id, email, role, psw, refresh_token, createdAt, updatedAt)
 -   Dispositivi --> devices (id, key, psw, name, prototype, userId, mode, activatedAt, createdAt, updatedAt)
--   Dati --> data (id, desc, link, read, date, humI, humE, temp, lum, kInterval, deviceId, type, createdAt, updatedAt)
+-   Dati --> data (id, desc, link, read, date, humI, humE, temp, lum, interval, deviceId, type, createdAt, updatedAt)
 -   Impostazioni Dispositivi --> device_settings (id, humMax, humMin, kInterval, deviceId, createdAt, updatedAt)
 -   Impostazioni Utente --> user_settings (id, styleMode, units, userId, createdAt, updatedAt)
 

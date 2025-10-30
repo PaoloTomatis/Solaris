@@ -8,6 +8,7 @@ import Log from '../components/Log.comp';
 import Separator from '../components/Separator.comp';
 import Info from '../components/Info.comp';
 import logTitle from '../utils/LogTitle.utils';
+import Error from '../components/Error.comp';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -25,62 +26,101 @@ import DashboardIcon from '../assets/icons/dashboard.svg?react';
 function Dashboard() {
     // Navigatore
     const navigator = useNavigate();
-
     // Id device
     const { id: deviceId } = useParams();
 
-    // Dispositivo
-    const device = {
-        name: 'My Device 1',
-        prototype: 'Solaris Vega',
-        state: true,
-        id: 'abc123',
-        lastSeen: new Date(),
-    };
-
-    // Log
-    const logs = [
-        {
-            id: '123abc',
-            desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
-            type: 'log_error',
-            date: new Date(),
-            read: false,
-        },
-        {
-            id: '456def',
-            desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
-            type: 'irrigation_auto',
-            date: new Date(),
-            read: false,
-        },
-        {
-            id: '789ghi',
-            desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
-            type: 'log_warning',
-            date: new Date(),
-            read: true,
-        },
-    ];
-
-    // Dati
-    const data = { temp: 20, humI: 60, humE: 54, lum: 78 };
-
     // Stato colore icona
     const [iconColor, setIconColor] = useState('#00d68b');
+    // Stato dispositivo
+    const [device, setDevice] = useState<{
+        name?: string;
+        prototype?: string;
+        state?: boolean;
+        id?: string;
+        lastSeen?: Date;
+    }>({});
+    // Stato logs
+    const [logs, setLogs] = useState<
+        {
+            id?: string;
+            desc?: string;
+            type?: string;
+            date?: Date;
+            read?: boolean;
+        }[]
+    >([{}]);
+    // Stato data
+    const [data, setData] = useState<{
+        id?: string;
+        temp?: number;
+        humI?: number;
+        humE?: number;
+        lum?: number;
+    }>({});
+    // Stato errore
+    const [error, setError] = useState('');
+    // Stato caricamento
+    // const [loading, setLoading] = useState(true);
 
     // Dichiarazione lista modelli
     const models = { vega: '#ffd60a', helios: '#00d4d8' };
 
     // Caricamento componente
     useEffect(() => {
+        setLogs([
+            {
+                id: '123abc',
+                desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
+                type: 'log_error',
+                date: new Date(),
+                read: false,
+            },
+            {
+                id: '456def',
+                desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
+                type: 'irrigation_auto',
+                date: new Date(),
+                read: false,
+            },
+            {
+                id: '789ghi',
+                desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
+                type: 'log_warning',
+                date: new Date(),
+                read: true,
+            },
+        ]);
+        setDevice({
+            name: 'My Device 1',
+            prototype: 'Solaris Vega',
+            state: true,
+            id: 'abc123',
+            lastSeen: new Date(),
+        });
+        setData({ temp: 20, humI: 60, humE: 54, lum: 78 });
+    }, []);
+
+    // Controllo dati
+    useEffect(() => {
+        if (!logs || !device || !data) {
+            setError('Caricamento dati non avvenuto correttamente!');
+        }
+    }, [logs, device, data]);
+
+    // Controllo dispositivo
+    useEffect(() => {
         // Controllo modello
         for (const [model, color] of Object.entries(models)) {
-            if (device.prototype.toLowerCase().includes(model)) {
+            if (device.prototype?.toLowerCase().includes(model)) {
                 setIconColor(color);
             }
         }
-    }, []);
+    }, [device]);
+
+    // Controllo errore
+    if (error) {
+        return <Error error={error} />;
+    }
 
     return (
         // Pagina
@@ -118,7 +158,7 @@ function Dashboard() {
                             } fill-current w-[20px]`}
                         />
                         <p className="text-primary-text text-xsmall max-w-[100px] text-center">
-                            {`${device.lastSeen.getDate()}/${device.lastSeen.getMonth()}/${device.lastSeen.getFullYear()} ${device.lastSeen.toLocaleTimeString()}`}
+                            {`${device.lastSeen!.getDate()}/${device.lastSeen!.getMonth()}/${device.lastSeen!.getFullYear()} ${device.lastSeen!.toLocaleTimeString()}`}
                         </p>
                     </div>
                 </div>
@@ -158,10 +198,10 @@ function Dashboard() {
                 <div className="flex flex-col items-center justify-center gap-5 w-full">
                     {logs.map((log) => (
                         <Log
-                            tit={logTitle(log.type)}
-                            desc={log.desc}
-                            type={log.type}
-                            date={log.date}
+                            tit={logTitle(log.type!)}
+                            desc={log.desc!}
+                            type={log.type!}
+                            date={log.date!}
                             read={log.read}
                             key={log.id}
                         />

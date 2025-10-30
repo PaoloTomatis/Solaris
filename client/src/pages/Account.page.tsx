@@ -32,7 +32,7 @@ function Account() {
                 <Info url="/settings" name="Impostazioni" icon={SettingsIcon} />
                 <Info url="/credits" name="Crediti" icon={CreditsIcon} />
                 <Info
-                    url="/dashboard"
+                    url="/devices"
                     name="Dispositivi"
                     icon={DeviceIcon}
                     info="4"

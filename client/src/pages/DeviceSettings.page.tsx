@@ -19,7 +19,6 @@ import SaveIcon from '../assets/icons/save.svg?react';
 function DeviceSettings() {
     // Id device
     const { id: deviceId } = useParams();
-
     // Dichiarazione impostazioni originarie
     const originalSettings = {
         mode: 'auto',
@@ -27,7 +26,19 @@ function DeviceSettings() {
         humMax: 75,
         irrigationTime: 120,
     };
+    // Dichiarazione lista modelli
+    const models = { vega: '#ffd60a', helios: '#00d4d8' };
 
+    // Stato dispositivo
+    const [device, setDevice] = useState<{
+        name?: string;
+        prototype?: string;
+        state?: boolean;
+        id?: string;
+        lastSeen?: Date;
+    }>({});
+    // Stato colore icona
+    const [iconColor, setIconColor] = useState('#00d68b');
     // Stato salvataggio
     const [saved, setSaved] = useState(true);
     // Stato modalità
@@ -39,13 +50,30 @@ function DeviceSettings() {
     // Stato tempo irrigazione
     const [irrigationTime, setIrrigationTime] = useState(0);
 
-    // Caricamento componente
+    // Caricamento pagina
     useEffect(() => {
+        setDevice({
+            name: 'My Device 1',
+            prototype: 'Solaris Vega',
+            state: true,
+            id: 'abc123',
+            lastSeen: new Date(),
+        });
         setMode(originalSettings.mode);
         setHumMin(originalSettings.humMin);
         setHumMax(originalSettings.humMax);
         setIrrigationTime(originalSettings.irrigationTime);
     }, []);
+
+    // Controllo dispositivo
+    useEffect(() => {
+        // Controllo modello
+        for (const [model, color] of Object.entries(models)) {
+            if (device.prototype?.toLowerCase().includes(model)) {
+                setIconColor(color);
+            }
+        }
+    }, [device]);
 
     // Controllo salvataggio
     useEffect(() => {
@@ -78,39 +106,105 @@ function DeviceSettings() {
             </TopBar>
             {/* Contenitore impostazioni */}
             <div className="flex flex-col items-center justify-center gap-7 w-full">
-                <InputCont type="number" value={humMin} setValue={setHumMin}>
-                    Soglia Umidità MIN:
-                </InputCont>
-                <InputCont type="number" value={humMax} setValue={setHumMax}>
-                    Soglia Umidità MAX:
-                </InputCont>
+                {/* Contenitore info dispositivo */}
+                <div className="flex gap-4 w-full items-center justify-center">
+                    {/* Logo dispositivo */}
+                    <div className="w-[70px] flex items-center justify-center aspect-square rounded-full bg-black">
+                        <LogoIcon
+                            style={{ color: iconColor }}
+                            className="w-[65px] aspect-square fill-current"
+                        />
+                    </div>
+                    {/* Info dispositivo */}
+                    <div className="flex flex-col gap-5">
+                        {/* Nome dispositivo */}
+                        <h1 className="text-primary-text text-medium leading-1 font-bold flex items-center justify-center gap-1">
+                            {device.name}
+                            <EditIcon className="cursor-pointer w-[20px] text-primary-text aspect-square fill-current" />
+                        </h1>
+                        {/* Modello dispositivo */}
+                        <p className="text-primary-text text-small leading-1">
+                            {device.prototype}
+                        </p>
+                    </div>
+                </div>
+                {/* Impostazione modalità */}
                 <InputCont
-                    type="number"
-                    value={irrigationTime}
-                    setValue={setIrrigationTime}
+                    inputType="select"
+                    options={[
+                        { value: 'auto', text: 'AUTO' },
+                        { value: 'config', text: 'CONFIG' },
+                        { value: 'safe', text: 'SAFE' },
+                    ]}
+                    value={mode}
+                    setValue={setMode}
                 >
-                    Intervallo Irrigazione:
+                    Modalità:
                 </InputCont>
+                {mode == 'auto' ? (
+                    <>
+                        {/* Impostazione humMin */}
+                        <InputCont
+                            type="number"
+                            value={humMin}
+                            setValue={setHumMin}
+                        >
+                            Soglia Umidità MIN:
+                        </InputCont>
+                        {/* Impostazione humMax */}
+                        <InputCont
+                            type="number"
+                            value={humMax}
+                            setValue={setHumMax}
+                        >
+                            Soglia Umidità MAX:
+                        </InputCont>
+                        {/* Impostazione irrigationTime */}
+                        <InputCont
+                            type="number"
+                            value={irrigationTime}
+                            setValue={setIrrigationTime}
+                        >
+                            Intervallo Irrigazione:
+                        </InputCont>
+                    </>
+                ) : (
+                    ''
+                )}
+                {/* Separatore */}
                 <Separator />
+                {/* Info reset impostazioni */}
                 <Info
-                    onClick={() => alert('RESET IMPOSTAZIONI')}
+                    onClick={() => {
+                        if (!saved) {
+                            //TODO Notifica conferma
+                            setHumMax(originalSettings.humMax);
+                            setHumMin(originalSettings.humMin);
+                            setIrrigationTime(originalSettings.irrigationTime);
+                            setMode(originalSettings.mode);
+                        }
+                    }}
                     name="Reset Impostazioni"
                     icon={ResetIcon}
                     type="error"
                 />
+                {/* Info scollegamento dispositivo */}
                 <Info
                     onClick={() => alert('SCOLLEGAMENTO')}
                     name="Scollega Device"
                     icon={LogoutIcon}
                     type="error"
                 />
+                {/* Info eliminazione dati */}
                 <Info
                     onClick={() => alert('ELIMINAZIONE DATI')}
                     name="Elimina Dati"
                     icon={DeleteIcon}
                     type="error"
                 />
+                {/* Separatore */}
                 <Separator />
+                {/* Info salvataggio dati */}
                 <Info
                     onClick={() => alert('SALVATAGGIO DATI')}
                     name="Salva"

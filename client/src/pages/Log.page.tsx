@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import BottomBar from '../components/BottomBar.comp';
 import TopBar from '../components/TopBar.comp';
 import Page from '../components/Page.comp';
-import logTitle from '../utils/LogTitle.utils';
+import logTitle from '../utils/logTitle.utils';
 import LogComp from '../components/Log.comp';
 import Separator from '../components/Separator.comp';
 
