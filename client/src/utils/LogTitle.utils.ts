@@ -1,5 +1,5 @@
 // Funzione titolo da tipo log
-function logTitle(type: string): string {
+function logTitle(type?: string): string {
     // Controllo tipo
     return type == 'log_error'
         ? 'Errore!'

@@ -7,8 +7,9 @@ import Data from '../components/Data.comp';
 import Log from '../components/Log.comp';
 import Separator from '../components/Separator.comp';
 import Info from '../components/Info.comp';
-import logTitle from '../utils/LogTitle.utils';
+import logTitle from '../utils/logTitle.utils';
 import Error from '../components/Error.comp';
+import Loading from '../components/Loading.comp';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -60,44 +61,51 @@ function Dashboard() {
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
-    // const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     // Dichiarazione lista modelli
     const models = { vega: '#ffd60a', helios: '#00d4d8' };
 
     // Caricamento componente
     useEffect(() => {
-        setLogs([
-            {
-                id: '123abc',
-                desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
-                type: 'log_error',
-                date: new Date(),
-                read: false,
-            },
-            {
-                id: '456def',
-                desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
-                type: 'irrigation_auto',
-                date: new Date(),
-                read: false,
-            },
-            {
-                id: '789ghi',
-                desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
-                type: 'log_warning',
-                date: new Date(),
-                read: true,
-            },
-        ]);
-        setDevice({
-            name: 'My Device 1',
-            prototype: 'Solaris Vega',
-            state: true,
-            id: 'abc123',
-            lastSeen: new Date(),
-        });
-        setData({ temp: 20, humI: 60, humE: 54, lum: 78 });
+        // Gestione errori
+        try {
+            setLogs([
+                {
+                    id: '123abc',
+                    desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
+                    type: 'log_error',
+                    date: new Date(),
+                    read: false,
+                },
+                {
+                    id: '456def',
+                    desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
+                    type: 'irrigation_auto',
+                    date: new Date(),
+                    read: false,
+                },
+                {
+                    id: '789ghi',
+                    desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
+                    type: 'log_warning',
+                    date: new Date(),
+                    read: true,
+                },
+            ]);
+            setDevice({
+                name: 'My Device 1',
+                prototype: 'Solaris Vega',
+                state: true,
+                id: 'abc123',
+                lastSeen: new Date(),
+            });
+            setData({ temp: 20, humI: 60, humE: 54, lum: 78 });
+        } catch (error: any) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     // Controllo dati
@@ -120,6 +128,11 @@ function Dashboard() {
     // Controllo errore
     if (error) {
         return <Error error={error} />;
+    }
+
+    // Controllo caricamento
+    if (loading) {
+        return <Loading />;
     }
 
     return (
@@ -158,7 +171,23 @@ function Dashboard() {
                             } fill-current w-[20px]`}
                         />
                         <p className="text-primary-text text-xsmall max-w-[100px] text-center">
-                            {`${device.lastSeen!.getDate()}/${device.lastSeen!.getMonth()}/${device.lastSeen!.getFullYear()} ${device.lastSeen!.toLocaleTimeString()}`}
+                            {`${
+                                device.lastSeen
+                                    ? device.lastSeen.getDate()
+                                    : '-'
+                            }/${
+                                device.lastSeen
+                                    ? device.lastSeen.getMonth()
+                                    : '-'
+                            }/${
+                                device.lastSeen
+                                    ? device.lastSeen.getFullYear()
+                                    : '-'
+                            } ${
+                                device.lastSeen
+                                    ? device.lastSeen.toLocaleTimeString()
+                                    : '-'
+                            }`}
                         </p>
                     </div>
                 </div>
@@ -198,10 +227,10 @@ function Dashboard() {
                 <div className="flex flex-col items-center justify-center gap-5 w-full">
                     {logs.map((log) => (
                         <Log
-                            tit={logTitle(log.type!)}
-                            desc={log.desc!}
-                            type={log.type!}
-                            date={log.date!}
+                            tit={logTitle(log.type)}
+                            desc={log.desc}
+                            type={log.type}
+                            date={log.date}
                             read={log.read}
                             key={log.id}
                         />

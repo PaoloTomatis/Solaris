@@ -3,15 +3,16 @@ import Page from './Page.comp';
 import BottomBar from './BottomBar.comp';
 
 // Componente dati
-function Error({ error }: { error: string }) {
+function Loading() {
     return (
         <Page className="justify-center">
-            <h2 className="text-large text-error">Errore!</h2>
-            <p className="text-primary-text text-small">{error}</p>
+            <p className="text-primary-text text-small font-bold">
+                Caricamento...
+            </p>
             <BottomBar />
         </Page>
     );
 }
 
 // Esportazione componente
-export default Error;
+export default Loading;

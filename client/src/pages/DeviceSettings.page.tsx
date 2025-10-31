@@ -7,6 +7,8 @@ import BottomBar from '../components/BottomBar.comp';
 import Info from '../components/Info.comp';
 import Separator from '../components/Separator.comp';
 import InputCont from '../components/InputCont.comp';
+import Error from '../components/Error.comp';
+import Loading from '../components/Loading.comp';
 // Importazione immagini
 import EditIcon from '../assets/icons/edit.svg?react';
 import LogoIcon from '../assets/images/logo.svg?react';
@@ -49,20 +51,31 @@ function DeviceSettings() {
     const [humMax, setHumMax] = useState(0);
     // Stato tempo irrigazione
     const [irrigationTime, setIrrigationTime] = useState(0);
+    // Stato errore
+    const [error, setError] = useState('');
+    // Stato caricamento
+    const [loading, setLoading] = useState(true);
 
     // Caricamento pagina
     useEffect(() => {
-        setDevice({
-            name: 'My Device 1',
-            prototype: 'Solaris Vega',
-            state: true,
-            id: 'abc123',
-            lastSeen: new Date(),
-        });
-        setMode(originalSettings.mode);
-        setHumMin(originalSettings.humMin);
-        setHumMax(originalSettings.humMax);
-        setIrrigationTime(originalSettings.irrigationTime);
+        // Gestione errori
+        try {
+            setDevice({
+                name: 'My Device 1',
+                prototype: 'Solaris Vega',
+                state: true,
+                id: 'abc123',
+                lastSeen: new Date(),
+            });
+            setMode(originalSettings.mode);
+            setHumMin(originalSettings.humMin);
+            setHumMax(originalSettings.humMax);
+            setIrrigationTime(originalSettings.irrigationTime);
+        } catch (error: any) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     // Controllo dispositivo
@@ -89,6 +102,23 @@ function DeviceSettings() {
             setSaved(true);
         }
     }, [mode, humMin, humMax, irrigationTime]);
+
+    // Controllo modalità
+    useEffect(() => {
+        //TODO Notifica conferma
+        //TODO Calcolo modalità
+        console.log("CAMBIO MODALITA': " + mode);
+    }, [mode]);
+
+    // Controllo errore
+    if (error) {
+        return <Error error={error} />;
+    }
+
+    // Controllo caricamento
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         // Pagina

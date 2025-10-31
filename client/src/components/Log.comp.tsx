@@ -10,10 +10,10 @@ function Log({
     date,
     read = false,
 }: {
-    tit: string;
-    desc: string;
-    type: string;
-    date: Date;
+    tit?: string;
+    desc?: string;
+    type?: string;
+    date?: Date;
     read?: boolean;
 }) {
     return (
@@ -42,7 +42,11 @@ function Log({
             </div>
             {/* Contenitore data */}
             <p className="text-xsmall text-primary-text absolute bottom-0.5 right-3">
-                {`${date.getDate()}/${date.getMonth()}/${date.getFullYear()} - ${date.toLocaleTimeString()}`}
+                {`${date ? date.getDate() : '-'}/${
+                    date ? date.getMonth() : '-'
+                }/${date ? date.getFullYear() : '-'} - ${
+                    date ? date.toLocaleTimeString() : '-'
+                }`}
             </p>
         </div>
     );
