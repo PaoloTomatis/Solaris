@@ -75,6 +75,8 @@ async function register(req: Request, res: Response): Promise<Response> {
                 user: {
                     id: userRes._id,
                     email: userRes.email,
+                    role: userRes.role,
+                    updatedAt: userRes.updatedAt,
                     createdAt: userRes.createdAt,
                 },
             },

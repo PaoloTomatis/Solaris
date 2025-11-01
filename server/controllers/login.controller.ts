@@ -128,6 +128,7 @@ async function login(req: Request, res: Response): Promise<Response> {
                         ? {
                               id: subject._id,
                               email: (subject as UserType).email,
+                              role: (subject as UserType).role,
                               updatedAt: subject.updatedAt,
                               createdAt: subject.createdAt,
                           }
