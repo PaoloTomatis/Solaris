@@ -23,15 +23,23 @@ interface Device {
 interface Data {
     id: string;
     desc: string;
-    link: string;
+    link?: string;
     read: boolean;
     date: Date;
-    humI: number;
-    humE: number;
-    temp: number;
-    lum: number;
-    interval: number;
+    humI?: number;
+    humE?: number;
+    temp?: number;
+    lum?: number;
+    interval?: number;
     deviceId: string;
+    type:
+        | 'log_error'
+        | 'log_info'
+        | 'log_warning'
+        | 'log_irrigation_auto'
+        | 'log_irrigation_config'
+        | 'data_config'
+        | 'data_auto';
     updatedAt: Date;
     createdAt: Date;
 }

@@ -1,11 +1,11 @@
 // Importazione moduli
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import BottomBar from '../components/BottomBar.comp';
 import TopBar from '../components/TopBar.comp';
 import Page from '../components/Page.comp';
 import Button from '../components/Button.comp';
-import Input from '../components/Input.comp';
-import { useState } from 'react';
+import InputCont from '../components/InputCont.comp';
 // Importazione immagini
 import InfoIcon from '../assets/icons/info.svg?react';
 
@@ -23,19 +23,13 @@ function Controls() {
             {/* Barra superiore */}
             <TopBar url={`/dashboard/${deviceId}`}>Controlli Manuali</TopBar>
             {/* Contenitore input */}
-            <div className="flex items-center justify-center w-full gap-2">
-                {/* Testo */}
-                <h2 className="text-primary-text text-medium">
-                    Tempo Irrigazione:
-                </h2>
-                {/* Input */}
-                <Input
-                    type="number"
-                    value={irrigationTime}
-                    setValue={setIrrigationTime}
-                    className="max-w-max text-center"
-                />
-            </div>
+            <InputCont
+                type="number"
+                value={irrigationTime}
+                setValue={setIrrigationTime}
+            >
+                Tempo Irrigazione:
+            </InputCont>
             {/* Pulsante */}
             <Button
                 onClick={() => {

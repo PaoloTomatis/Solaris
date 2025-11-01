@@ -21,8 +21,12 @@ function Select({
                 setValue(e.target.value);
             }}
         >
-            {options.map((opt) => {
-                return <option value={opt.value}>{opt.text}</option>;
+            {options.map((opt, index) => {
+                return (
+                    <option key={index} value={opt.value}>
+                        {opt.text}
+                    </option>
+                );
             })}
         </select>
     );

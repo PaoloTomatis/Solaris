@@ -10,6 +10,10 @@ import Info from '../components/Info.comp';
 import logTitle from '../utils/logTitle.utils';
 import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
+import type {
+    Device as DeviceType,
+    Data as LogType,
+} from '../utils/type.utils';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -33,31 +37,17 @@ function Dashboard() {
     // Stato colore icona
     const [iconColor, setIconColor] = useState('#00d68b');
     // Stato dispositivo
-    const [device, setDevice] = useState<{
-        name?: string;
-        prototype?: string;
-        state?: boolean;
-        id?: string;
-        lastSeen?: Date;
-    }>({});
+    const [device, setDevice] = useState<DeviceType | null>(null);
     // Stato logs
-    const [logs, setLogs] = useState<
-        {
-            id?: string;
-            desc?: string;
-            type?: string;
-            date?: Date;
-            read?: boolean;
-        }[]
-    >([{}]);
+    const [logs, setLogs] = useState<LogType[] | null>(null);
     // Stato data
     const [data, setData] = useState<{
-        id?: string;
-        temp?: number;
-        humI?: number;
-        humE?: number;
-        lum?: number;
-    }>({});
+        id: string;
+        temp: number;
+        humI: number;
+        humE: number;
+        lum: number;
+    } | null>(null);
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
@@ -72,35 +62,47 @@ function Dashboard() {
         try {
             setLogs([
                 {
-                    id: '123abc',
+                    id: 'abc123',
                     desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
+                    read: false,
                     type: 'log_error',
                     date: new Date(),
-                    read: false,
+                    deviceId: 'abc123',
+                    updatedAt: new Date(),
+                    createdAt: new Date(),
                 },
                 {
-                    id: '456def',
+                    id: 'def456',
                     desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
-                    type: 'irrigation_auto',
-                    date: new Date(),
                     read: false,
+                    type: 'log_irrigation_auto',
+                    date: new Date(),
+                    deviceId: 'abc123',
+                    updatedAt: new Date(),
+                    createdAt: new Date(),
                 },
                 {
-                    id: '789ghi',
+                    id: 'ghi789',
                     desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
+                    read: true,
                     type: 'log_warning',
                     date: new Date(),
-                    read: true,
+                    deviceId: 'abc123',
+                    updatedAt: new Date(),
+                    createdAt: new Date(),
                 },
             ]);
             setDevice({
+                id: 'abc123',
                 name: 'My Device 1',
                 prototype: 'Solaris Vega',
-                state: true,
-                id: 'abc123',
-                lastSeen: new Date(),
+                userId: 'abc123',
+                mode: 'auto',
+                activatedAt: new Date(),
+                updatedAt: new Date(),
+                createdAt: new Date(),
             });
-            setData({ temp: 20, humI: 60, humE: 54, lum: 78 });
+            setData({ id: 'abc123', temp: 20, humI: 60, humE: 54, lum: 78 });
         } catch (error: any) {
             setError(error);
         } finally {
@@ -108,18 +110,11 @@ function Dashboard() {
         }
     }, []);
 
-    // Controllo dati
-    useEffect(() => {
-        if (!logs || !device || !data) {
-            setError('Caricamento dati non avvenuto correttamente!');
-        }
-    }, [logs, device, data]);
-
     // Controllo dispositivo
     useEffect(() => {
         // Controllo modello
         for (const [model, color] of Object.entries(models)) {
-            if (device.prototype?.toLowerCase().includes(model)) {
+            if (device?.prototype?.toLowerCase().includes(model)) {
                 setIconColor(color);
             }
         }
@@ -157,22 +152,22 @@ function Dashboard() {
                     {/* Testi */}
                     <div className="flex flex-col items-start justify-center">
                         <h3 className="text-medium font-bold text-primary-text leading-6">
-                            {device.name}
+                            {device?.name || '-'}
                         </h3>
                         <p className="text-xsmall text-primary-text">
-                            {device.prototype}
+                            {device?.prototype || '-'}
                         </p>
                     </div>
                     {/* Testo stato */}
                     <div className="flex flex-col items-center justify-center">
                         <SignalIcon
                             className={`${
-                                device.state ? 'text-success' : 'text-error'
+                                true ? 'text-success' : 'text-error'
                             } fill-current w-[20px]`}
                         />
-                        <p className="text-primary-text text-xsmall max-w-[100px] text-center">
+                        {/* <p className="text-primary-text text-xsmall max-w-[100px] text-center">
                             {`${
-                                device.lastSeen
+                                device?.lastSeen
                                     ? device.lastSeen.getDate()
                                     : '-'
                             }/${
@@ -188,7 +183,7 @@ function Dashboard() {
                                     ? device.lastSeen.toLocaleTimeString()
                                     : '-'
                             }`}
-                        </p>
+                        </p> */}
                     </div>
                 </div>
             </div>
@@ -204,12 +199,24 @@ function Dashboard() {
                 {/* Contenitore dati */}
                 <div className="flex flex-col items-center justify-center gap-5 w-full">
                     <div className="flex items-center justify-center gap-7 w-full">
-                        <Data img={TemperatureIcon} dato={`${data.temp}°C`} />
-                        <Data img={LuminosityIcon} dato={`${data.lum}%`} />
+                        <Data
+                            img={TemperatureIcon}
+                            dato={`${data?.temp || '-'}°C`}
+                        />
+                        <Data
+                            img={LuminosityIcon}
+                            dato={`${data?.lum || '-'}%`}
+                        />
                     </div>
                     <div className="flex items-center justify-center gap-7 w-full">
-                        <Data img={HumidityIcon} dato={`${data.humE}%`} />
-                        <Data img={HumidityIcon} dato={`${data.humI}%`} />
+                        <Data
+                            img={HumidityIcon}
+                            dato={`${data?.humE || '-'}%`}
+                        />
+                        <Data
+                            img={HumidityIcon}
+                            dato={`${data?.humI || '-'}%`}
+                        />
                     </div>
                 </div>
             </div>
@@ -225,16 +232,22 @@ function Dashboard() {
                 </div>
                 {/* Contenitore log */}
                 <div className="flex flex-col items-center justify-center gap-5 w-full">
-                    {logs.map((log) => (
-                        <Log
-                            tit={logTitle(log.type)}
-                            desc={log.desc}
-                            type={log.type}
-                            date={log.date}
-                            read={log.read}
-                            key={log.id}
-                        />
-                    ))}
+                    {logs ? (
+                        logs.map((log) => (
+                            <Log
+                                tit={logTitle(log.type)}
+                                desc={log.desc}
+                                type={log.type}
+                                date={log.date}
+                                read={log.read}
+                                key={log.id}
+                            />
+                        ))
+                    ) : (
+                        <p className="text-small font-bold text-primary-text text-center">
+                            Non sono presenti LOG!
+                        </p>
+                    )}
                 </div>
             </div>
             <Separator />

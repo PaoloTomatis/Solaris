@@ -9,6 +9,8 @@ import Separator from '../components/Separator.comp';
 import InputCont from '../components/InputCont.comp';
 import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
+import type { Device } from '../utils/type.utils';
+import type { DeviceSettings as DeviceSettingsType } from '../utils/type.utils';
 // Importazione immagini
 import EditIcon from '../assets/icons/edit.svg?react';
 import LogoIcon from '../assets/images/logo.svg?react';
@@ -21,24 +23,14 @@ import SaveIcon from '../assets/icons/save.svg?react';
 function DeviceSettings() {
     // Id device
     const { id: deviceId } = useParams();
-    // Dichiarazione impostazioni originarie
-    const originalSettings = {
-        mode: 'auto',
-        humMin: 25,
-        humMax: 75,
-        irrigationTime: 120,
-    };
     // Dichiarazione lista modelli
     const models = { vega: '#ffd60a', helios: '#00d4d8' };
 
+    // Stato impostazioni originali
+    const [originalSettings, setOriginalSettings] =
+        useState<DeviceSettingsType | null>(null);
     // Stato dispositivo
-    const [device, setDevice] = useState<{
-        name?: string;
-        prototype?: string;
-        state?: boolean;
-        id?: string;
-        lastSeen?: Date;
-    }>({});
+    const [device, setDevice] = useState<Device | null>(null);
     // Stato colore icona
     const [iconColor, setIconColor] = useState('#00d68b');
     // Stato salvataggio
@@ -50,7 +42,7 @@ function DeviceSettings() {
     // Stato umidità massima
     const [humMax, setHumMax] = useState(0);
     // Stato tempo irrigazione
-    const [irrigationTime, setIrrigationTime] = useState(0);
+    const [kInterval, setKInterval] = useState(0);
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
@@ -60,17 +52,25 @@ function DeviceSettings() {
     useEffect(() => {
         // Gestione errori
         try {
+            setOriginalSettings({
+                id: 'abc123',
+                humMin: 25,
+                humMax: 75,
+                kInterval: 2.5,
+                deviceId: 'abc123',
+                updatedAt: new Date(),
+                createdAt: new Date(),
+            });
             setDevice({
+                id: 'abc123',
                 name: 'My Device 1',
                 prototype: 'Solaris Vega',
-                state: true,
-                id: 'abc123',
-                lastSeen: new Date(),
+                userId: 'abc123',
+                mode: 'auto',
+                activatedAt: new Date(),
+                updatedAt: new Date(),
+                createdAt: new Date(),
             });
-            setMode(originalSettings.mode);
-            setHumMin(originalSettings.humMin);
-            setHumMax(originalSettings.humMax);
-            setIrrigationTime(originalSettings.irrigationTime);
         } catch (error: any) {
             setError(error);
         } finally {
@@ -82,18 +82,30 @@ function DeviceSettings() {
     useEffect(() => {
         // Controllo modello
         for (const [model, color] of Object.entries(models)) {
-            if (device.prototype?.toLowerCase().includes(model)) {
+            if (device?.prototype?.toLowerCase().includes(model)) {
                 setIconColor(color);
             }
         }
     }, [device]);
 
+    useEffect(() => {
+        setMode(device?.mode || 'safe');
+        setHumMin(originalSettings?.humMin || 0);
+        setHumMax(originalSettings?.humMax || 0);
+        setKInterval(originalSettings?.kInterval || 0);
+    }, [device, originalSettings]);
+
     // Controllo salvataggio
     useEffect(() => {
         // Controllo impostazioni
         if (
-            JSON.stringify({ mode, humMin, humMax, irrigationTime }) !=
-            JSON.stringify(originalSettings)
+            JSON.stringify({ mode, humMin, humMax, kInterval }) !=
+            JSON.stringify({
+                mode: device?.mode,
+                humMin: originalSettings?.humMin,
+                humMax: originalSettings?.humMax,
+                kInterval: originalSettings?.kInterval,
+            })
         ) {
             // Impostazione salvataggio
             setSaved(false);
@@ -101,14 +113,7 @@ function DeviceSettings() {
             // Impostazione salvataggio
             setSaved(true);
         }
-    }, [mode, humMin, humMax, irrigationTime]);
-
-    // Controllo modalità
-    useEffect(() => {
-        //TODO Notifica conferma
-        //TODO Calcolo modalità
-        console.log("CAMBIO MODALITA': " + mode);
-    }, [mode]);
+    }, [mode, humMin, humMax, kInterval]);
 
     // Controllo errore
     if (error) {
@@ -149,12 +154,12 @@ function DeviceSettings() {
                     <div className="flex flex-col gap-5">
                         {/* Nome dispositivo */}
                         <h1 className="text-primary-text text-medium leading-1 font-bold flex items-center justify-center gap-1">
-                            {device.name}
+                            {device?.name || '-'}
                             <EditIcon className="cursor-pointer w-[20px] text-primary-text aspect-square fill-current" />
                         </h1>
                         {/* Modello dispositivo */}
                         <p className="text-primary-text text-small leading-1">
-                            {device.prototype}
+                            {device?.prototype || '-'}
                         </p>
                     </div>
                 </div>
@@ -192,8 +197,8 @@ function DeviceSettings() {
                         {/* Impostazione irrigationTime */}
                         <InputCont
                             type="number"
-                            value={irrigationTime}
-                            setValue={setIrrigationTime}
+                            value={kInterval}
+                            setValue={setKInterval}
                         >
                             Intervallo Irrigazione:
                         </InputCont>
@@ -208,10 +213,10 @@ function DeviceSettings() {
                     onClick={() => {
                         if (!saved) {
                             //TODO Notifica conferma
-                            setHumMax(originalSettings.humMax);
-                            setHumMin(originalSettings.humMin);
-                            setIrrigationTime(originalSettings.irrigationTime);
-                            setMode(originalSettings.mode);
+                            setHumMax(originalSettings?.humMax || 0);
+                            setHumMin(originalSettings?.humMin || 0);
+                            setKInterval(originalSettings?.kInterval || 0);
+                            setMode(device?.mode || 'safe');
                         }
                     }}
                     name="Reset Impostazioni"

@@ -76,7 +76,7 @@ function Credits() {
 
     return (
         <Page className="pt-[15vh] gap-2.5">
-            <TopBar name="Crediti" url="/account" />
+            <TopBar url="/account">Crediti</TopBar>
             {creditsList.map((creditItem, index) => {
                 return (
                     <React.Fragment key={index}>

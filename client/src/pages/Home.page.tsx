@@ -6,7 +6,7 @@ import BottomBar from '../components/BottomBar.comp';
 function Home() {
     return (
         <Page className="justify-center">
-            <h1 className="text-primary dark:text-secondary text-xxlarge">
+            <h1 className="text-primary dark:text-secondary text-[5rem] text-center">
                 SOLARIS HUB
             </h1>
             <BottomBar />
