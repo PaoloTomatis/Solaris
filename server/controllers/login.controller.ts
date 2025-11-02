@@ -94,8 +94,19 @@ async function login(req: Request, res: Response): Promise<Response> {
         // Firma access token
         const accessToken = jwt.sign(
             type === 'user'
-                ? { id: subject._id, email: (subject as UserType).email }
-                : { id: subject._id, key: (subject as DeviceType).key },
+                ? {
+                      id: subject._id,
+                      email: (subject as UserType).email,
+                      role: (subject as UserType).role,
+                      updatedAt: subject.updatedAt,
+                      createdAt: subject.createdAt,
+                  }
+                : {
+                      id: subject._id,
+                      key: (subject as DeviceType).key,
+                      updatedAt: subject.updatedAt,
+                      createdAt: subject.createdAt,
+                  },
             process.env.JWT_ACCESS,
             { expiresIn: '1h' }
         );
@@ -103,8 +114,19 @@ async function login(req: Request, res: Response): Promise<Response> {
         // Firma refresh token
         const refreshToken = jwt.sign(
             type === 'user'
-                ? { id: subject._id, email: (subject as UserType).email }
-                : { id: subject._id, key: (subject as DeviceType).key },
+                ? {
+                      id: subject._id,
+                      email: (subject as UserType).email,
+                      role: (subject as UserType).role,
+                      updatedAt: subject.updatedAt,
+                      createdAt: subject.createdAt,
+                  }
+                : {
+                      id: subject._id,
+                      key: (subject as DeviceType).key,
+                      updatedAt: subject.updatedAt,
+                      createdAt: subject.createdAt,
+                  },
             process.env.JWT_REFRESH,
             { expiresIn: '3d' }
         );

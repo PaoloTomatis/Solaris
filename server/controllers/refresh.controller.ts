@@ -76,7 +76,13 @@ async function refresh(req: Request, res: Response): Promise<Response> {
 
         // Firma access token
         const accessToken = jwt.sign(
-            { id: user._id, email: user.email },
+            {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                updatedAt: user.updatedAt,
+                createdAt: user.createdAt,
+            },
             process.env.JWT_ACCESS,
             { expiresIn: '1h' }
         );
