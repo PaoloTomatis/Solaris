@@ -12,7 +12,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         const {
             id,
             date,
@@ -289,7 +289,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const device: DeviceType | undefined = req.body.device;
+        const device: DeviceType | undefined = req.device;
         const {
             desc,
             link,
@@ -574,7 +574,7 @@ async function patchData(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         const { read }: { read?: boolean } = req.body;
         let { id: dataId }: { id?: string | mongoose.Types.ObjectId } =
             req.params;
@@ -699,7 +699,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         let { id: dataId }: { id?: string | mongoose.Types.ObjectId } =
             req.params;
 

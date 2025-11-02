@@ -5,7 +5,8 @@
     "main": "server.ts",
     "type": "module",
     "scripts": {
-        "dev": "nodemon --watch . --ext ts --ignore dist --exec \"npm run build && node dist/server.js\"",
+        "dev": "nodemon --watch . --ext ts --ignore dist --exec \"node dist/server.js\"",
+        "build-dev": "nodemon --watch . --ext ts --ignore dist --exec \"npm run build && node dist/server.js\"",
         "build": "tsc",
         "start": "node dist/server.js"
     },

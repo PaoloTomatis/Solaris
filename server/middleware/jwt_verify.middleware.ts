@@ -108,7 +108,7 @@ async function jwtMiddlewareRest(
             typeof accessTokenRes === 'string'
                 ? accessTokenRes.split(' ')[1]
                 : null;
-        const type = req.body?.type;
+        const type = req.query?.authType;
 
         // Controllo access token
         if (!accessToken) {
@@ -123,10 +123,10 @@ async function jwtMiddlewareRest(
 
         if (type === 'user') {
             // Impostazione utente
-            req.body.user = await jwtVerify(accessToken, 'user');
+            req.user = await jwtVerify(accessToken, 'user');
         } else {
             // Impostazione dispositivo
-            req.body.device = await jwtVerify(accessToken, 'device');
+            req.device = await jwtVerify(accessToken, 'device');
         }
 
         // Passaggio prossimo gestore

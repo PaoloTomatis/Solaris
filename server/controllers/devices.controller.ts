@@ -15,7 +15,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         const {
             id,
             key,
@@ -199,7 +199,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         const {
             key,
             psw,
@@ -400,7 +400,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         const {
             name,
             activatedAt,
@@ -566,7 +566,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         const { key }: { key?: string } = req.params;
 
         // Controllo utente
@@ -657,7 +657,7 @@ async function updateModeDevice(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         const mode: string | undefined = req.body.mode;
         const key: string | undefined = req.params.key;
 
@@ -877,7 +877,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         let { id: deviceId }: { id?: string | mongoose.Types.ObjectId } =
             req.params;
 

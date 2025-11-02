@@ -9,7 +9,7 @@ async function getUserSettings(req: Request, res: Response): Promise<Response> {
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
 
         // Controllo utente
         if (!user)
@@ -71,7 +71,7 @@ async function patchUserSettings(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         let {
             styleMode,
             units,
@@ -162,7 +162,7 @@ async function deleteUserSettings(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
 
         // Controllo utente
         if (!user)

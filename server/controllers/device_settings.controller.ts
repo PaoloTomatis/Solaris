@@ -14,8 +14,8 @@ async function getDeviceSettings(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
-        const device: DeviceType | undefined = req.body.device;
+        const user: UserType | undefined = req.user;
+        const device: DeviceType | undefined = req.device;
         const { deviceId, id: settingsId }: { deviceId?: string; id?: string } =
             req.query;
 
@@ -138,7 +138,7 @@ async function patchDeviceSettings(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         let {
             humMax,
             humMin,
@@ -256,7 +256,7 @@ async function deleteDeviceSettings(
     // Gestione errori
     try {
         // Ricavo dati richiesta
-        const user: UserType | undefined = req.body.user;
+        const user: UserType | undefined = req.user;
         const { id: deviceId }: { id?: string } = req.params;
 
         // Controllo utente

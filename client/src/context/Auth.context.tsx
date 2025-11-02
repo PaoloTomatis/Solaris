@@ -9,6 +9,7 @@ import {
 import type { User as UserType } from '../utils/type.utils';
 import axios from 'axios';
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 // Tipo contesto autenticazione
 interface AuthContextType {
@@ -35,6 +36,7 @@ interface AuthContextType {
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
         setError: React.Dispatch<React.SetStateAction<string>>
     ) => Promise<void>;
+    loading: boolean;
 }
 
 // Dichiarazione contesto autenticazione
@@ -46,6 +48,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserType | null>(null);
     // Stato accessToken
     const [accessToken, setAccessToken] = useState<string | null>(null);
+    // Stato caricamento
+    const [loading, setLoading] = useState(true);
+    // Navigatore
+    const navigator = useNavigate();
 
     // Tipo payload utente jwt
     interface JwtUserPayload extends JwtPayload {
@@ -131,6 +137,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setAccessToken(null);
         }
+
+        // Impostazione caricamento
+        setLoading(false);
     }, []);
 
     // Funzione login
@@ -142,6 +151,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
     ) {
         // Gestione errori
         try {
+            // Impostazione caricamento
+            setLoading(true);
             // Richiesta login
             const res = await axios.post<Login | undefined>(
                 `${import.meta.env.VITE_API_URL}/auth/login`,
@@ -162,12 +173,22 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem('accessToken', res.data.data.accessToken);
                 // Impostazione utente
                 setUser(user);
+
+                navigator('/account');
             }
         } catch (error: unknown) {
-            const errorMsg =
-                error instanceof Error
-                    ? error?.message || 'Errore interno del server!'
-                    : 'Errore sconosciuto!';
+            let errorMsg = 'Errore sconosciuto!';
+
+            if (axios.isAxiosError(error)) {
+                // Caso 1: risposta dal server con campo "message"
+                errorMsg =
+                    (error as any).response?.data?.message ||
+                    (error as any).message;
+            } else if (error instanceof Error) {
+                // Caso 2: altri errori generici
+                errorMsg = error.message;
+            }
+
             // Impostazione errore
             setError(errorMsg);
         } finally {
@@ -185,6 +206,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
     ) {
         // Gestione errori
         try {
+            // Impostazione caricamento
+            setLoading(true);
             // Richiesta registrazione
             const res = await axios.post<Register | null>(
                 `${import.meta.env.VITE_API_URL}/auth/register`,
@@ -199,12 +222,22 @@ function AuthProvider({ children }: { children: ReactNode }) {
             if (!res.data || !res.data?.success)
                 throw new Error(res.data?.message || 'Errore nella richiesta!');
         } catch (error: unknown) {
-            const errorMsg =
-                error instanceof Error
-                    ? error?.message || 'Errore interno del server!'
-                    : 'Errore sconosciuto!';
+            let errorMsg = 'Errore sconosciuto!';
+
+            if (axios.isAxiosError(error)) {
+                // Caso 1: risposta dal server con campo "message"
+                errorMsg =
+                    (error as any).response?.data?.message ||
+                    (error as any).message;
+            } else if (error instanceof Error) {
+                // Caso 2: altri errori generici
+                errorMsg = error.message;
+            }
+
             // Impostazione errore
             setError(errorMsg);
+
+            navigator('/auth/login');
         } finally {
             // Impostazione caricamento
             setLoading(false);
@@ -218,6 +251,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
     ) {
         // Gestione errori
         try {
+            // Impostazione caricamento
+            setLoading(true);
             // Richiesta logout
             const res = await axios.get<Register | null>(
                 `${import.meta.env.VITE_API_URL}/auth/logout`
@@ -230,11 +265,21 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // Impostazione utente e accessToken
             setUser(null);
             setAccessToken(null);
+
+            navigator('/');
         } catch (error: unknown) {
-            const errorMsg =
-                error instanceof Error
-                    ? error?.message || 'Errore interno del server!'
-                    : 'Errore sconosciuto!';
+            let errorMsg = 'Errore sconosciuto!';
+
+            if (axios.isAxiosError(error)) {
+                // Caso 1: risposta dal server con campo "message"
+                errorMsg =
+                    (error as any).response?.data?.message ||
+                    (error as any).message;
+            } else if (error instanceof Error) {
+                // Caso 2: altri errori generici
+                errorMsg = error.message;
+            }
+
             // Impostazione errore
             setError(errorMsg);
         } finally {
@@ -250,6 +295,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
     ) {
         // Gestione errori
         try {
+            // Impostazione caricamento
+            setLoading(true);
             // Richiesta logout
             const res = await axios.delete<Register | null>(
                 `${import.meta.env.VITE_API_URL}/api/user`
@@ -262,11 +309,21 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // Impostazione utente e accessToken
             setUser(null);
             setAccessToken(null);
+
+            navigator('/');
         } catch (error: unknown) {
-            const errorMsg =
-                error instanceof Error
-                    ? error?.message || 'Errore interno del server!'
-                    : 'Errore sconosciuto!';
+            let errorMsg = 'Errore sconosciuto!';
+
+            if (axios.isAxiosError(error)) {
+                // Caso 1: risposta dal server con campo "message"
+                errorMsg =
+                    (error as any).response?.data?.message ||
+                    (error as any).message;
+            } else if (error instanceof Error) {
+                // Caso 2: altri errori generici
+                errorMsg = error.message;
+            }
+
             // Impostazione errore
             setError(errorMsg);
         } finally {
@@ -285,6 +342,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 register,
                 logout,
                 deleteAccount,
+                loading,
             }}
         >
             {children}
