@@ -55,7 +55,7 @@ function Devices() {
 
     // Controllo errore
     if (error) {
-        return <Error error={error} />;
+        return <Error error={error} setError={setError} />;
     }
 
     // Controllo caricamento

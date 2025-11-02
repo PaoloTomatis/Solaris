@@ -14,6 +14,8 @@ import type {
     Device as DeviceType,
     Data as LogType,
 } from '../utils/type.utils';
+import { useAuth } from '../context/Auth.context';
+import getData from '../utils/getData.utils';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -48,6 +50,8 @@ function Dashboard() {
         humE: number;
         lum: number;
     } | null>(null);
+    // Autenticazione
+    const { accessToken } = useAuth();
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
@@ -60,48 +64,66 @@ function Dashboard() {
     useEffect(() => {
         // Gestione errori
         try {
-            setLogs([
-                {
-                    id: 'abc123',
-                    desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
-                    read: false,
-                    type: 'log_error',
-                    date: new Date(),
-                    deviceId: 'abc123',
-                    updatedAt: new Date(),
-                    createdAt: new Date(),
-                },
-                {
-                    id: 'def456',
-                    desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
-                    read: false,
-                    type: 'log_irrigation_auto',
-                    date: new Date(),
-                    deviceId: 'abc123',
-                    updatedAt: new Date(),
-                    createdAt: new Date(),
-                },
-                {
-                    id: 'ghi789',
-                    desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
-                    read: true,
-                    type: 'log_warning',
-                    date: new Date(),
-                    deviceId: 'abc123',
-                    updatedAt: new Date(),
-                    createdAt: new Date(),
-                },
-            ]);
-            setDevice({
-                id: 'abc123',
-                name: 'My Device 1',
-                prototype: 'Solaris Vega',
-                userId: 'abc123',
-                mode: 'auto',
-                activatedAt: new Date(),
-                updatedAt: new Date(),
-                createdAt: new Date(),
-            });
+            // Controllo token
+            if (accessToken) {
+                getData(
+                    setLoading,
+                    setError,
+                    setLogs,
+                    accessToken,
+                    'data',
+                    'limit=3&type=log_info'
+                );
+                getData(
+                    setLoading,
+                    setError,
+                    setDevice,
+                    accessToken,
+                    'device'
+                );
+            }
+            // setLogs([
+            //     {
+            //         id: 'abc123',
+            //         desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
+            //         read: false,
+            //         type: 'log_error',
+            //         date: new Date(),
+            //         deviceId: 'abc123',
+            //         updatedAt: new Date(),
+            //         createdAt: new Date(),
+            //     },
+            //     {
+            //         id: 'def456',
+            //         desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
+            //         read: false,
+            //         type: 'log_irrigation_auto',
+            //         date: new Date(),
+            //         deviceId: 'abc123',
+            //         updatedAt: new Date(),
+            //         createdAt: new Date(),
+            //     },
+            //     {
+            //         id: 'ghi789',
+            //         desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
+            //         read: true,
+            //         type: 'log_warning',
+            //         date: new Date(),
+            //         deviceId: 'abc123',
+            //         updatedAt: new Date(),
+            //         createdAt: new Date(),
+            //     },
+            // ]);
+            // setDevice({
+            //     id: 'abc123',
+            //     name: 'My Device 1',
+            //     prototype: 'Solaris Vega',
+            //     userId: 'abc123',
+            //     mode: 'auto',
+            //     activatedAt: new Date(),
+            //     updatedAt: new Date(),
+            //     createdAt: new Date(),
+            // });
             setData({ id: 'abc123', temp: 20, humI: 60, humE: 54, lum: 78 });
         } catch (error: any) {
             setError(error);
@@ -122,7 +144,7 @@ function Dashboard() {
 
     // Controllo errore
     if (error) {
-        return <Error error={error} />;
+        return <Error error={error} setError={setError} />;
     }
 
     // Controllo caricamento

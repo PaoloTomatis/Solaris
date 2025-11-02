@@ -1,12 +1,12 @@
 // Importazione moduli
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import BottomBar from '../components/BottomBar.comp';
 import Info from '../components/Info.comp';
 import Page from '../components/Page.comp';
 import Separator from '../components/Separator.comp';
 import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
-import type { User } from '../utils/type.utils';
+import { useAuth } from '../context/Auth.context';
 // Importazione icone
 import SettingsIcon from '../assets/icons/settings.svg?react';
 import CreditsIcon from '../assets/icons/credits.svg?react';
@@ -17,34 +17,16 @@ import DeleteIcon from '../assets/icons/delete.svg?react';
 
 // Pagina account
 function Account() {
-    // Stato account
-    const [user, setUser] = useState<User | null>(null);
     // Stato caricamento
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     // Stato errore
     const [error, setError] = useState('');
-
-    // Caricamento pagina
-    useEffect(() => {
-        // Gestione errori
-        try {
-            setUser({
-                id: 'abc123',
-                email: 'mario.rossi@gmail.com',
-                role: 'user',
-                updatedAt: new Date(),
-                createdAt: new Date(),
-            });
-        } catch (error: any) {
-            setError(error);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    // Autenticazione
+    const { user, logout, deleteAccount } = useAuth();
 
     // Controllo errore
     if (error) {
-        return <Error error={error} />;
+        return <Error error={error} setError={setError} />;
     }
 
     // Controllo caricamento
@@ -77,17 +59,27 @@ function Account() {
                     icon={DeviceIcon}
                     info="4"
                 />
-                <Info url="/warning" name="Privacy Policy" icon={PolicyIcon} />
-                <Info url="/warning" name="Cookies Policy" icon={PolicyIcon} />
+                <Info
+                    url="/warning?page=%2Faccount"
+                    name="Privacy Policy"
+                    icon={PolicyIcon}
+                />
+                <Info
+                    url="/warning?page=%2Faccount"
+                    name="Cookies Policy"
+                    icon={PolicyIcon}
+                />
                 <Separator />
                 <Info
-                    onClick={() => alert('LOGOUT')}
+                    onClick={async () => await logout(setLoading, setError)}
                     name="Logout"
                     icon={LogoutIcon}
                     type="error"
                 />
                 <Info
-                    onClick={() => alert('ELIMINAZIONE')}
+                    onClick={async () =>
+                        await deleteAccount(setLoading, setError)
+                    }
                     name="Elimina Account"
                     icon={DeleteIcon}
                     type="error"
