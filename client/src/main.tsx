@@ -18,6 +18,7 @@ import Account from './pages/Account.page';
 import Auth from './pages/Auth.page';
 import Warning from './pages/Warning.page';
 import Parent from './components/Parent.comp';
+import ProtectedRoute from './components/ProtectedRoute.comp';
 
 // Creazione router
 const router = createBrowserRouter([
@@ -26,16 +27,79 @@ const router = createBrowserRouter([
         element: <Parent />,
         children: [
             { path: '/', element: <Home /> },
-            { path: '/devices', element: <Devices /> },
-            { path: '/devices/add', element: <DeviceRegister /> },
-            { path: '/dashboard/:id', element: <Dashboard /> },
-            { path: '/dashboard/:id/controls', element: <Controls /> },
-            { path: '/dashboard/:id/settings', element: <DeviceSettings /> },
-            { path: '/dashboard/:id/log', element: <Log /> },
-            { path: '/dashboard/:id/stats', element: <Stats /> },
+            {
+                path: '/devices',
+                element: (
+                    <ProtectedRoute>
+                        <Devices />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/devices/add',
+                element: (
+                    <ProtectedRoute>
+                        <DeviceRegister />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/dashboard/:id',
+                element: (
+                    <ProtectedRoute>
+                        <Dashboard />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/dashboard/:id/controls',
+                element: (
+                    <ProtectedRoute>
+                        <Controls />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/dashboard/:id/settings',
+                element: (
+                    <ProtectedRoute>
+                        <DeviceSettings />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/dashboard/:id/log',
+                element: (
+                    <ProtectedRoute>
+                        <Log />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/dashboard/:id/stats',
+                element: (
+                    <ProtectedRoute>
+                        <Stats />
+                    </ProtectedRoute>
+                ),
+            },
             { path: '/credits', element: <Credits /> },
-            { path: '/settings', element: <UserSettings /> },
-            { path: '/account', element: <Account /> },
+            {
+                path: '/settings',
+                element: (
+                    <ProtectedRoute>
+                        <UserSettings />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/account',
+                element: (
+                    <ProtectedRoute>
+                        <Account />
+                    </ProtectedRoute>
+                ),
+            },
             { path: '/auth/:type', element: <Auth /> },
             { path: '/auth', element: <Auth /> },
             { path: '*', element: <Page404 /> },

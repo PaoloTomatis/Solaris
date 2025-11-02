@@ -8,9 +8,37 @@ import {
 } from 'react';
 import type { User as UserType } from '../utils/type.utils';
 import axios from 'axios';
+import { jwtDecode, type JwtPayload } from 'jwt-decode';
+
+// Tipo contesto autenticazione
+interface AuthContextType {
+    user: UserType | null;
+    setUser: React.Dispatch<React.SetStateAction<UserType | null>>;
+    accessToken: string | null;
+    login: (
+        email: string,
+        psw: string,
+        setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+        setError: React.Dispatch<React.SetStateAction<string>>
+    ) => Promise<void>;
+    register: (
+        email: string,
+        psw: string,
+        setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+        setError: React.Dispatch<React.SetStateAction<string>>
+    ) => Promise<void>;
+    logout: (
+        setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+        setError: React.Dispatch<React.SetStateAction<string>>
+    ) => Promise<void>;
+    deleteAccount: (
+        setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+        setError: React.Dispatch<React.SetStateAction<string>>
+    ) => Promise<void>;
+}
 
 // Dichiarazione contesto autenticazione
-const AuthContext = createContext({});
+const AuthContext = createContext<AuthContextType | null>(null);
 
 // Provider autenticazione
 function AuthProvider({ children }: { children: ReactNode }) {
@@ -19,27 +47,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
     // Stato accessToken
     const [accessToken, setAccessToken] = useState<string | null>(null);
 
-    // Caricamento componente
-    useEffect(() => {
-        //TODO Controllo validità token
-        // Ricavazione token
-        const token = localStorage.getItem('accessToken');
-        // Controllo token
-        if (token) {
-            // Impostazione token
-            setAccessToken(token);
-        }
-    }, []);
-
-    // Caricamento componente
-    useEffect(() => {
-        //TODO Controllo validità token
-        // Controllo token
-        if (accessToken) {
-            // Impostazione token
-            localStorage.setItem('accessToken', accessToken);
-        }
-    }, [accessToken]);
+    // Tipo payload utente jwt
+    interface JwtUserPayload extends JwtPayload {
+        id: string;
+        email: string;
+        role: 'user' | 'admin';
+        updatedAt: string;
+        createdAt: string;
+    }
 
     // Tipo output login
     interface Login {
@@ -74,6 +89,50 @@ function AuthProvider({ children }: { children: ReactNode }) {
         };
     }
 
+    // Funzione controllo token
+    function jwtCheck(token: string): null | UserType {
+        // Gestione errori
+        try {
+            // Decodifica token
+            const decoded = jwtDecode<JwtUserPayload>(token || '');
+            // Controllo token
+            if (decoded.exp && decoded.exp * 1000 > Date.now() && token) {
+                return {
+                    id: decoded.id,
+                    email: decoded.email,
+                    role: decoded.role,
+                    updatedAt: new Date(decoded.updatedAt),
+                    createdAt: new Date(decoded.createdAt),
+                };
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    // Caricamento componente
+    useEffect(() => {
+        // Ricavazione token
+        const token = localStorage.getItem('accessToken');
+
+        // Check token
+        const user = jwtCheck(token || '');
+
+        // Controllo utente
+        if (user) {
+            // Impostazione token
+            setAccessToken(token);
+            setUser(user);
+        } else {
+            // Eliminazione token
+            localStorage.removeItem('accessToken');
+            // Impostazione utente e token
+            setUser(null);
+            setAccessToken(null);
+        }
+    }, []);
+
     // Funzione login
     async function login(
         email: string,
@@ -93,10 +152,17 @@ function AuthProvider({ children }: { children: ReactNode }) {
             if (!res.data || !res.data?.success)
                 throw new Error(res.data?.message || 'Errore nella richiesta!');
 
-            // Impostazione token
-            setAccessToken(res.data.data.accessToken);
-            // Impostazione utente
-            setUser(res.data.data.subject);
+            // Check token
+            const user = jwtCheck(res.data.data.accessToken || '');
+
+            // Controllo utente
+            if (user) {
+                // Impostazione token
+                setAccessToken(res.data.data.accessToken);
+                localStorage.setItem('accessToken', res.data.data.accessToken);
+                // Impostazione utente
+                setUser(user);
+            }
         } catch (error: unknown) {
             const errorMsg =
                 error instanceof Error
@@ -227,8 +293,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 // Hook autenticazione
-function useAuth() {
-    return useContext(AuthContext);
+function useAuth(): AuthContextType {
+    const context = useContext(AuthContext);
+    // Controllo contesto
+    if (!context) {
+        throw new Error('useAuth deve essere usato in un AuthProvider');
+    }
+    return context;
 }
 
 // Esportazione hook e provider

@@ -1,6 +1,7 @@
 // Importazione moduli
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { AuthProvider } from '../context/Auth.context';
 
 // Componente genitore
 const Parent = () => {
@@ -17,7 +18,11 @@ const Parent = () => {
 
     // Controllo avviso
     if (isWarned) {
-        return <Outlet />;
+        return (
+            <AuthProvider>
+                <Outlet />
+            </AuthProvider>
+        );
     } else {
         return (
             <Navigate
