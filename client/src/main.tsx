@@ -9,7 +9,7 @@ import DeviceRegister from './pages/DeviceRegister.page';
 import Dashboard from './pages/Dashboard.page';
 import Controls from './pages/Controls.page';
 import DeviceSettings from './pages/DeviceSettings.page';
-import Log from './pages/Log.page';
+import Log from './pages/Logs.page';
 import Stats from './pages/Stats.page';
 import Page404 from './pages/Page404.page';
 import Credits from './pages/Credits.page';
