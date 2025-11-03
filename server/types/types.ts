@@ -1,5 +1,4 @@
 // Importazione moduli
-import type { Socket } from 'socket.io';
 import type { WebSocket } from 'ws';
 
 // Interfaccia utente
@@ -16,7 +15,7 @@ interface DeviceType {
     id: string;
     key: string;
     name: string;
-    prototype: string;
+    prototypeModel: string;
     userId: string;
     mode: string;
     activatedAt: Date;

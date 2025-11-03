@@ -265,6 +265,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // Impostazione utente e accessToken
             setUser(null);
             setAccessToken(null);
+            localStorage.removeItem('accessToken');
 
             navigator('/');
         } catch (error: unknown) {
@@ -309,6 +310,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // Impostazione utente e accessToken
             setUser(null);
             setAccessToken(null);
+            localStorage.removeItem('accessToken');
 
             navigator('/');
         } catch (error: unknown) {

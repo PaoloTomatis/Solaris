@@ -6,7 +6,7 @@ interface DeviceType {
     _id: ObjectId;
     key: string;
     psw: string;
-    prototype: string;
+    prototypeModel: string;
     name: string;
     activatedAt: Date;
     userId: ObjectId;
@@ -26,7 +26,7 @@ const DeviceSchema = new Schema(
     {
         key: { type: String, required: true, unique: true },
         psw: { type: String, required: true },
-        prototype: { type: String, default: 'Solaris Vega V1' },
+        prototypeModel: { type: String, default: 'Solaris Vega' },
         name: { type: String, default: 'My Device' },
         activatedAt: { type: Date, default: () => new Date() },
         userId: { type: Schema.Types.ObjectId, ref: 'User' },

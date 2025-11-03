@@ -11,7 +11,7 @@ interface User {
 interface Device {
     id: string;
     name: string;
-    prototype: string;
+    prototypeModel: string;
     userId: string;
     mode: 'config' | 'auto' | 'safe';
     activatedAt: Date;
@@ -49,7 +49,7 @@ interface DeviceSettings {
     id: string;
     humMax: number;
     humMin: number;
-    kInterval: number;
+    interval: number;
     deviceId: string;
     updatedAt: Date;
     createdAt: Date;

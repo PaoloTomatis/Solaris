@@ -16,8 +16,8 @@ function Input({
     type?: string;
     value: any;
     setValue: React.Dispatch<React.SetStateAction<any>>;
-    error: string;
-    setError: React.Dispatch<React.SetStateAction<string>>;
+    error?: string;
+    setError?: React.Dispatch<React.SetStateAction<string>>;
 }) {
     return (
         <div className="w-[95%] max-w-[300px] flex flex-col items-center justify-center gap-0.5">
@@ -37,7 +37,7 @@ function Input({
                                 : Number(val)
                             : val
                     );
-                    if (error) {
+                    if (error && setError) {
                         setError('');
                     }
                 }}

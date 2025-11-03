@@ -8,12 +8,12 @@ import ArrowIcon from '../assets/icons/arrow.svg?react';
 
 // Componente dispositivo
 function Device({
-    prototype,
+    prototypeModel,
     name,
     state,
     id,
 }: {
-    prototype: string;
+    prototypeModel: string;
     name: string;
     state: boolean;
     id: string;
@@ -27,7 +27,7 @@ function Device({
     useEffect(() => {
         // Controllo modello
         for (const [model, color] of Object.entries(models)) {
-            if (prototype.toLowerCase().includes(model)) {
+            if (prototypeModel.toLowerCase().includes(model)) {
                 setIconColor(color);
             }
         }
@@ -48,7 +48,9 @@ function Device({
                 <h3 className="text-medium font-bold text-primary-text leading-6">
                     {name}
                 </h3>
-                <p className="text-xsmall text-primary-text">{prototype}</p>
+                <p className="text-xsmall text-primary-text">
+                    {prototypeModel}
+                </p>
             </div>
             <div className="flex items-center w-[20%] justify-between">
                 <SignalIcon

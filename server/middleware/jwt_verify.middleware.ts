@@ -34,7 +34,7 @@ async function jwtVerify(
     id: string;
     key: string;
     name: string;
-    prototype: string;
+    prototypeModel: string;
     userId: string;
     mode: string;
     activatedAt: Date;
@@ -85,7 +85,7 @@ async function jwtVerify(accessToken: string, type: 'user' | 'device') {
                   id: subject._id.toString(),
                   key: (subject as DeviceType).key,
                   name: (subject as DeviceType).name,
-                  prototype: (subject as DeviceType).prototype,
+                  prototypeModel: (subject as DeviceType).prototypeModel,
                   userId: (subject as DeviceType).userId?.toString(),
                   mode: (subject as DeviceType).mode,
                   activatedAt: (subject as DeviceType).activatedAt,
