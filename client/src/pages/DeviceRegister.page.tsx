@@ -1,17 +1,40 @@
 // Importazione moduli
 import { useState } from 'react';
+import { patchData } from '../utils/apiCrud.utils';
+import { useAuth } from '../context/Auth.context';
+import { useNavigate } from 'react-router-dom';
 import Page from '../components/Page.comp';
 import Input from '../components/Input.comp';
 import Button from '../components/Button.comp';
 import TopBar from '../components/TopBar.comp';
 import BottomBar from '../components/BottomBar.comp';
+import Error from '../components/Error.comp';
+import Loading from '../components/Loading.comp';
 
 // Pagina registrazione dispositivi
 function DeviceRegister() {
+    // Navigatore
+    const navigator = useNavigate();
+    // Autenticazione
+    const { accessToken, user } = useAuth();
     // Stato nome
     const [name, setName] = useState('');
     // Stato codice
     const [key, setKey] = useState('');
+    // Stato caricamento
+    const [loading, setLoading] = useState(false);
+    // Stato errore
+    const [error, setError] = useState('');
+
+    // Controllo errore
+    if (error) {
+        return <Error error={error} setError={setError} />;
+    }
+
+    // Controllo caricamento
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         // Contenitore pagina
@@ -42,10 +65,33 @@ function DeviceRegister() {
                 />
                 {/* Pulsante invio */}
                 <Button
-                    onClick={() => {
-                        alert(`ATTIVAZIONE --> ${name} - ${key}`);
-                        setName('');
-                        setKey('');
+                    onClick={async () => {
+                        // Gestione errori
+                        try {
+                            // Impostazione caricamento
+                            setLoading(true);
+
+                            // Controllo utente
+                            if (user) {
+                                await patchData(
+                                    accessToken || '',
+                                    `device/${key}`,
+                                    {
+                                        name,
+                                        userId: user.id,
+                                    }
+                                );
+
+                                // Controllo risultato
+                                if (!error) {
+                                    navigator('/devices');
+                                }
+                            }
+                            setName('');
+                            setKey('');
+                        } catch (error: any) {
+                            setError(error.message);
+                        }
                     }}
                     className="mt-[10px] bg-secondary dark:bg-primary text-primary-bg"
                 >

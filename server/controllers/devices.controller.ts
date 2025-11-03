@@ -9,6 +9,7 @@ import bcrypt from 'bcrypt';
 import pswGenerator from '../utils/pswGenerator.js';
 import DataModel from '../models/Data.model.js';
 import { emitToRoom } from '../utils/wsRoomHandlers.js';
+import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
@@ -20,7 +21,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
             id,
             key,
             name,
-            prototype,
+            prototypeModel,
             activatedAt,
             mode,
             limit,
@@ -28,7 +29,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
             id?: string;
             key?: string;
             name?: string;
-            prototype?: string;
+            prototypeModel?: string;
             activatedAt?: string;
             mode?: 'config' | 'auto' | 'safe';
             limit?: string;
@@ -39,7 +40,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
             _id?: mongoose.Types.ObjectId;
             key?: string;
             name?: string;
-            prototype?: string;
+            prototypeModel?: string;
             activatedAt?: Date;
             mode?: 'config' | 'auto' | 'safe';
             userId?: mongoose.Types.ObjectId;
@@ -105,19 +106,19 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
             filter.name = name;
         }
 
-        // Controllo prototype
-        if (prototype) {
-            if (typeof prototype !== 'string')
+        // Controllo prototypeModel
+        if (prototypeModel) {
+            if (typeof prototypeModel !== 'string')
                 return resHandler(
                     res,
                     400,
                     null,
-                    'Campo "prototype" invalido nella richiesta!',
+                    'Campo "prototypeModel" invalido nella richiesta!',
                     false
                 );
 
-            // Impostazione prototype
-            filter.prototype = prototype;
+            // Impostazione prototypeModel
+            filter.prototypeModel = prototypeModel;
         }
 
         // Controllo activatedAt
@@ -171,7 +172,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     id: device._id.toString(),
                     key: device.key,
                     name: device.name,
-                    prototype: device.prototype,
+                    prototypeModel: device.prototypeModel,
                     userId: device.userId?.toString(),
                     mode: device.mode,
                     activatedAt: device.activatedAt,
@@ -204,14 +205,14 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
             key,
             psw,
             name,
-            prototype,
+            prototypeModel,
             activatedAt,
             mode,
         }: {
             key?: string;
             psw?: string;
             name?: string;
-            prototype?: string;
+            prototypeModel?: string;
             activatedAt?: string;
             mode?: 'config' | 'auto' | 'safe';
         } = req.body;
@@ -221,7 +222,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
             key?: string;
             psw?: string;
             name?: string;
-            prototype?: string;
+            prototypeModel?: string;
             activatedAt?: Date;
             mode?: 'config' | 'auto' | 'safe';
         } = {};
@@ -282,19 +283,19 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
             data.name = name;
         }
 
-        // Controllo prototype
-        if (prototype) {
-            if (typeof prototype !== 'string')
+        // Controllo prototypeModel
+        if (prototypeModel) {
+            if (typeof prototypeModel !== 'string')
                 return resHandler(
                     res,
                     400,
                     null,
-                    'Campo "prototype" invalido nella richiesta!',
+                    'Campo "prototypeModel" invalido nella richiesta!',
                     false
                 );
 
-            // Impostazione prototype
-            data.prototype = prototype;
+            // Impostazione prototypeModel
+            data.prototypeModel = prototypeModel;
         }
 
         // Controllo activatedAt
@@ -365,6 +366,23 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                 false
             );
 
+        // Creazione impostazioni dispositivo database
+        const deviceSettings = new DeviceSettingsModel({
+            deviceId: device._id.toString(),
+        });
+        // Salvataggio impostazioni dispositivo
+        await deviceSettings.save();
+
+        // Controllo impostazioni dispositivo
+        if (!deviceSettings)
+            return resHandler(
+                res,
+                500,
+                null,
+                'Impostazioni dispositivo non crate correttamente!',
+                false
+            );
+
         // Risposta finale
         return resHandler(
             res,
@@ -373,7 +391,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                 id: device._id.toString(),
                 key: device.key,
                 name: device.name,
-                prototype: device.prototype,
+                prototypeModel: device.prototypeModel,
                 userId: device.userId?.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,
@@ -539,7 +557,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 id: device._id.toString(),
                 key: device.key,
                 name: device.name,
-                prototype: device.prototype,
+                prototypeModel: device.prototypeModel,
                 userId: device.userId?.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,
@@ -627,7 +645,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
                 id: deviceUpdate._id.toString(),
                 key: deviceUpdate.key,
                 name: deviceUpdate.name,
-                prototype: deviceUpdate.prototype,
+                prototypeModel: deviceUpdate.prototypeModel,
                 userId: deviceUpdate.userId.toString(),
                 mode: deviceUpdate.mode,
                 activatedAt: deviceUpdate.activatedAt,
@@ -850,7 +868,7 @@ async function updateModeDevice(
                 id: deviceUpdate._id.toString(),
                 key: deviceUpdate.key,
                 name: deviceUpdate.name,
-                prototype: deviceUpdate.prototype,
+                prototypeModel: deviceUpdate.prototypeModel,
                 userId: deviceUpdate.userId.toString(),
                 mode: deviceUpdate.mode,
                 activatedAt: deviceUpdate.activatedAt,
@@ -939,7 +957,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
                 id: device._id.toString(),
                 key: device.key,
                 name: device.name,
-                prototype: device.prototype,
+                prototypeModel: device.prototypeModel,
                 userId: device.userId?.toString(),
                 mode: device.mode,
                 activatedAt: device.activatedAt,

@@ -53,12 +53,7 @@ function Account() {
             <div className="flex flex-col items-center justify-center w-[100%]">
                 <Info url="/settings" name="Impostazioni" icon={SettingsIcon} />
                 <Info url="/credits" name="Crediti" icon={CreditsIcon} />
-                <Info
-                    url="/devices"
-                    name="Dispositivi"
-                    icon={DeviceIcon}
-                    info="4"
-                />
+                <Info url="/devices" name="Dispositivi" icon={DeviceIcon} />
                 <Info
                     url="/warning?page=%2Faccount"
                     name="Privacy Policy"

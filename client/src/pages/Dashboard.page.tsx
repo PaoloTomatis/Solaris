@@ -15,7 +15,7 @@ import type {
     Data as LogType,
 } from '../utils/type.utils';
 import { useAuth } from '../context/Auth.context';
-import getData from '../utils/getData.utils';
+import { getData } from '../utils/apiCrud.utils';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -62,81 +62,48 @@ function Dashboard() {
 
     // Caricamento componente
     useEffect(() => {
-        // Gestione errori
-        try {
-            // Controllo token
-            if (accessToken) {
-                getData(
-                    setLoading,
-                    setError,
-                    setLogs,
-                    accessToken,
-                    'data',
-                    'limit=3&type=log_info'
-                );
-                getData(
-                    setLoading,
-                    setError,
-                    setDevice,
-                    accessToken,
-                    'device'
-                );
+        // Funziona caricamento dati
+        const loadData = async () => {
+            // Gestione errori
+            try {
+                // Controllo token
+                if (accessToken) {
+                    await getData(
+                        setLogs,
+                        accessToken,
+                        'data',
+                        'limit=3&type=log_info'
+                    );
+                    await getData(
+                        setDevice,
+                        accessToken,
+                        'devices',
+                        `id=${deviceId}`,
+                        true
+                    );
+                }
+                setData({
+                    id: 'abc123',
+                    temp: 20,
+                    humI: 60,
+                    humE: 54,
+                    lum: 78,
+                });
+            } catch (error: any) {
+                setError(error.message);
+            } finally {
+                setLoading(false);
             }
-            // setLogs([
-            //     {
-            //         id: 'abc123',
-            //         desc: "Il dispositivo MY DEVICE 1 ha tentato l'irrigazione senza successo",
-            //         read: false,
-            //         type: 'log_error',
-            //         date: new Date(),
-            //         deviceId: 'abc123',
-            //         updatedAt: new Date(),
-            //         createdAt: new Date(),
-            //     },
-            //     {
-            //         id: 'def456',
-            //         desc: "Il dispositivo MY DEVICE 1 ha effettuato correttamente l'irrigazione",
-            //         read: false,
-            //         type: 'log_irrigation_auto',
-            //         date: new Date(),
-            //         deviceId: 'abc123',
-            //         updatedAt: new Date(),
-            //         createdAt: new Date(),
-            //     },
-            //     {
-            //         id: 'ghi789',
-            //         desc: "Il dispositivo MY DEVICE 1 ha rilevato un'umidità sotto la soglia",
-            //         read: true,
-            //         type: 'log_warning',
-            //         date: new Date(),
-            //         deviceId: 'abc123',
-            //         updatedAt: new Date(),
-            //         createdAt: new Date(),
-            //     },
-            // ]);
-            // setDevice({
-            //     id: 'abc123',
-            //     name: 'My Device 1',
-            //     prototype: 'Solaris Vega',
-            //     userId: 'abc123',
-            //     mode: 'auto',
-            //     activatedAt: new Date(),
-            //     updatedAt: new Date(),
-            //     createdAt: new Date(),
-            // });
-            setData({ id: 'abc123', temp: 20, humI: 60, humE: 54, lum: 78 });
-        } catch (error: any) {
-            setError(error);
-        } finally {
-            setLoading(false);
-        }
+        };
+
+        loadData();
     }, []);
 
     // Controllo dispositivo
     useEffect(() => {
         // Controllo modello
         for (const [model, color] of Object.entries(models)) {
-            if (device?.prototype?.toLowerCase().includes(model)) {
+            if (device?.prototypeModel?.toLowerCase().includes(model)) {
                 setIconColor(color);
             }
         }
@@ -177,7 +144,7 @@ function Dashboard() {
                             {device?.name || '-'}
                         </h3>
                         <p className="text-xsmall text-primary-text">
-                            {device?.prototype || '-'}
+                            {device?.prototypeModel || '-'}
                         </p>
                     </div>
                     {/* Testo stato */}
@@ -254,7 +221,7 @@ function Dashboard() {
                 </div>
                 {/* Contenitore log */}
                 <div className="flex flex-col items-center justify-center gap-5 w-full">
-                    {logs ? (
+                    {logs && logs.length > 0 ? (
                         logs.map((log) => (
                             <Log
                                 tit={logTitle(log.type)}

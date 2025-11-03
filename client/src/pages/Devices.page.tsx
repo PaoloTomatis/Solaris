@@ -1,6 +1,8 @@
 // Importazione moduli
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getData } from '../utils/apiCrud.utils';
+import { useAuth } from '../context/Auth.context';
 import Page from '../components/Page.comp';
 import Device from '../components/Device.comp';
 import BottomBar from '../components/BottomBar.comp';
@@ -14,7 +16,8 @@ import AddIcon from '../assets/icons/add.svg?react';
 function Devices() {
     // Lista dispositivi
     const [devices, setDevices] = useState<DeviceType[] | null>(null);
-
+    // Autenticazione
+    const { accessToken, user } = useAuth();
     // Stato caricamento
     const [loading, setLoading] = useState(true);
     // Stato errore
@@ -22,35 +25,26 @@ function Devices() {
 
     // Caricamento pagina
     useEffect(() => {
-        // Gestione errori
-        try {
-            setDevices([
-                {
-                    id: 'abc123',
-                    name: 'My Device 1',
-                    prototype: 'Solaris Vega',
-                    userId: 'abc123',
-                    mode: 'auto',
-                    activatedAt: new Date(),
-                    updatedAt: new Date(),
-                    createdAt: new Date(),
-                },
-                {
-                    id: 'def456',
-                    name: 'My Device 2',
-                    prototype: 'Solaris Helios',
-                    userId: 'def456',
-                    mode: 'auto',
-                    activatedAt: new Date(),
-                    updatedAt: new Date(),
-                    createdAt: new Date(),
-                },
-            ]);
-        } catch (error: any) {
-            setError(error);
-        } finally {
-            setLoading(false);
-        }
+        const loadData = async () => {
+            // Gestione errori
+            try {
+                // Controllo token e utente
+                if (accessToken && user) {
+                    await getData(
+                        setDevices,
+                        accessToken,
+                        'devices',
+                        `userId=${user.id}`
+                    );
+                }
+            } catch (error: any) {
+                setError(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
     }, []);
 
     // Controllo errore
@@ -65,12 +59,12 @@ function Devices() {
 
     return (
         <Page className="pt-7 gap-[25px] justify-start">
-            {devices ? (
+            {devices && devices.length > 0 ? (
                 devices.map((deviceItem: DeviceType) => {
                     return (
                         <Device
                             name={deviceItem.name}
-                            prototype={deviceItem.prototype}
+                            prototypeModel={deviceItem.prototypeModel}
                             state={true}
                             id={deviceItem.id}
                             key={deviceItem.id}
