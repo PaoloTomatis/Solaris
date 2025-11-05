@@ -1,29 +1,36 @@
 // Importazione moduli
 import { useEffect, useState } from 'react';
+import { useAuth } from '../context/Auth.context';
+import { usePopup } from '../context/Popup.context';
+import { useNotifications } from '../context/Notifications.context';
+import type { UserSettings as UserSettingsType } from '../utils/type.utils';
+import { getData } from '../utils/apiCrud.utils';
 import Page from '../components/Page.comp';
 import TopBar from '../components/TopBar.comp';
 import BottomBar from '../components/BottomBar.comp';
 import Info from '../components/Info.comp';
 import InputCont from '../components/InputCont.comp';
 import Separator from '../components/Separator.comp';
-import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
-import type { UserSettings as UserSettingsType } from '../utils/type.utils';
 // Importazione immagini
 import ResetIcon from '../assets/icons/reset.svg?react';
 import SaveIcon from '../assets/icons/save.svg?react';
 
 // Pagina impostazione utente
 function UserSettings() {
+    // Autenticazione
+    const { accessToken } = useAuth();
+    // Notificatore
+    const notify = useNotifications();
+    // Popupper
+    const popupper = usePopup();
     // Stato impostazioni originarie
     const [originalSettings, setOriginalSettings] =
         useState<UserSettingsType | null>(null);
+    // Stato impostazioni originarie
+    const [settings, setSettings] = useState<UserSettingsType | null>(null);
     // Stato salvataggio
     const [saved, setSaved] = useState(true);
-    // Stato modalità
-    const [styleMode, setStyleMode] = useState('');
-    // Stato umidità minima
-    const [units, setUnits] = useState('');
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
@@ -31,34 +38,40 @@ function UserSettings() {
 
     // Caricamento pagina
     useEffect(() => {
-        // Gestione errori
-        try {
-            setOriginalSettings({
-                id: 'abc123',
-                userId: 'abc123',
-                styleMode: 'dark',
-                units: 'metric',
-                updatedAt: new Date(),
-                createdAt: new Date(),
-            });
-        } catch (error: any) {
-            setError(error);
-        } finally {
-            setLoading(false);
-        }
+        const loadData = async () => {
+            // Gestione errori
+            try {
+                // Controllo token e utente
+                if (accessToken) {
+                    await getData(
+                        setOriginalSettings,
+                        accessToken,
+                        'user_settings'
+                    );
+                }
+            } catch (error: any) {
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
     }, []);
 
     // Controllo impostazioni originarie
     useEffect(() => {
-        setStyleMode(originalSettings?.styleMode || 'light');
-        setUnits(originalSettings?.units || 'metric');
+        setSettings(originalSettings);
     }, [originalSettings]);
 
     // Controllo salvataggio
     useEffect(() => {
         // Controllo impostazioni
         if (
-            JSON.stringify({ styleMode, units }) !=
+            JSON.stringify({
+                styleMode: settings?.styleMode,
+                units: settings?.units,
+            }) !=
             JSON.stringify({
                 styleMode: originalSettings?.styleMode,
                 units: originalSettings?.units,
@@ -70,12 +83,14 @@ function UserSettings() {
             // Impostazione salvataggio
             setSaved(true);
         }
-    }, [styleMode, units]);
+    }, [settings]);
 
     // Controllo errore
-    if (error) {
-        return <Error error={error} setError={setError} />;
-    }
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
 
     // Controllo caricamento
     if (loading) {
@@ -105,8 +120,12 @@ function UserSettings() {
                         { value: 'light', text: 'CHIARO' },
                         { value: 'dark', text: 'SCURO' },
                     ]}
-                    value={styleMode}
-                    setValue={setStyleMode}
+                    value={settings?.styleMode}
+                    setValue={(styleMode) =>
+                        setSettings((prev) =>
+                            prev ? { ...prev, styleMode } : prev
+                        )
+                    }
                 >
                     Stile HUB:
                 </InputCont>
@@ -117,8 +136,12 @@ function UserSettings() {
                         { value: 'metric', text: 'METRICO' },
                         { value: 'imperial', text: 'IMPERIALE' },
                     ]}
-                    value={units}
-                    setValue={setUnits}
+                    value={settings?.units}
+                    setValue={(units) =>
+                        setSettings((prev) =>
+                            prev ? { ...prev, units } : prev
+                        )
+                    }
                 >
                     Unità di Misura:
                 </InputCont>
@@ -128,16 +151,20 @@ function UserSettings() {
                 <Info
                     onClick={() => {
                         if (!saved) {
-                            //TODO Notifica conferma
-                            setStyleMode(
-                                originalSettings?.styleMode || 'light'
+                            popupper(
+                                'RESET MODIFICHE',
+                                'Procedi',
+                                "Procedendo avverrà il reset delle modifiche, per cui tutte le modifiche non salvate andranno perse. L'azione è irreversibile",
+                                'error',
+                                () => {
+                                    setSettings(originalSettings);
+                                }
                             );
-                            setUnits(originalSettings?.units || 'metric');
                         }
                     }}
                     name="Reset Impostazioni"
                     icon={ResetIcon}
-                    type="error"
+                    type={saved ? 'disabled' : 'error'}
                 />
                 {/* Info salvataggio dati */}
                 <Info

@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getData } from '../utils/apiCrud.utils';
 import { useAuth } from '../context/Auth.context';
+import { useNotifications } from '../context/Notifications.context';
 import Page from '../components/Page.comp';
 import Device from '../components/Device.comp';
 import BottomBar from '../components/BottomBar.comp';
-import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
 import type { Device as DeviceType } from '../utils/type.utils';
 // Importazione immagini
@@ -14,10 +14,12 @@ import AddIcon from '../assets/icons/add.svg?react';
 
 // Pagina dispositivi
 function Devices() {
+    // Notificatore
+    const notify = useNotifications();
     // Lista dispositivi
     const [devices, setDevices] = useState<DeviceType[] | null>(null);
     // Autenticazione
-    const { accessToken, user } = useAuth();
+    const { accessToken } = useAuth();
     // Stato caricamento
     const [loading, setLoading] = useState(true);
     // Stato errore
@@ -29,16 +31,11 @@ function Devices() {
             // Gestione errori
             try {
                 // Controllo token e utente
-                if (accessToken && user) {
-                    await getData(
-                        setDevices,
-                        accessToken,
-                        'devices',
-                        `userId=${user.id}`
-                    );
+                if (accessToken) {
+                    await getData(setDevices, accessToken, 'devices');
                 }
             } catch (error: any) {
-                setError(error);
+                setError(error.message);
             } finally {
                 setLoading(false);
             }
@@ -48,9 +45,11 @@ function Devices() {
     }, []);
 
     // Controllo errore
-    if (error) {
-        return <Error error={error} setError={setError} />;
-    }
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
 
     // Controllo caricamento
     if (loading) {

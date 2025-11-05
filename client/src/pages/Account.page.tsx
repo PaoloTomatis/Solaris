@@ -1,12 +1,12 @@
 // Importazione moduli
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import BottomBar from '../components/BottomBar.comp';
 import Info from '../components/Info.comp';
 import Page from '../components/Page.comp';
 import Separator from '../components/Separator.comp';
-import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
 import { useAuth } from '../context/Auth.context';
+import { useNotifications } from '../context/Notifications.context';
 // Importazione icone
 import SettingsIcon from '../assets/icons/settings.svg?react';
 import CreditsIcon from '../assets/icons/credits.svg?react';
@@ -23,11 +23,15 @@ function Account() {
     const [error, setError] = useState('');
     // Autenticazione
     const { user, logout, deleteAccount } = useAuth();
+    // Notificatore
+    const notify = useNotifications();
 
     // Controllo errore
-    if (error) {
-        return <Error error={error} setError={setError} />;
-    }
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
 
     // Controllo caricamento
     if (loading) {

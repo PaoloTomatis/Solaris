@@ -1,19 +1,26 @@
 // Importazione moduli
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/Auth.context';
 import Input from '../components/Input.comp';
 import Button from '../components/Button.comp';
 import BottomBar from '../components/BottomBar.comp';
 import Page from '../components/Page.comp';
-import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
+import { useNotifications } from '../context/Notifications.context';
 
 // Pagina autenticazione
 function Auth() {
     // Autenticazione
     const { login, register } = useAuth();
 
+    // Pagina
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const page = searchParams.get('page');
+
+    // Navigatore
+    const navigator = useNavigate();
     // Stato email
     const [email, setEmail] = useState('');
     // Stato password
@@ -28,11 +35,15 @@ function Auth() {
     const [error, setError] = useState('');
     // Tipo autenticazione
     const { type } = useParams();
+    // Notificatore
+    const notify = useNotifications();
 
     // Controllo errore
-    if (error) {
-        return <Error error={error} setError={setError} />;
-    }
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
 
     // Controllo caricamento
     if (loading) {
@@ -100,6 +111,15 @@ function Auth() {
                                         setLoading,
                                         setError
                                     );
+                                    navigator(
+                                        `/auth/login${
+                                            page
+                                                ? `?page=${encodeURIComponent(
+                                                      page
+                                                  )}`
+                                                : ''
+                                        }`
+                                    );
                                     setEmail('');
                                     setPassword('');
                                 }
@@ -112,7 +132,11 @@ function Auth() {
                         <p className="text-xsmall text-primary-text max-w-[300px] leading-4 mt-[30px]">
                             Possiedi già un account?{' '}
                             <Link
-                                to={'/auth/login'}
+                                to={`/auth/login${
+                                    page
+                                        ? `?page=${encodeURIComponent(page)}`
+                                        : ''
+                                }`}
                                 className="text-primary font-semibold"
                             >
                                 Accedi
@@ -156,6 +180,7 @@ function Auth() {
                                     setLoading,
                                     setError
                                 );
+                                navigator(page || '/account');
                                 setEmail('');
                                 setPassword('');
                             }}
@@ -167,7 +192,11 @@ function Auth() {
                         <p className="text-xsmall text-primary-text max-w-[300px] leading-4 mt-[30px]">
                             Non hai ancora un account?{' '}
                             <Link
-                                to={'/auth/register'}
+                                to={`/auth/register${
+                                    page
+                                        ? `?page=${encodeURIComponent(page)}`
+                                        : ''
+                                }`}
                                 className="text-primary font-semibold"
                             >
                                 Registrati

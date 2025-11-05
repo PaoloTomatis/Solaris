@@ -7,11 +7,11 @@ import Page from '../components/Page.comp';
 import logTitle from '../utils/logTitle.utils';
 import LogComp from '../components/Log.comp';
 import Separator from '../components/Separator.comp';
-import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
 import type { Data as LogType } from '../utils/type.utils';
 import { getData } from '../utils/apiCrud.utils';
 import { useAuth } from '../context/Auth.context';
+import { useNotifications } from '../context/Notifications.context';
 
 // Pagina log
 function Logs() {
@@ -20,6 +20,8 @@ function Logs() {
 
     // Autenticazione
     const { accessToken } = useAuth();
+    // Notificatore
+    const notify = useNotifications();
     // Stato logs
     const [logs, setLogs] = useState<LogType[] | null>(null);
     // Stato caricamento
@@ -38,7 +40,7 @@ function Logs() {
                     await getData(setLogs, accessToken, 'data');
                 }
             } catch (error: any) {
-                setError(error);
+                setError(error.message);
             } finally {
                 setLoading(false);
             }
@@ -48,9 +50,11 @@ function Logs() {
     }, []);
 
     // Controllo errore
-    if (error) {
-        return <Error error={error} setError={setError} />;
-    }
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
 
     // Controllo caricamento
     if (loading) {

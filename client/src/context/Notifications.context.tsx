@@ -8,45 +8,50 @@ import {
 } from 'react';
 import Notifications from '../components/Notifications.comp';
 
-// Tipo contesto notifiche
-interface NotificationsContextType {}
+// Tipo tipi notifications
+type NotificationsType = 'info' | 'error' | 'warning' | 'success';
 
-// Contesto notifiche
-const NotificationsContext = createContext<NotificationsContextType | null>(
-    null
-);
+// Tipo impostazione notifications
+interface NotificationsOptions {
+    title: string;
+    desc?: string;
+    type?: NotificationsType;
+}
 
-// Provider notifiche
+// Contesto notifications
+const NotificationsContext = createContext<
+    ((title: string, desc?: string, type?: NotificationsType) => void) | null
+>(null);
+
+// Provider notifications
 function NotificationsProvider({ children }: { children: ReactNode }) {
     // Stato visualizzazione notifications
     const [show, setShow] = useState(false);
-    // Stato titolo
-    const [title, setTitle] = useState('');
-    // Stato descrizione
-    const [desc, setDesc] = useState('');
-    // Stato tipo
-    const [type, setType] = useState<'info' | 'error' | 'warning' | 'success'>(
-        'info'
-    );
+    // Stato notifications
+    const [notifications, setNotifications] =
+        useState<NotificationsOptions | null>(null);
 
     // Controllo visualizzazione
     useEffect(() => {
+        let id: NodeJS.Timeout;
         if (!show) {
-            setTitle('');
-            setDesc('');
-            setType('info');
+            setNotifications(null);
+        } else {
+            id = setTimeout(() => {
+                setShow(false);
+            }, 3000);
         }
+
+        return () => clearTimeout(id);
     }, [show]);
 
-    // Funzione notificationsper
+    // Funzione notify
     function notify(
         title: string,
-        desc: string,
-        type: 'info' | 'error' | 'warning' | 'success'
+        desc?: string,
+        type?: 'info' | 'error' | 'warning' | 'success'
     ) {
-        setTitle(title);
-        setDesc(desc);
-        setType(type);
+        setNotifications({ title, desc, type });
         setShow(true);
     }
 
@@ -54,10 +59,10 @@ function NotificationsProvider({ children }: { children: ReactNode }) {
         <NotificationsContext value={notify}>
             {show ? (
                 <Notifications
-                    tit={title}
-                    desc={desc}
+                    tit={notifications?.title || ''}
+                    desc={notifications?.desc || ''}
                     setVisible={setShow}
-                    type={type}
+                    type={notifications?.type || 'info'}
                 />
             ) : (
                 ''
@@ -67,8 +72,8 @@ function NotificationsProvider({ children }: { children: ReactNode }) {
     );
 }
 
-// Hook notifiche
-function useNotifications(): NotificationsContextType {
+// Hook notifications
+function useNotifications() {
     const context = useContext(NotificationsContext);
     // Controllo contesto
     if (!context) {

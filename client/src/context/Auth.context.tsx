@@ -173,8 +173,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem('accessToken', res.data.data.accessToken);
                 // Impostazione utente
                 setUser(user);
-
-                navigator('/account');
             }
         } catch (error: unknown) {
             let errorMsg = 'Errore sconosciuto!';
@@ -236,8 +234,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
             // Impostazione errore
             setError(errorMsg);
-
-            navigator('/auth/login');
         } finally {
             // Impostazione caricamento
             setLoading(false);
@@ -267,7 +263,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setAccessToken(null);
             localStorage.removeItem('accessToken');
 
-            navigator('/');
+            navigator('/auth/login');
         } catch (error: unknown) {
             let errorMsg = 'Errore sconosciuto!';
 
@@ -300,7 +296,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             // Richiesta logout
             const res = await axios.delete<Register | null>(
-                `${import.meta.env.VITE_API_URL}/api/user`
+                `${import.meta.env.VITE_API_URL}/api/user?authType=user`,
+                { headers: { Authorization: `Bearer ${accessToken}` } }
             );
 
             // Controllo dati
@@ -312,7 +309,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setAccessToken(null);
             localStorage.removeItem('accessToken');
 
-            navigator('/');
+            navigator('/auth/register');
         } catch (error: unknown) {
             let errorMsg = 'Errore sconosciuto!';
 

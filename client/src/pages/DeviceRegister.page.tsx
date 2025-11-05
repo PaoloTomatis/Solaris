@@ -1,20 +1,22 @@
 // Importazione moduli
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { patchData } from '../utils/apiCrud.utils';
 import { useAuth } from '../context/Auth.context';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../context/Notifications.context';
 import Page from '../components/Page.comp';
 import Input from '../components/Input.comp';
 import Button from '../components/Button.comp';
 import TopBar from '../components/TopBar.comp';
 import BottomBar from '../components/BottomBar.comp';
-import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
 
 // Pagina registrazione dispositivi
 function DeviceRegister() {
     // Navigatore
     const navigator = useNavigate();
+    // Notificatore
+    const notify = useNotifications();
     // Autenticazione
     const { accessToken, user } = useAuth();
     // Stato nome
@@ -27,9 +29,11 @@ function DeviceRegister() {
     const [error, setError] = useState('');
 
     // Controllo errore
-    if (error) {
-        return <Error error={error} setError={setError} />;
-    }
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
 
     // Controllo caricamento
     if (loading) {

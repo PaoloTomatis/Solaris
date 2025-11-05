@@ -1,6 +1,6 @@
 // Importazione moduli
 import { type ReactNode, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/Auth.context';
 import Loading from './Loading.comp';
 
@@ -10,11 +10,17 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     const { accessToken, loading } = useAuth();
     // Navigatore
     const navigator = useNavigate();
+    // Url corrente
+    const location = useLocation();
 
     // Controllo caricamento
     useEffect(() => {
         if (!loading && !accessToken) {
-            navigator('/auth');
+            navigator(
+                `/auth?page=${encodeURIComponent(
+                    location.pathname + location.search
+                )}`
+            );
         }
     }, [loading]);
 

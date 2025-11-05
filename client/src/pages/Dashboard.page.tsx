@@ -8,7 +8,6 @@ import Log from '../components/Log.comp';
 import Separator from '../components/Separator.comp';
 import Info from '../components/Info.comp';
 import logTitle from '../utils/logTitle.utils';
-import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
 import type {
     Device as DeviceType,
@@ -16,6 +15,7 @@ import type {
 } from '../utils/type.utils';
 import { useAuth } from '../context/Auth.context';
 import { getData } from '../utils/apiCrud.utils';
+import { useNotifications } from '../context/Notifications.context';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -35,6 +35,8 @@ function Dashboard() {
     const navigator = useNavigate();
     // Id device
     const { id: deviceId } = useParams();
+    // Notificatore
+    const notify = useNotifications();
 
     // Stato colore icona
     const [iconColor, setIconColor] = useState('#00d68b');
@@ -110,9 +112,11 @@ function Dashboard() {
     }, [device]);
 
     // Controllo errore
-    if (error) {
-        return <Error error={error} setError={setError} />;
-    }
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
 
     // Controllo caricamento
     if (loading) {

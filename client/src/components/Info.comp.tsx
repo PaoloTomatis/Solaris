@@ -18,12 +18,16 @@ function Info({
     icon: React.ComponentType<{ className?: string }>;
     info?: string;
     onClick?: () => void | Promise<void>;
-    type?: 'normal' | 'error' | 'info';
+    type?: 'normal' | 'error' | 'info' | 'disabled';
 }) {
     if (url) {
         return (
             <Link
-                className="cursor-pointer flex items-center justify-center min-h-[5vh] w-[100%] pl-7 pr-7 hover:scale-105 transition-all"
+                className={`flex items-center justify-center min-h-[5vh] w-[100%] pl-7 pr-7 ${
+                    type !== 'disabled'
+                        ? 'cursor-pointer hover:scale-105'
+                        : 'cursor-not-allowed'
+                } transition-all`}
                 to={url}
             >
                 <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
@@ -33,6 +37,8 @@ function Info({
                                 ? 'text-error'
                                 : type == 'info'
                                 ? 'text-info'
+                                : type == 'disabled'
+                                ? 'text-gray-500 dark:text-gray-600'
                                 : 'text-primary-text'
                         }`}
                     />
@@ -42,6 +48,8 @@ function Info({
                                 ? 'text-error'
                                 : type == 'info'
                                 ? 'text-info'
+                                : type == 'disabled'
+                                ? 'text-gray-500 dark:text-gray-600'
                                 : 'text-primary-text'
                         }`}
                     >
@@ -66,6 +74,8 @@ function Info({
                                     ? 'text-error'
                                     : type == 'info'
                                     ? 'text-info'
+                                    : type == 'disabled'
+                                    ? 'text-gray-500 dark:text-gray-600'
                                     : 'text-primary-text'
                             }`}
                         />
@@ -77,7 +87,11 @@ function Info({
 
     return (
         <div
-            className="cursor-pointer flex items-center justify-center min-h-[8vh] w-[100%] pl-7 pr-7 hover:scale-105 transition-all"
+            className={`flex items-center justify-center min-h-[5vh] w-[100%] pl-7 pr-7 ${
+                type !== 'disabled'
+                    ? 'cursor-pointer hover:scale-105'
+                    : 'cursor-not-allowed'
+            } transition-all`}
             onClick={onClick}
         >
             <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
@@ -87,6 +101,8 @@ function Info({
                             ? 'text-error'
                             : type == 'info'
                             ? 'text-info'
+                            : type == 'disabled'
+                            ? 'text-gray-500 dark:text-gray-600'
                             : 'text-primary-text'
                     }`}
                 />
@@ -96,6 +112,8 @@ function Info({
                             ? 'text-error'
                             : type == 'info'
                             ? 'text-info'
+                            : type == 'disabled'
+                            ? 'text-gray-500 dark:text-gray-600'
                             : 'text-primary-text'
                     }`}
                 >
@@ -120,6 +138,8 @@ function Info({
                                 ? 'text-error'
                                 : type == 'info'
                                 ? 'text-info'
+                                : type == 'disabled'
+                                ? 'text-gray-500 dark:text-gray-600'
                                 : 'text-primary-text'
                         }`}
                     />

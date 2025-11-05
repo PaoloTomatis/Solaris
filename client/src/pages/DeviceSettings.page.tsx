@@ -1,19 +1,19 @@
 // Importazione moduli
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '../context/Auth.context';
+import { getData } from '../utils/apiCrud.utils';
+import { usePopup } from '../context/Popup.context';
+import { useNotifications } from '../context/Notifications.context';
 import Page from '../components/Page.comp';
 import TopBar from '../components/TopBar.comp';
 import BottomBar from '../components/BottomBar.comp';
 import Info from '../components/Info.comp';
 import Separator from '../components/Separator.comp';
 import InputCont from '../components/InputCont.comp';
-import Error from '../components/Error.comp';
 import Loading from '../components/Loading.comp';
 import type { Device } from '../utils/type.utils';
 import type { DeviceSettings as DeviceSettingsType } from '../utils/type.utils';
-import { useAuth } from '../context/Auth.context';
-import { getData } from '../utils/apiCrud.utils';
-import { usePopup } from '../context/Popup.context';
 // Importazione immagini
 // import EditIcon from '../assets/icons/edit.svg?react';
 import LogoIcon from '../assets/images/logo.svg?react';
@@ -31,6 +31,10 @@ function DeviceSettings() {
 
     // Autenticazione
     const { accessToken } = useAuth();
+    // Notificatore
+    const notify = useNotifications();
+    // Popupper
+    const popupper = usePopup();
     // Stato impostazioni originali
     const [originalSettings, setOriginalSettings] =
         useState<DeviceSettingsType | null>(null);
@@ -51,8 +55,6 @@ function DeviceSettings() {
         humMax: number;
         interval: number;
     } | null>(null);
-    // Popupper
-    const popupper = usePopup();
 
     // Caricamento pagina
     useEffect(() => {
@@ -125,9 +127,11 @@ function DeviceSettings() {
     }, [settings]);
 
     // Controllo errore
-    if (error) {
-        return <Error error={error} setError={setError} />;
-    }
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
 
     // Controllo caricamento
     if (loading) {
@@ -254,7 +258,7 @@ function DeviceSettings() {
                     }}
                     name="Reset Impostazioni"
                     icon={ResetIcon}
-                    type="error"
+                    type={saved ? 'disabled' : 'error'}
                 />
                 {/* Info scollegamento dispositivo */}
                 <Info

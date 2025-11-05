@@ -50,7 +50,7 @@ function Notifications({
                 </div>
                 <CloseIcon
                     onClick={() => setVisible(false)}
-                    className="cursor-pointer fill-current text-black w-[35px] h-[35px] aspect-square absolute top-[50%] translate-y-[-50%] right-3"
+                    className="cursor-pointer fill-current text-primary-text w-[35px] h-[35px] aspect-square absolute top-[50%] translate-y-[-50%] right-3"
                 />
             </div>
         </div>
