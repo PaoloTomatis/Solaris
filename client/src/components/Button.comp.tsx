@@ -14,7 +14,7 @@ function Button({
     className?: string;
     type?: 'info' | 'error' | 'warning' | 'success' | null;
     link?: string;
-    onClick?: () => void | Promise<void>;
+    onClick?: (arg0: any) => void | Promise<void>;
 }) {
     // Controllo link
     if (link) {

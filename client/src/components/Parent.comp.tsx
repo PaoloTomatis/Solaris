@@ -2,6 +2,8 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../context/Auth.context';
+import { NotificationsProvider } from '../context/Notifications.context';
+import { PopupProvider } from '../context/Popup.context';
 
 // Componente genitore
 const Parent = () => {
@@ -20,7 +22,11 @@ const Parent = () => {
     if (isWarned) {
         return (
             <AuthProvider>
-                <Outlet />
+                <NotificationsProvider>
+                    <PopupProvider>
+                        <Outlet />
+                    </PopupProvider>
+                </NotificationsProvider>
             </AuthProvider>
         );
     } else {

@@ -13,6 +13,7 @@ import type { Device } from '../utils/type.utils';
 import type { DeviceSettings as DeviceSettingsType } from '../utils/type.utils';
 import { useAuth } from '../context/Auth.context';
 import { getData } from '../utils/apiCrud.utils';
+import { usePopup } from '../context/Popup.context';
 // Importazione immagini
 // import EditIcon from '../assets/icons/edit.svg?react';
 import LogoIcon from '../assets/images/logo.svg?react';
@@ -39,18 +40,19 @@ function DeviceSettings() {
     const [iconColor, setIconColor] = useState('#00d68b');
     // Stato salvataggio
     const [saved, setSaved] = useState(true);
-    // Stato modalità
-    const [mode, setMode] = useState('');
-    // Stato umidità minima
-    const [humMin, setHumMin] = useState(0);
-    // Stato umidità massima
-    const [humMax, setHumMax] = useState(0);
-    // Stato tempo irrigazione
-    const [interval, setInterval] = useState(0);
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
     const [loading, setLoading] = useState(true);
+    // Stato impostazioni
+    const [settings, setSettings] = useState<{
+        mode: 'auto' | 'config' | 'safe';
+        humMin: number;
+        humMax: number;
+        interval: number;
+    } | null>(null);
+    // Popupper
+    const popupper = usePopup();
 
     // Caricamento pagina
     useEffect(() => {
@@ -94,17 +96,19 @@ function DeviceSettings() {
     }, [device]);
 
     useEffect(() => {
-        setMode(device?.mode || 'safe');
-        setHumMin(originalSettings?.humMin || 0);
-        setHumMax(originalSettings?.humMax || 0);
-        setInterval(originalSettings?.interval || 0);
+        setSettings({
+            mode: device?.mode || 'safe',
+            humMin: originalSettings?.humMin || 0,
+            humMax: originalSettings?.humMax || 0,
+            interval: originalSettings?.interval || 0,
+        });
     }, [device, originalSettings]);
 
     // Controllo salvataggio
     useEffect(() => {
         // Controllo impostazioni
         if (
-            JSON.stringify({ mode, humMin, humMax, interval }) !=
+            JSON.stringify(settings) !=
             JSON.stringify({
                 mode: device?.mode,
                 humMin: originalSettings?.humMin || 0,
@@ -118,7 +122,7 @@ function DeviceSettings() {
             // Impostazione salvataggio
             setSaved(true);
         }
-    }, [mode, humMin, humMax, interval]);
+    }, [settings]);
 
     // Controllo errore
     if (error) {
@@ -176,34 +180,48 @@ function DeviceSettings() {
                         { value: 'config', text: 'CONFIG' },
                         { value: 'safe', text: 'SAFE' },
                     ]}
-                    value={mode}
-                    setValue={setMode}
+                    value={settings?.mode}
+                    setValue={(mode) =>
+                        setSettings((prev) => (prev ? { ...prev, mode } : prev))
+                    }
                 >
                     Modalità:
                 </InputCont>
-                {mode == 'auto' ? (
+                {settings?.mode == 'auto' ? (
                     <>
                         {/* Impostazione humMin */}
                         <InputCont
                             type="number"
-                            value={humMin}
-                            setValue={setHumMin}
+                            value={settings?.humMin}
+                            setValue={(humMin) =>
+                                setSettings((prev) =>
+                                    prev ? { ...prev, humMin } : prev
+                                )
+                            }
                         >
                             Soglia Umidità MIN:
                         </InputCont>
                         {/* Impostazione humMax */}
                         <InputCont
                             type="number"
-                            value={humMax}
-                            setValue={setHumMax}
+                            value={settings?.humMax}
+                            setValue={(humMax) =>
+                                setSettings((prev) =>
+                                    prev ? { ...prev, humMax } : prev
+                                )
+                            }
                         >
                             Soglia Umidità MAX:
                         </InputCont>
                         {/* Impostazione irrigationTime */}
                         <InputCont
                             type="number"
-                            value={interval}
-                            setValue={setInterval}
+                            value={settings?.interval}
+                            setValue={(interval) =>
+                                setSettings((prev) =>
+                                    prev ? { ...prev, interval } : prev
+                                )
+                            }
                         >
                             Intervallo Irrigazione:
                         </InputCont>
@@ -217,11 +235,21 @@ function DeviceSettings() {
                 <Info
                     onClick={() => {
                         if (!saved) {
-                            //TODO Notifica conferma
-                            setHumMax(originalSettings?.humMax || 0);
-                            setHumMin(originalSettings?.humMin || 0);
-                            setInterval(originalSettings?.interval || 0);
-                            setMode(device?.mode || 'safe');
+                            popupper(
+                                'RESET MODIFICHE',
+                                'Procedi',
+                                "Procedendo avverrà il reset delle modifiche, per cui tutte le modifiche non salvate andranno perse. L'azione è irreversibile",
+                                'error',
+                                () => {
+                                    setSettings({
+                                        mode: device?.mode || 'safe',
+                                        humMin: originalSettings?.humMin || 0,
+                                        humMax: originalSettings?.humMax || 0,
+                                        interval:
+                                            originalSettings?.interval || 0,
+                                    });
+                                }
+                            );
                         }
                     }}
                     name="Reset Impostazioni"
