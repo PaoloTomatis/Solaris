@@ -24,10 +24,6 @@ async function login(req: Request, res: Response): Promise<Response> {
         // Dichiarazione soggetto
         let subject: UserType | DeviceType | undefined | null;
 
-        type LoginSubject =
-            | ({ type: 'user' } & UserType)
-            | ({ type: 'device' } & DeviceType);
-
         // Controllo email/key
         if (
             type === 'user'

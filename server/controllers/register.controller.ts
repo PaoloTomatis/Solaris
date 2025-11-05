@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
+import UserSettingsModel from '../models/UserSettings.model.js';
 
 // Gestore login
 async function register(req: Request, res: Response): Promise<Response> {
@@ -50,7 +51,6 @@ async function register(req: Request, res: Response): Promise<Response> {
             refreshToken: '',
             createdAt: new Date().toISOString(),
         });
-
         // Salvataggio utente
         await user.save();
 
@@ -61,9 +61,28 @@ async function register(req: Request, res: Response): Promise<Response> {
         if (!userRes)
             return resHandler(
                 res,
-                400,
+                500,
                 null,
                 "L'utente non è stato registrato correttamente!",
+                false
+            );
+
+        // Creazione impostazioni utente database
+        const userSettings = new UserSettingsModel({
+            styleMode: 'light',
+            units: 'metric',
+            userId: userRes._id?.toString(),
+        });
+        // Salvataggio impostazioni utente
+        await userSettings.save();
+
+        // Controllo impostazioni utente
+        if (!userSettings)
+            return resHandler(
+                res,
+                500,
+                null,
+                "Le impostazioni dell'utente non sono state create correttamente!",
                 false
             );
 
