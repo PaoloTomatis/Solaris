@@ -143,16 +143,13 @@ async function jwtMiddlewareRest(
     }
 }
 
-async function jwtMiddlewareWS(
-    ws: AuthenticatedWS,
-    req: IncomingMessage
-): Promise<AuthenticatedWS> {
+async function jwtMiddlewareWS(ws: AuthenticatedWS, req: IncomingMessage) {
     // Gestione errori
     try {
         // Ricavo dati richiesta
         const url = new URL(req.url ?? '', `http://${req.headers.host}`);
         const accessToken = url.searchParams.get('token');
-        const type = url.searchParams.get('type');
+        const type = url.searchParams.get('authType');
 
         // Controllo access token
         if (!accessToken) throw new Error('Token di autenticazione mancante!');
@@ -164,9 +161,6 @@ async function jwtMiddlewareWS(
             // Impostazione utente
             ws.device = await jwtVerify(accessToken, 'device');
         }
-
-        // Passaggio prossimo gestore
-        return ws;
     } catch (error: unknown) {
         // Errore in console
         console.error(error);
@@ -177,8 +171,6 @@ async function jwtMiddlewareWS(
         // Risposta finale
         ws.send(JSON.stringify({ error: errorMsg }));
         ws.close(4001, errorMsg);
-
-        return ws;
     }
 }
 

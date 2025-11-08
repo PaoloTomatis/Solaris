@@ -10,6 +10,7 @@ import pswGenerator from '../utils/pswGenerator.js';
 import DataModel from '../models/Data.model.js';
 import { emitToRoom } from '../utils/wsRoomHandlers.js';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
+import irrigationAlgorithm from '../utils/irrigationAlgorithm.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
@@ -430,14 +431,14 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             mode?: 'config' | 'auto' | 'safe';
             userId?: string;
         } = req.body;
-        const { key }: { key?: string } = req.params;
+        const { id: deviceId }: { id?: string } = req.params;
 
         // Lista modifiche
         const data: {
             name?: string;
             activatedAt?: Date;
             mode?: 'config' | 'auto' | 'safe';
-            userId?: mongoose.Types.ObjectId;
+            userId?: mongoose.Types.ObjectId | null;
         } = {};
 
         // Controllo utente
@@ -451,12 +452,12 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             );
 
         // Controllo id dispositivo
-        if (!key || typeof key !== 'string')
+        if (!deviceId || typeof deviceId !== 'string')
             return resHandler(
                 res,
                 400,
                 null,
-                'Chiave del dispositivo mancante o invalida!',
+                'Id del dispositivo mancante o invalida!',
                 false
             );
 
@@ -480,8 +481,8 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
         }
 
         // Controllo userId
-        if (userId) {
-            if (!mongoose.isValidObjectId(userId))
+        if (userId || userId == null) {
+            if (!mongoose.isValidObjectId(userId) && userId != null)
                 return resHandler(
                     res,
                     400,
@@ -489,7 +490,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                     'Campo "userId" invalido!',
                     false
                 );
-            data.userId = new mongoose.Types.ObjectId(userId);
+            data.userId = userId ? new mongoose.Types.ObjectId(userId) : null;
         }
 
         // Controllo activatedAt
@@ -535,9 +536,13 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             );
 
         // Aggiornamento dispositivo database
-        const device = await DeviceModel.findOneAndUpdate({ key }, data, {
-            new: true,
-        });
+        const device = await DeviceModel.findOneAndUpdate(
+            { _id: deviceId },
+            data,
+            {
+                new: true,
+            }
+        );
 
         // Controllo modifiche
         if (!device)
@@ -586,6 +591,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
         // Ricavo dati richiesta
         const user: UserType | undefined = req.user;
         const { key }: { key?: string } = req.params;
+        const { name }: { name?: string } = req.body;
 
         // Controllo utente
         if (!user)
@@ -594,6 +600,16 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
+                false
+            );
+
+        // Controllo nome
+        if (!name || typeof name !== 'string')
+            return resHandler(
+                res,
+                400,
+                null,
+                'Nome mancante o invalido!',
                 false
             );
 
@@ -613,7 +629,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
         // Aggiornamento dispositivo database
         const deviceUpdate = await DeviceModel.findOneAndUpdate(
             { key },
-            { userId: user.id, mode: 'config', activatedAt: new Date() },
+            { userId: user.id, mode: 'config', activatedAt: new Date(), name },
             { new: true }
         );
 
@@ -677,7 +693,7 @@ async function updateModeDevice(
         // Ricavo dati richiesta
         const user: UserType | undefined = req.user;
         const mode: string | undefined = req.body.mode;
-        const key: string | undefined = req.params.key;
+        const id: string | undefined = req.params.id;
 
         // Controllo utente
         if (!user)
@@ -700,7 +716,7 @@ async function updateModeDevice(
             );
 
         // Ricavo dispositivo database
-        const device = await DeviceModel.findOne({ key });
+        const device = await DeviceModel.findById(id);
 
         // Controllo dispositivo
         if (!device || device?.userId.toString() !== user.id)
@@ -711,130 +727,23 @@ async function updateModeDevice(
                 "Dispositivo inesistente o non appartenente all'utente autenticato!",
                 false
             );
+        // Dichiarazione dati
+        let humMin: number = 0;
+        let humMax: number = 0;
+        let interval: number = 0;
 
-        //TODO - Calcolo MODALITA'
-
-        // Calcolo humMin e humMax
-        // Ricavo dati database
-        const dataDB = await DataModel.find({ type: 'data_config' });
-
-        // Controllo dati
-        if (!dataDB || dataDB?.length < 10)
-            return resHandler(
-                res,
-                404,
-                null,
-                'I dati delle irrigazioni sono mancanti o minori di 10!',
-                false
-            );
-
-        // Sort dei dati per humI1
-        const sortedData1 = dataDB
-            .sort((a, b) => {
-                return Array.isArray(a.humI) && Array.isArray(b.humI)
-                    ? a.humI[0] - b.humI[0]
-                    : 0;
-            })
-            .map((data) => (Array.isArray(data.humI) ? data.humI[0] : null));
-
-        // Dichiarazione lista dati per humI1
-        const data1: ({ humI: number; peso: number } | undefined)[] = [];
-
-        // Dichiarazione posizione centrale per humI1
-        const posC1: number | [number, number] =
-            sortedData1.length % 2 == 0
-                ? [sortedData1.length / 2 + 0.5, sortedData1.length / 2 - 0.5]
-                : sortedData1.length / 2;
-
-        // Dichiarazione media
-        let media1 = 0;
-
-        sortedData1.forEach((data): Response | void => {
-            // Dichiarazione peso
-            let peso: number;
-
-            // Controllo dato
-            if (data) {
-                // Controllo posC1
-                if (Array.isArray(posC1)) {
-                    // Calcolo pesi
-                    const pesoM1 =
-                        sortedData1.length / 2 +
-                        Math.abs(posC1[1] - sortedData1.indexOf(data));
-                    const pesoM2 =
-                        sortedData1.length / 2 +
-                        Math.abs(posC1[0] - sortedData1.indexOf(data));
-
-                    // Assegnazione peso
-                    peso = pesoM1 < pesoM2 ? pesoM1 : pesoM2;
-                } else if (!isNaN(posC1)) {
-                    // Assegnazione peso
-                    peso =
-                        sortedData1.length / 2 +
-                        0.5 +
-                        Math.abs(posC1 - sortedData1.indexOf(data));
-                } else {
-                    return resHandler(
-                        res,
-                        500,
-                        null,
-                        "Errore nel calcolo dei pesi per l'algoritmo di humMax e humMin!",
-                        false
-                    );
-                }
-
-                data1.push({
-                    humI: data,
-                    peso,
-                });
-            }
-        });
-
-        // Calcolo media
-        data1.forEach((data) => {
-            // Somma alla media
-            media1 += data ? data.humI * data.peso : 0;
-        });
-        const humMin =
-            sortedData1.length % 2 == 0
-                ? media1 /
-                  ((sortedData1.length / 2) * (sortedData1.length / 2 + 1))
-                : (media1 / (data1.length / 2)) ** 2;
-
-        // Calcolo kInterval
-        // Dichiarazione medie
-        let mediaInt1 = 0;
-        let mediaInt2 = 0;
-        let valsInt1 = 0;
-        let valsInt2 = 0;
-
-        // Calcolo medie
-        dataDB.forEach((data) => {
-            // Controllo interval
-            if (data.interval) {
-                // Somma alla media 1
-                mediaInt1 += data.interval;
-                // Somma valori 1
-                valsInt1 += 1;
-            }
-            // Controllo humI
-            if (Array.isArray(data.humI)) {
-                // Somma alla media 2
-                mediaInt2 += data.humI[1] - data.humI[0];
-                // Somma valori 2
-                valsInt2 += 1;
-            }
-        });
-        mediaInt1 = mediaInt1 / valsInt1;
-        mediaInt2 = mediaInt2 / valsInt2;
-        const interval = mediaInt1 / mediaInt2;
-
-        //TODO - Salvo IMPOSTAZIONI DISPOSITIVO
+        if (mode == 'auto') {
+            ({ humMin, humMax, interval } = await irrigationAlgorithm(
+                DataModel,
+                resHandler,
+                res
+            ));
+        }
 
         // Aggiornamento dispositivo database
         const deviceUpdate = await DeviceModel.findOneAndUpdate(
-            { key },
-            { mode, humMin, interval },
+            { _id: id },
+            { mode, humMin, humMax, interval },
             { new: true }
         );
 
@@ -847,8 +756,6 @@ async function updateModeDevice(
                 'Modifica non apportata correttamente!',
                 false
             );
-
-        //TODO - Invio DATI delle IMPOSTAZIONI DISPOSITIVO
 
         // Invio eventi ws
         emitToRoom(`DEVICE-${device._id.toString()}`, {

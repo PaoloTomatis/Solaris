@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import DataModel from '../models/Data.model.js';
 import DeviceModel from '../models/Device.model.js';
-import mongoose from 'mongoose';
+import mongoose, { type FilterQuery } from 'mongoose';
 import type { DeviceType, UserType } from '../types/types.js';
 import { emitToRoom } from '../utils/wsRoomHandlers.js';
 
@@ -700,8 +700,22 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
     try {
         // Ricavo dati richiesta
         const user: UserType | undefined = req.user;
-        let { id: dataId }: { id?: string | mongoose.Types.ObjectId } =
-            req.params;
+        const {
+            id,
+            date,
+            read,
+            deviceId,
+            type,
+        }: {
+            id?: string;
+            date?: string;
+            read?: string;
+            deviceId?: string;
+            type?: string;
+        } = req.query;
+
+        // Lista filtri
+        const filter: FilterQuery<typeof DataModel> = {};
 
         // Controllo utente
         if (!user)
@@ -713,75 +727,109 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
                 false
             );
 
-        // Controllo id dati
-        if (!dataId)
-            return resHandler(res, 400, null, 'Id dei dati mancante!', false);
+        // Controllo id
+        if (id) {
+            if (!mongoose.Types.ObjectId.isValid(id))
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "id" invalido nella richiesta!',
+                    false
+                );
 
-        // Controllo dataId
-        if (!mongoose.isValidObjectId(dataId))
-            return resHandler(res, 400, null, 'Campo "id" invalido!', false);
+            // Impostazione id
+            filter._id = new mongoose.Types.ObjectId(id);
+        }
 
-        // Parsing dataId
-        dataId = new mongoose.Types.ObjectId(dataId);
+        // Controllo date
+        if (date) {
+            const parsedDate = new Date(date);
+            if (isNaN(parsedDate.getTime()))
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "date" invalido!',
+                    false
+                );
+            // Impostazione date
+            filter.date = parsedDate;
+        }
 
-        // Ricavo dispositivo database
+        // Controllo read
+        if (read !== undefined) {
+            const parsedRead =
+                read === 'true' ? true : read === 'false' ? false : null;
+            if (parsedRead === null)
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "read" invalido nella richiesta!',
+                    false
+                );
+
+            // Impostazione read
+            filter.read = parsedRead;
+        }
+
+        // Controllo type
+        if (type) {
+            if (
+                ![
+                    'log_error',
+                    'log_info',
+                    'log_warning',
+                    'log_irrigation_auto',
+                    'log_irrigation_config',
+                    'data_config',
+                    'data_auto',
+                ].includes(type)
+            )
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "type" invalido nella richiesta!',
+                    false
+                );
+
+            // Impostazione type
+            filter.type = type;
+        }
+
+        // Controllo deviceId
+        if (deviceId) {
+            if (!mongoose.isValidObjectId(deviceId))
+                return resHandler(
+                    res,
+                    400,
+                    null,
+                    'Campo "deviceId" invalido nella richiesta!',
+                    false
+                );
+
+            // Impostazione deviceId
+            filter.deviceId = new mongoose.Types.ObjectId(deviceId);
+        }
+
+        // Ricavo dispositivi database
         const userDevices = await DeviceModel.find({ userId: user.id });
 
         // Lista id dispositivi
         const devicesId = userDevices.map((userDevice) => userDevice._id);
 
+        // Controllo id dispositivo
+        if (!deviceId) {
+            filter.deviceId = { $in: devicesId };
+        }
+
         // Ricavo dati database
-        const dato = await DataModel.findById(dataId);
-
-        if (!dato)
-            return resHandler(
-                res,
-                404,
-                null,
-                'Il dato non è esistente!',
-                false
-            );
-
-        // Controllo dataId
-        if (
-            !devicesId
-                .map((d) => d.toString())
-                .includes(dato.deviceId.toString())
-        )
-            return resHandler(
-                res,
-                403,
-                null,
-                "Il dispositivo da cui proviene il dato non appartiene all'account autenticato!",
-                false
-            );
-
-        // Eliminazione dati database
-        await dato.deleteOne();
+        const data = await DataModel.deleteMany(filter);
 
         // Risposta finale
-        return resHandler(
-            res,
-            200,
-            {
-                id: dato._id.toString(),
-                desc: dato.desc,
-                link: dato.link,
-                read: dato.read,
-                date: dato.date,
-                humI: dato.humI,
-                humE: dato.humE,
-                temp: dato.temp,
-                lum: dato.lum,
-                interval: dato.interval,
-                deviceId: dato.deviceId.toString(),
-                type: dato.type,
-                updatedAt: dato.updatedAt,
-                createdAt: dato.createdAt,
-            },
-            'Dati eliminati con successo!',
-            true
-        );
+        return resHandler(res, 200, null, 'Dati eliminati con successo!', true);
     } catch (error: unknown) {
         // Errore in console
         console.error(error);
