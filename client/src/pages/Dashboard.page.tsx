@@ -44,16 +44,16 @@ function Dashboard() {
     const [device, setDevice] = useState<DeviceType | null>(null);
     // Stato logs
     const [logs, setLogs] = useState<LogType[] | null>(null);
-    // Stato data
-    const [data, setData] = useState<{
-        id: string;
-        temp: number;
-        humI: number;
-        humE: number;
-        lum: number;
-    } | null>(null);
     // Autenticazione
     const { accessToken } = useAuth();
+    // Stato dati in tempo reale
+    const [realTimeData, setRealTimeData] = useState<{
+        humI: number;
+        humE: number;
+        temp: number;
+        lum: number;
+        date: Date;
+    } | null>(null);
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
@@ -84,13 +84,39 @@ function Dashboard() {
                         true
                     );
                 }
-                setData({
-                    id: 'abc123',
-                    temp: 20,
-                    humI: 60,
-                    humE: 54,
-                    lum: 78,
+
+                // Apertura WebSocket
+                const socket = new WebSocket(
+                    `${
+                        import.meta.env.VITE_WS_URL
+                    }?token=${accessToken}&authType=user`
+                );
+
+                // Controllo messaggi
+                socket.addEventListener('message', (event) => {
+                    // Dichiarazione dati evento
+                    const eventData = JSON.parse(event.data);
+
+                    // Controllo tipo evento
+                    if (eventData.event == 'data') {
+                        // Impostazione dati
+                        setRealTimeData({
+                            humE: eventData.data.humE,
+                            humI: eventData.data.humI,
+                            temp: eventData.data.temp,
+                            lum: eventData.data.lum,
+                            date: new Date(),
+                        });
+                    }
                 });
+
+                // Controllo errori
+                socket.addEventListener('error', () => {
+                    setError('Errore comunicazione o connessione a websocket!');
+                });
+
+                // Chiusura connesione
+                return () => socket.close();
             } catch (error: any) {
                 setError(error.message);
             } finally {
@@ -158,25 +184,25 @@ function Dashboard() {
                                 true ? 'text-success' : 'text-error'
                             } fill-current w-[20px]`}
                         />
-                        {/* <p className="text-primary-text text-xsmall max-w-[100px] text-center">
+                        <p className="text-primary-text text-xsmall max-w-[100px] text-center">
                             {`${
-                                device?.lastSeen
-                                    ? device.lastSeen.getDate()
+                                realTimeData?.date
+                                    ? realTimeData.date.getDate()
                                     : '-'
                             }/${
-                                device.lastSeen
-                                    ? device.lastSeen.getMonth()
+                                realTimeData?.date
+                                    ? realTimeData?.date.getMonth()
                                     : '-'
                             }/${
-                                device.lastSeen
-                                    ? device.lastSeen.getFullYear()
+                                realTimeData?.date
+                                    ? realTimeData?.date.getFullYear()
                                     : '-'
                             } ${
-                                device.lastSeen
-                                    ? device.lastSeen.toLocaleTimeString()
-                                    : '-'
+                                realTimeData?.date
+                                    ? realTimeData?.date.toLocaleTimeString()
+                                    : ''
                             }`}
-                        </p> */}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -194,21 +220,21 @@ function Dashboard() {
                     <div className="flex items-center justify-center gap-7 w-full">
                         <Data
                             img={TemperatureIcon}
-                            dato={`${data?.temp || '-'}°C`}
+                            dato={`${realTimeData?.temp || '-'}°C`}
                         />
                         <Data
                             img={LuminosityIcon}
-                            dato={`${data?.lum || '-'}%`}
+                            dato={`${realTimeData?.lum || '-'}%`}
                         />
                     </div>
                     <div className="flex items-center justify-center gap-7 w-full">
                         <Data
                             img={HumidityIcon}
-                            dato={`${data?.humE || '-'}%`}
+                            dato={`${realTimeData?.humE || '-'}%`}
                         />
                         <Data
                             img={HumidityIcon}
-                            dato={`${data?.humI || '-'}%`}
+                            dato={`${realTimeData?.humI || '-'}%`}
                         />
                     </div>
                 </div>

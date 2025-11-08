@@ -41,15 +41,74 @@ const rooms: Map<string, Set<AuthenticatedWS>> = new Map();
 // Connessione socket
 wss.on('connection', async (ws: AuthenticatedWS, req) => {
     // Middleware autenticazione (socket)
-    ws = await jwtMiddlewareWS(ws, req);
+    await jwtMiddlewareWS(ws, req);
 
     // Controllo utente o dispositivo
     if (ws.user) {
         // Inserimento stanza privata
         joinRoom(ws, `USER-${ws.user.id}`);
 
-        // Gestore evento irrigazione
-        ws.on('irrigation', async (data) => await irrigation(ws, data));
+        //! Dati evento esempio
+        // let humI = 0;
+        // let humE = 0;
+        // let temp = 0;
+        // let lum = 0;
+
+        //! Invio evento esempio
+        // setInterval(() => {
+        //     ws.send(
+        //         JSON.stringify({
+        //             event: 'data',
+        //             humI,
+        //             humE,
+        //             temp,
+        //             lum,
+        //         })
+        //     );
+        //     humI += 1;
+        //     humE += 2;
+        //     temp += 3;
+        //     lum += 4;
+        // }, 5000);
+
+        // Gestione eventi
+        ws.on('message', async (raw) => {
+            // Gestione errori
+            try {
+                // Ricevo dati richiesta
+                const { event, data } = JSON.parse(raw.toString());
+
+                // Controllo dati richiesta
+                if (!event || !data)
+                    resHandler(
+                        `DEVICE-${ws.device?.id}`,
+                        400,
+                        null,
+                        'Evento o dati mancanti o invalidi!',
+                        false,
+                        'ws'
+                    );
+
+                // Gestore evento stato
+                if (event === 'irrigation') await irrigation(ws, data);
+            } catch (error: unknown) {
+                // Errore in console
+                console.error(error);
+                const errorMsg =
+                    error instanceof Error
+                        ? error?.message || 'Errore interno del server!'
+                        : 'Errore sconosciuto!';
+                // Risposta finale
+                resHandler(
+                    `DEVICE-${ws.device?.id}`,
+                    500,
+                    null,
+                    errorMsg,
+                    false,
+                    'ws'
+                );
+            }
+        });
     } else if (ws.device) {
         // Inserimento stanza privata
         joinRoom(ws, `DEVICE-${ws.device.id}`);

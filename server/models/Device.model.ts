@@ -1,5 +1,5 @@
 // Importazione moduli
-import { Schema, model, type ObjectId } from 'mongoose';
+import mongoose, { Schema, model, type ObjectId } from 'mongoose';
 
 // Interfaccia dispositivo
 interface DeviceType {
@@ -14,12 +14,6 @@ interface DeviceType {
     updatedAt: Date;
     createdAt: Date;
 }
-
-// const passwordAlphabet =
-//     'abcdefghijklmnopqrstuvwxyz' +
-//     'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
-//     '0123456789' +
-//     '!@#$%^&*()_-+=[]{}|;:,.<>?';
 
 // Schema dispositivo
 const DeviceSchema = new Schema(
@@ -38,6 +32,32 @@ const DeviceSchema = new Schema(
     },
     { timestamps: true }
 );
+
+// Middlewares
+DeviceSchema.pre('findOneAndDelete', async function (next) {
+    // Gestione errori
+    try {
+        // Ricavo dispositivo database
+        const device = await this.model.findOne(this.getQuery());
+
+        // Controllo dispositivo
+        if (!device) return next();
+
+        // Eliminazione impostazioni dispositivo database
+        await mongoose
+            .model('DeviceSettings')
+            .deleteMany({ deviceId: device._id });
+
+        // Eliminazione impostazioni utente database
+        await mongoose.model('Data').deleteMany({ deviceId: device._id });
+
+        // Passaggio prossimo gestore
+        next();
+    } catch (error: any) {
+        // Passaggio prossimo gestore con errore
+        next(error);
+    }
+});
 
 // Esportazione modello
 export default model<DeviceType>('Device', DeviceSchema);

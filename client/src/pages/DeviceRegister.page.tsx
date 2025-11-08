@@ -79,22 +79,20 @@ function DeviceRegister() {
                             if (user) {
                                 await patchData(
                                     accessToken || '',
-                                    `device/${key}`,
+                                    `activate_device/${key}`,
                                     {
                                         name,
-                                        userId: user.id,
                                     }
                                 );
 
-                                // Controllo risultato
-                                if (!error) {
-                                    navigator('/devices');
-                                }
+                                navigator('/devices');
                             }
-                            setName('');
-                            setKey('');
                         } catch (error: any) {
                             setError(error.message);
+                        } finally {
+                            setName('');
+                            setKey('');
+                            setLoading(false);
                         }
                     }}
                     className="mt-[10px] bg-secondary dark:bg-primary text-primary-bg"

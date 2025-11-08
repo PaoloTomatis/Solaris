@@ -1,11 +1,14 @@
 // Importazione moduli
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '../context/Auth.context';
+import { useNotifications } from '../context/Notifications.context';
 import BottomBar from '../components/BottomBar.comp';
 import TopBar from '../components/TopBar.comp';
 import Page from '../components/Page.comp';
 import Button from '../components/Button.comp';
 import InputCont from '../components/InputCont.comp';
+import Loading from '../components/Loading.comp';
 // Importazione immagini
 import InfoIcon from '../assets/icons/info.svg?react';
 
@@ -13,9 +16,29 @@ import InfoIcon from '../assets/icons/info.svg?react';
 function Controls() {
     // Id device
     const { id: deviceId } = useParams();
+    // Autenticazione
+    const { accessToken } = useAuth();
+    // Notificatore
+    const notify = useNotifications();
+    // Stato errore
+    const [error, setError] = useState('');
+    // Stato caricamento
+    const [loading, setLoading] = useState(false);
 
     // Stato tempo irrigazione
     const [irrigationTime, setIrrigationTime] = useState(120);
+
+    // Controllo errore
+    useEffect(() => {
+        if (error) {
+            notify('ERRORE!', error, 'error');
+        }
+    }, [error]);
+
+    // Controllo caricamento
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         // Pagina
@@ -33,8 +56,46 @@ function Controls() {
             {/* Pulsante */}
             <Button
                 onClick={() => {
-                    alert(`IRRIGAZIONE --> ${irrigationTime}`);
-                    setIrrigationTime(120);
+                    // Gestione errori
+                    try {
+                        // Impostazione caricamento
+                        setLoading(true);
+
+                        // Apertura WebSocket
+                        const socket = new WebSocket(
+                            `${
+                                import.meta.env.VITE_WS_URL
+                            }?token=${accessToken}&authType=user`
+                        );
+
+                        // Controllo apertura connessione
+                        socket.addEventListener('open', () => {
+                            // Invio evento
+                            socket.send(
+                                JSON.stringify({
+                                    event: 'irrigation',
+                                    data: {
+                                        duration: irrigationTime,
+                                        completed: true,
+                                        deviceId,
+                                    },
+                                })
+                            );
+                            setLoading(false);
+                        });
+
+                        // Controllo errori
+                        socket.addEventListener('error', () => {
+                            setError(
+                                'Errore comunicazione o connessione a websocket!'
+                            );
+                        });
+
+                        // Impostazione tempo irrigazione
+                        setIrrigationTime(120);
+                    } catch (error: any) {
+                        setError(error.message);
+                    }
                 }}
                 className="mt-[10px] bg-primary max-w-max"
             >
@@ -45,10 +106,9 @@ function Controls() {
                 <InfoIcon className="fill-current text-info w-[30px] aspect-square" />
                 <p className="text-primary-text text-xsmall max-w-[300px]">
                     L'irrigazione manuale servirà per poter calcolare le soglie
-                    per la modalità automatica. Bisogna assolutamente evitare di
-                    effettuare l'irrigazione se il terreno non è effettivamente
-                    asciutto, rischiando di confondere il calcolo della
-                    configurazione
+                    per la modalità automatica. Si consiglia di effettuare
+                    alcune prove con i controlli manuali per poi eliminare
+                    completamente i dati
                 </p>
             </div>
             {/* Barra inferiore */}

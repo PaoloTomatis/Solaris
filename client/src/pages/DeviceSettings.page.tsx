@@ -1,8 +1,8 @@
 // Importazione moduli
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/Auth.context';
-import { getData } from '../utils/apiCrud.utils';
+import { getData, patchData, deleteData } from '../utils/apiCrud.utils';
 import { usePopup } from '../context/Popup.context';
 import { useNotifications } from '../context/Notifications.context';
 import Page from '../components/Page.comp';
@@ -29,6 +29,8 @@ function DeviceSettings() {
     // Dichiarazione lista modelli
     const models = { vega: '#ffd60a', helios: '#00d4d8' };
 
+    // Navigatore
+    const navigator = useNavigate();
     // Autenticazione
     const { accessToken } = useAuth();
     // Notificatore
@@ -262,14 +264,81 @@ function DeviceSettings() {
                 />
                 {/* Info scollegamento dispositivo */}
                 <Info
-                    onClick={() => alert('SCOLLEGAMENTO')}
+                    onClick={() => {
+                        popupper(
+                            'SCOLLEGAMENTO DEVICE',
+                            'Procedi',
+                            "Procedendo avverrà lo scollegamento del dispositivo, per cui tutti i dati verranno eliminati ed esso non verrà più associato al tuo account. L'azione è irreversibile",
+                            'error',
+                            async () => {
+                                // Controllo token
+                                if (accessToken) {
+                                    // Gestione errori
+                                    try {
+                                        // Eliminazione dati
+                                        await deleteData(
+                                            accessToken,
+                                            'data',
+                                            `deviceId=${deviceId}`
+                                        );
+                                        // Modifica dispositivo
+                                        await patchData(
+                                            accessToken,
+                                            'device',
+                                            {
+                                                userId: null,
+                                            },
+                                            deviceId
+                                        );
+                                        // Reindirizzamento
+                                        navigator('/devices');
+                                    } catch (error: any) {
+                                        notify(
+                                            'ERRORE',
+                                            error?.message ||
+                                                'Errore interno del server',
+                                            'error'
+                                        );
+                                    }
+                                }
+                            }
+                        );
+                    }}
                     name="Scollega Device"
                     icon={LogoutIcon}
                     type="error"
                 />
                 {/* Info eliminazione dati */}
                 <Info
-                    onClick={() => alert('ELIMINAZIONE DATI')}
+                    onClick={() => {
+                        popupper(
+                            'ELIMINAZIONE DATI',
+                            'Procedi',
+                            "Procedendo avverrà la completa cancellazione dei dati del dispositivo, rendendoli irrecuperabili. L'azione è irreversibile",
+                            'error',
+                            async () => {
+                                // Gestione errori
+                                try {
+                                    // Controllo token
+                                    if (accessToken) {
+                                        // Eliminazione dati
+                                        await deleteData(
+                                            accessToken,
+                                            'data',
+                                            `deviceId=${deviceId}`
+                                        );
+                                    }
+                                } catch (error: any) {
+                                    notify(
+                                        'ERRORE',
+                                        error?.message ||
+                                            'Errore interno del server',
+                                        'error'
+                                    );
+                                }
+                            }
+                        );
+                    }}
                     name="Elimina Dati"
                     icon={DeleteIcon}
                     type="error"
@@ -278,10 +347,54 @@ function DeviceSettings() {
                 <Separator />
                 {/* Info salvataggio dati */}
                 <Info
-                    onClick={() => alert('SALVATAGGIO DATI')}
+                    onClick={() => {
+                        popupper(
+                            'SALVATAGGIO DATI',
+                            'Procedi',
+                            "Procedendo avverrà il salvataggio dei dati del dispositivo, per cui tutte le impostazioni precedenti verranno sovrascritte. L'azione è irreversibile",
+                            'info',
+                            async () => {
+                                // Controllo token
+                                if (accessToken) {
+                                    // Gestione errori
+                                    try {
+                                        // Modifica impostazioni dispositivo
+                                        await patchData(
+                                            accessToken,
+                                            'device_settings',
+                                            {
+                                                humMin: settings?.humMin || 0,
+                                                humMax: settings?.humMax || 0,
+                                                interval:
+                                                    settings?.interval || 0,
+                                            },
+                                            deviceId
+                                        );
+                                        // Modifica dispositivo
+                                        await patchData(
+                                            accessToken,
+                                            'update_mode',
+                                            {
+                                                mode: settings?.mode || 'safe',
+                                            },
+                                            deviceId
+                                        );
+                                        navigator(`/dashboard/${deviceId}`);
+                                    } catch (error: any) {
+                                        notify(
+                                            'ERRORE',
+                                            error?.message ||
+                                                'Errore interno del server',
+                                            'error'
+                                        );
+                                    }
+                                }
+                            }
+                        );
+                    }}
                     name="Salva"
                     icon={SaveIcon}
-                    type="info"
+                    type={saved ? 'disabled' : 'info'}
                 />
             </div>
             {/* Barra inferiore */}

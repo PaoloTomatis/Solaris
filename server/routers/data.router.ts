@@ -15,7 +15,7 @@ dataRouter
     .get('/', getData)
     .post('/', postData)
     .patch('/:id', patchData)
-    .delete('/:id', deleteData);
+    .delete('/', deleteData);
 
 // Esportazione router
 export default dataRouter;

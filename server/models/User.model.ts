@@ -1,5 +1,10 @@
 // Importazione moduli
-import { Schema, model, type ObjectId } from 'mongoose';
+import mongoose, {
+    Schema,
+    model,
+    type CallbackError,
+    type ObjectId,
+} from 'mongoose';
 
 // Interfaccia utente
 interface UserType {
@@ -22,6 +27,32 @@ const UserSchema = new Schema(
     },
     { timestamps: true }
 );
+
+// Middlewares
+UserSchema.pre('findOneAndDelete', async function (next) {
+    // Gestione errori
+    try {
+        // Ricavo utente database
+        const user = await this.model.findOne(this.getQuery());
+
+        // Controllo utente
+        if (!user) return next();
+
+        // Eliminazione impostazioni utente database
+        await mongoose.model('UserSettings').deleteMany({ userId: user._id });
+
+        // Modifica dispositivi database
+        await mongoose
+            .model('Devices')
+            .updateMany({ userId: user._id }, { userId: null });
+
+        // Passaggio prossimo gestore
+        next();
+    } catch (error: any) {
+        // Passaggio prossimo gestore con errore
+        next(error);
+    }
+});
 
 // Esportazione modello
 export default model<UserType>('User', UserSchema);

@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/Auth.context';
 import { usePopup } from '../context/Popup.context';
 import { useNotifications } from '../context/Notifications.context';
+import { useNavigate } from 'react-router-dom';
 import type { UserSettings as UserSettingsType } from '../utils/type.utils';
-import { getData } from '../utils/apiCrud.utils';
+import { getData, patchData } from '../utils/apiCrud.utils';
 import Page from '../components/Page.comp';
 import TopBar from '../components/TopBar.comp';
 import BottomBar from '../components/BottomBar.comp';
@@ -20,6 +21,8 @@ import SaveIcon from '../assets/icons/save.svg?react';
 function UserSettings() {
     // Autenticazione
     const { accessToken } = useAuth();
+    // Navigatore
+    const navigator = useNavigate();
     // Notificatore
     const notify = useNotifications();
     // Popupper
@@ -168,10 +171,42 @@ function UserSettings() {
                 />
                 {/* Info salvataggio dati */}
                 <Info
-                    onClick={() => alert('SALVATAGGIO DATI')}
+                    onClick={() => {
+                        popupper(
+                            'SALVATAGGIO DATI',
+                            'Procedi',
+                            "Procedendo avverrà il salvataggio dei dati del dispositivo, per cui tutte le impostazioni precedenti verranno sovrascritte. L'azione è irreversibile",
+                            'info',
+                            async () => {
+                                // Controllo token
+                                if (accessToken) {
+                                    // Gestione errori
+                                    try {
+                                        // Modifica impostazioni dispositivo
+                                        await patchData(
+                                            accessToken,
+                                            'user_settings',
+                                            {
+                                                styleMode: settings?.styleMode,
+                                                units: settings?.units,
+                                            }
+                                        );
+                                        navigator('/account');
+                                    } catch (error: any) {
+                                        notify(
+                                            'ERRORE',
+                                            error?.message ||
+                                                'Errore interno del server',
+                                            'error'
+                                        );
+                                    }
+                                }
+                            }
+                        );
+                    }}
                     name="Salva"
                     icon={SaveIcon}
-                    type="info"
+                    type={saved ? 'disabled' : 'info'}
                 />
             </div>
             {/* Barra inferiore */}
