@@ -5,7 +5,7 @@ import { usePopup } from '../context/Popup.context';
 import { useNotifications } from '../context/Notifications.context';
 import { useNavigate } from 'react-router-dom';
 import type { UserSettings as UserSettingsType } from '../utils/type.utils';
-import { getData, patchData } from '../utils/apiCrud.utils';
+import { patchData } from '../utils/apiCrud.utils';
 import Page from '../components/Page.comp';
 import TopBar from '../components/TopBar.comp';
 import BottomBar from '../components/BottomBar.comp';
@@ -28,8 +28,8 @@ function UserSettings() {
     // Popupper
     const popupper = usePopup();
     // Stato impostazioni originarie
-    const [originalSettings, setOriginalSettings] =
-        useState<UserSettingsType | null>(null);
+    const { settings: originalSettings, setSettings: setOriginalSettings } =
+        useAuth();
     // Stato impostazioni originarie
     const [settings, setSettings] = useState<UserSettingsType | null>(null);
     // Stato salvataggio
@@ -37,30 +37,7 @@ function UserSettings() {
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
-    const [loading, setLoading] = useState(true);
-
-    // Caricamento pagina
-    useEffect(() => {
-        const loadData = async () => {
-            // Gestione errori
-            try {
-                // Controllo token e utente
-                if (accessToken) {
-                    await getData(
-                        setOriginalSettings,
-                        accessToken,
-                        'user_settings'
-                    );
-                }
-            } catch (error: any) {
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadData();
-    }, []);
+    const [loading, setLoading] = useState(false);
 
     // Controllo impostazioni originarie
     useEffect(() => {
@@ -178,6 +155,9 @@ function UserSettings() {
                             "Procedendo avverrà il salvataggio dei dati del dispositivo, per cui tutte le impostazioni precedenti verranno sovrascritte. L'azione è irreversibile",
                             'info',
                             async () => {
+                                // Impostazione caricamento
+                                setLoading(true);
+
                                 // Controllo token
                                 if (accessToken) {
                                     // Gestione errori
@@ -192,12 +172,11 @@ function UserSettings() {
                                             }
                                         );
                                         navigator('/account');
+                                        setOriginalSettings(settings);
                                     } catch (error: any) {
-                                        notify(
-                                            'ERRORE',
+                                        setError(
                                             error?.message ||
-                                                'Errore interno del server',
-                                            'error'
+                                                'Errore interno del server'
                                         );
                                     }
                                 }

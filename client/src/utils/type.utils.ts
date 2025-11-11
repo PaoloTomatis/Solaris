@@ -65,5 +65,12 @@ interface UserSettings {
     createdAt: Date;
 }
 
+// Tipo output api
+interface APIResponse {
+    success: string;
+    message: string;
+    status: number;
+}
+
 // Esportazione interfacce
-export type { User, Device, Data, DeviceSettings, UserSettings };
+export type { User, Device, Data, DeviceSettings, UserSettings, APIResponse };

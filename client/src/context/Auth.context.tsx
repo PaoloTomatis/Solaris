@@ -6,7 +6,11 @@ import {
     type ReactNode,
     useEffect,
 } from 'react';
-import type { User as UserType } from '../utils/type.utils';
+import type {
+    User as UserType,
+    UserSettings as UserSettingsType,
+    APIResponse,
+} from '../utils/type.utils';
 import axios from 'axios';
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +19,8 @@ import { useNavigate } from 'react-router-dom';
 interface AuthContextType {
     user: UserType | null;
     setUser: React.Dispatch<React.SetStateAction<UserType | null>>;
+    settings: UserSettingsType | null;
+    setSettings: React.Dispatch<React.SetStateAction<UserSettingsType | null>>;
     accessToken: string | null;
     login: (
         email: string,
@@ -46,6 +52,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 function AuthProvider({ children }: { children: ReactNode }) {
     // Stato utente
     const [user, setUser] = useState<UserType | null>(null);
+    // Stato impostazioni
+    const [settings, setSettings] = useState<UserSettingsType | null>(null);
     // Stato accessToken
     const [accessToken, setAccessToken] = useState<string | null>(null);
     // Stato caricamento
@@ -63,10 +71,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Tipo output login
-    interface Login {
-        success: string;
-        message: string;
-        status: number;
+    interface Login extends APIResponse {
         data: {
             accessToken: string;
             subject: {
@@ -80,10 +85,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Tipo output registrazione
-    interface Register {
-        success: string;
-        message: string;
-        status: number;
+    interface Register extends APIResponse {
         data: {
             user: {
                 id: string;
@@ -93,6 +95,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 createdAt: Date;
             };
         };
+    }
+
+    // Tipo output impostazioni
+    interface UserSettingsOutput extends APIResponse {
+        data: UserSettingsType;
     }
 
     // Funzione controllo token
@@ -122,6 +129,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
         // Ricavazione token
         const token = localStorage.getItem('accessToken');
 
+        // Ricavazione impostazioni
+        const loadedSettings: UserSettingsType | undefined = JSON.parse(
+            localStorage.getItem('settings') || '{}'
+        );
+
         // Check token
         const user = jwtCheck(token || '');
 
@@ -130,17 +142,30 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // Impostazione token
             setAccessToken(token);
             setUser(user);
+            setSettings(loadedSettings || null);
         } else {
             // Eliminazione token
             localStorage.removeItem('accessToken');
+            localStorage.removeItem('settings');
             // Impostazione utente e token
             setUser(null);
+            setSettings(null);
             setAccessToken(null);
         }
 
         // Impostazione caricamento
         setLoading(false);
     }, []);
+
+    // Controllo impostazioni
+    useEffect(() => {
+        // Impostazione modalità stile
+        document.documentElement.classList.toggle(
+            'dark',
+            settings?.styleMode == 'dark'
+        );
+        localStorage.setItem("settings", JSON.stringify(settings || "{}"))
+    }, [settings]);
 
     // Funzione login
     async function login(
@@ -155,7 +180,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             // Richiesta login
             const res = await axios.post<Login | undefined>(
-                `${import.meta.env.VITE_API_URL}/auth/login`,
+                `${import.meta.env.VITE_API_URL}/auth/login?authType=user`,
                 { email, psw, type: 'user' }
             );
 
@@ -166,11 +191,34 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // Check token
             const user = jwtCheck(res.data.data.accessToken || '');
 
+            // Richiesta impostazioni
+            const res2 = await axios.get<UserSettingsOutput | undefined>(
+                `${
+                    import.meta.env.VITE_API_URL
+                }/api/user_settings?authType=user`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${res.data.data.accessToken}`,
+                    },
+                }
+            );
+
+            // Controllo dati
+            if (!res2.data || !res2.data?.success)
+                throw new Error(
+                    res2.data?.message || 'Errore nella richiesta!'
+                );
+
             // Controllo utente
             if (user) {
                 // Impostazione token
                 setAccessToken(res.data.data.accessToken);
                 localStorage.setItem('accessToken', res.data.data.accessToken);
+                localStorage.setItem(
+                    'settings',
+                    JSON.stringify(res2.data.data || "{}")
+                );
+                setSettings(res2.data.data);
                 // Impostazione utente
                 setUser(user);
             }
@@ -260,8 +308,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
             // Impostazione utente e accessToken
             setUser(null);
+            setSettings(null);
             setAccessToken(null);
             localStorage.removeItem('accessToken');
+            localStorage.removeItem('settings');
 
             navigator('/auth/login');
         } catch (error: unknown) {
@@ -306,8 +356,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
             // Impostazione utente e accessToken
             setUser(null);
+            setSettings(null);
             setAccessToken(null);
             localStorage.removeItem('accessToken');
+            localStorage.removeItem('settings');
 
             navigator('/auth/register');
         } catch (error: unknown) {
@@ -336,6 +388,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
             value={{
                 user,
                 setUser,
+                settings,
+                setSettings,
                 accessToken,
                 login,
                 register,
