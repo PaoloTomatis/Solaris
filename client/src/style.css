@@ -83,21 +83,19 @@
     --text-xxlarge: 10rem; /* 43pt */
 }
 
-@layer theme {
-    :root {
-        @variant dark {
-            --color-info: #3b82f6;
-            --color-warning: #fbbf24;
-            --color-error: #ef4444;
-            --color-success: #22c55e;
-
-            --color-secondary-bg: #1e293b;
-            --color-primary-bg: #0f172a;
-            --color-secondary-text: #94a3b8;
-            --color-primary-text: #f1f5f9;
-            --color-decoration: #a855f7;
-            --color-secondary: #ffe34d;
-            --color-primary: #00d4d8;
-        }
-    }
+.dark {
+    /* Colori Tema Scuro */
+    --color-info: #3b82f6;
+    --color-warning: #fbbf24;
+    --color-error: #ef4444;
+    --color-success: #22c55e;
+    --color-secondary-bg: #1e293b;
+    --color-primary-bg: #0f172a;
+    --color-secondary-text: #94a3b8;
+    --color-primary-text: #f1f5f9;
+    --color-decoration: #a855f7;
+    --color-secondary: #ffe34d;
+    --color-primary: #00d4d8;
 }
+
+@custom-variant dark (&:where(.dark, .dark *));

@@ -228,14 +228,24 @@ function Dashboard() {
                         />
                     </div>
                     <div className="flex items-center justify-center gap-7 w-full">
-                        <Data
-                            img={HumidityIcon}
-                            dato={`${realTimeData?.humE || '-'}%`}
-                        />
-                        <Data
-                            img={HumidityIcon}
-                            dato={`${realTimeData?.humI || '-'}%`}
-                        />
+                        <div className="flex items-center justify-center relative">
+                            <Data
+                                img={HumidityIcon}
+                                dato={`${realTimeData?.humE || '-'}%`}
+                            />
+                            <p className="text-white font-bold text-xlarge absolute top-[40%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
+                                E
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-center relative">
+                            <Data
+                                img={HumidityIcon}
+                                dato={`${realTimeData?.humI || '-'}%`}
+                            />
+                            <p className="text-white font-bold text-xlarge absolute top-[40%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
+                                I
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

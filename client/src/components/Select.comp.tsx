@@ -15,7 +15,7 @@ function Select({
 }) {
     return (
         <select
-            className={`${className} text-xsmall text-primary-text bg-primary-bg rounded-4xl border-[2px] px-2 py-1.5 w-[95%] max-w-max focus:border-secondary`}
+            className={`${className} cursor-pointer text-xsmall text-primary-text bg-primary-bg rounded-4xl border-[2px] px-2 py-1.5 w-[95%] max-w-max focus:border-secondary`}
             value={value}
             onChange={(e) => {
                 setValue(e.target.value);
