@@ -1,5 +1,7 @@
 // Importazione moduli
 import mongoose, { Schema, model, type ObjectId } from 'mongoose';
+import DataModel from './Data.model.js';
+import DeviceSettingsModel from './DeviceSettings.model.js';
 
 // Interfaccia dispositivo
 interface DeviceType {
@@ -44,12 +46,10 @@ DeviceSchema.pre('findOneAndDelete', async function (next) {
         if (!device) return next();
 
         // Eliminazione impostazioni dispositivo database
-        await mongoose
-            .model('DeviceSettings')
-            .deleteMany({ deviceId: device._id });
+        await DeviceSettingsModel.deleteMany({ deviceId: device._id });
 
         // Eliminazione impostazioni utente database
-        await mongoose.model('Data').deleteMany({ deviceId: device._id });
+        await DataModel.deleteMany({ deviceId: device._id });
 
         // Passaggio prossimo gestore
         next();

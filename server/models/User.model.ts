@@ -1,10 +1,7 @@
 // Importazione moduli
-import mongoose, {
-    Schema,
-    model,
-    type CallbackError,
-    type ObjectId,
-} from 'mongoose';
+import mongoose, { Schema, model, type ObjectId } from 'mongoose';
+import DeviceModel from './Device.model.js';
+import UserSettingsModel from './UserSettings.model.js';
 
 // Interfaccia utente
 interface UserType {
@@ -39,12 +36,10 @@ UserSchema.pre('findOneAndDelete', async function (next) {
         if (!user) return next();
 
         // Eliminazione impostazioni utente database
-        await mongoose.model('UserSettings').deleteMany({ userId: user._id });
+        await UserSettingsModel.deleteMany({ userId: user._id });
 
         // Modifica dispositivi database
-        await mongoose
-            .model('Devices')
-            .updateMany({ userId: user._id }, { userId: null });
+        await DeviceModel.updateMany({ userId: user._id }, { userId: null });
 
         // Passaggio prossimo gestore
         next();
