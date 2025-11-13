@@ -146,7 +146,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
         } else {
             // Eliminazione token
             localStorage.removeItem('accessToken');
-            localStorage.removeItem('settings');
             // Impostazione utente e token
             setUser(null);
             setSettings(null);
@@ -164,7 +163,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
             'dark',
             settings?.styleMode == 'dark'
         );
-        localStorage.setItem("settings", JSON.stringify(settings || "{}"))
+        // Controllo impostazioni
+        if (settings) {
+            // Impostazione impostazioni
+            localStorage.setItem('settings', JSON.stringify(settings));
+        } else {
+            // Eliminazione impostazioni
+            localStorage.removeItem('settings');
+        }
     }, [settings]);
 
     // Funzione login
@@ -216,7 +222,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem('accessToken', res.data.data.accessToken);
                 localStorage.setItem(
                     'settings',
-                    JSON.stringify(res2.data.data || "{}")
+                    JSON.stringify(res2.data.data || '{}')
                 );
                 setSettings(res2.data.data);
                 // Impostazione utente
@@ -311,7 +317,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setSettings(null);
             setAccessToken(null);
             localStorage.removeItem('accessToken');
-            localStorage.removeItem('settings');
 
             navigator('/auth/login');
         } catch (error: unknown) {
@@ -359,7 +364,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setSettings(null);
             setAccessToken(null);
             localStorage.removeItem('accessToken');
-            localStorage.removeItem('settings');
 
             navigator('/auth/register');
         } catch (error: unknown) {

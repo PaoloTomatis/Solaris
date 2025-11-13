@@ -1,5 +1,5 @@
 // Importazione moduli
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/Auth.context';
 import { useNotifications } from '../context/Notifications.context';
@@ -24,9 +24,12 @@ function Controls() {
     const [error, setError] = useState('');
     // Stato caricamento
     const [loading, setLoading] = useState(false);
-
+    // Stato apertura
+    const [opened, setOpened] = useState<boolean | null>(null);
     // Stato tempo irrigazione
     const [irrigationTime, setIrrigationTime] = useState(120);
+    // Riferimento id timeout
+    const timeoutId = useRef<NodeJS.Timeout | null>(null);
 
     // Controllo errore
     useEffect(() => {
@@ -34,6 +37,25 @@ function Controls() {
             notify('ERRORE!', error, 'error');
         }
     }, [error]);
+
+    // Controllo apertura connessione
+    useEffect(() => {
+        // Controllo apertura connessione
+        if (opened !== null && opened == false) {
+            console.log('Impostazione!');
+            // Impostazione timeout
+            timeoutId.current = setTimeout(() => {
+                console.log('Impostazione Errore');
+                setError(
+                    'La connessione al dispositivo sta durando più del previsto!'
+                );
+            }, 1000);
+        } else if (opened == true && timeoutId.current) {
+            console.log('Pulizia!');
+            // Pulizia timeout
+            clearTimeout(timeoutId.current);
+        }
+    }, [opened]);
 
     // Controllo caricamento
     if (loading) {
@@ -68,8 +90,14 @@ function Controls() {
                             }?token=${accessToken}&authType=user`
                         );
 
+                        // Impostazione apertura connessione
+                        setOpened(false);
+
                         // Controllo apertura connessione
                         socket.addEventListener('open', () => {
+                            // Impostazione apertura connessione
+                            setOpened(true);
+                            console.log('APERTURA');
                             // Invio evento
                             socket.send(
                                 JSON.stringify({
@@ -86,6 +114,8 @@ function Controls() {
 
                         // Controllo errori
                         socket.addEventListener('error', () => {
+                            // Impostazione apertura connessione
+                            setOpened(null);
                             setError(
                                 'Errore comunicazione o connessione a websocket!'
                             );
