@@ -1,18 +1,24 @@
 // Importazione moduli
 import axios from 'axios';
+import type { APIResponse } from './type.utils';
 
 // Funzione ricevere dati
-async function getData(
+async function getData<T>(
     setValue: React.Dispatch<React.SetStateAction<any>>,
     accessToken: string,
     link: string,
     queries?: string,
     single = false
 ) {
+    // Tipo output
+    interface FullAPIResponse extends APIResponse {
+        data: T;
+    }
+
     // Gestione errori
     try {
         // Richiesta
-        const res = await axios.get(
+        const res = await axios.get<FullAPIResponse>(
             `${import.meta.env.VITE_API_URL}/api/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
@@ -54,16 +60,21 @@ async function getData(
 }
 
 // Funzione creazione dati
-async function patchData(
+async function patchData<T>(
     accessToken: string,
     link: string,
     body?: any,
     params?: string
 ) {
+    // Tipo output
+    interface FullAPIResponse extends APIResponse {
+        data: T;
+    }
+
     // Gestione errori
     try {
         // Richiesta
-        const res = await axios.patch(
+        const res = await axios.patch<FullAPIResponse>(
             `${import.meta.env.VITE_API_URL}/api/${link}${
                 params ? `/${params}` : ''
             }?authType=user`,
@@ -96,11 +107,20 @@ async function patchData(
 }
 
 // Funzione eliminazione dati
-async function deleteData(accessToken: string, link: string, queries?: string) {
+async function deleteData<T>(
+    accessToken: string,
+    link: string,
+    queries?: string
+) {
     // Gestione errori
     try {
+        // Tipo output
+        interface FullAPIResponse extends APIResponse {
+            data: T;
+        }
+
         // Richiesta
-        const res = await axios.delete(
+        const res = await axios.delete<FullAPIResponse>(
             `${import.meta.env.VITE_API_URL}/api/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
