@@ -153,11 +153,11 @@ function Dashboard() {
         // Pagina
         <Page className="gap-[25px] pt-[15vh]">
             {/* Contenitore barra superiore */}
-            <div className="fixed top-0 left-0 w-full h-[14vh] backdrop-blur-[3px] z-40 flex items-center justify-between">
+            <div className="fixed top-0 left-0 w-full h-[14vh] backdrop-blur-[3px] z-40 flex items-center justify-between px-[5%]">
                 {/* Freccia indietro */}
                 <ArrowIcon
                     onClick={() => navigator('/devices')}
-                    className="cursor-pointer w-[20px] rotate-180 fill-current text-primary-text z-[41] mr-1.5 ml-[30px]"
+                    className="cursor-pointer w-[20px] rotate-180 fill-current text-primary-text z-[41] mr-auto"
                 />
                 {/* Contenitore testi */}
                 <div className="top-[20px] mx-auto gap-7 flex items-center justify-between w-full max-w-[400px]">

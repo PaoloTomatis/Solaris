@@ -49,7 +49,6 @@ async function irrigation(
 
     // Controllo completed
     if (typeof completed !== 'boolean') {
-        ws.emit('error');
         ws.send(
             JSON.stringify({
                 event: 'error',
@@ -89,9 +88,11 @@ async function irrigation(
     // Invio evento finale
     emitToRoom(`DEVICE-${deviceId}`, {
         event: 'irrigation',
-        parsedDuration,
+        duration: parsedDuration,
         completed,
     });
+
+    console.log(`Emissione --> ${deviceId} | Durata: ${parsedDuration}`);
 }
 
 // Esportazione gestore

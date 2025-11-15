@@ -48,6 +48,8 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
         // Inserimento stanza privata
         joinRoom(ws, `USER-${ws.user.id}`);
 
+        console.log(`Accesso Utente --> ${ws.user.id}`);
+
         //! Dati evento esempio
         // let humI = 0;
         // let humE = 0;
@@ -78,6 +80,8 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                 // Ricevo dati richiesta
                 const { event, data } = JSON.parse(raw.toString());
 
+                console.log(`Evento --> ${event}: ${data}`);
+
                 // Controllo dati richiesta
                 if (!event || !data)
                     resHandler(
@@ -90,7 +94,10 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                     );
 
                 // Gestore evento stato
-                if (event === 'irrigation') await irrigation(ws, data);
+                if (event === 'irrigation') {
+                    console.log(`Irrigazione --> ${data}`);
+                    await irrigation(ws, data);
+                }
             } catch (error: unknown) {
                 // Errore in console
                 console.error(error);

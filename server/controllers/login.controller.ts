@@ -152,7 +152,12 @@ async function login(req: Request, res: Response): Promise<Response> {
                           }
                         : {
                               id: subject._id,
+                              prototypeModel: (subject as DeviceType)
+                                  .prototypeModel,
+                              name: (subject as DeviceType).name,
                               key: (subject as DeviceType).key,
+                              mode: (subject as DeviceType).mode,
+                              activatedAt: (subject as DeviceType).activatedAt,
                               updatedAt: subject.updatedAt,
                               createdAt: subject.createdAt,
                           },

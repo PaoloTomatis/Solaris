@@ -3,7 +3,7 @@ from machine import Pin, ADC, Timer, RTC, reset
 from time import sleep, time
 import dht, network, json, ubinascii, urandom, urequests, struct, ntptime, utime
 import usocket as sk
-from utils import loadData, syncTime, connWifi, login, connSocket, ws_send, ws_recv, irrigation, measure, sendMeasurement, printMeasurement
+from utils import loadData, syncTime, connWifi, login, connSocket, ws_send, ws_recv, irrigation, measure, sendMeasurement, printMeasurement, getSettings
 
 # Creazione timer
 tim = Timer(0)
@@ -21,7 +21,48 @@ wlan = connWifi(secrets["ssid"], secrets["psw"])
 syncTime(rtc)
 
 # Effettuazione login
-token = login(connInfo["api_url"], info["key"], info["psw"])
+loginData = login(connInfo["api_url"], info["key"], info["psw"])
+
+if loginData:
+    token = loginData["accessToken"]
+    newDevice = loginData["subject"]
+else:
+    reset()
+
+# Controllo nuovo dispositivo
+if newDevice != "":
+    try:
+        # Conversione dispositivo
+        parsedInfo = json.dumps({"id":info["id"], "key":info["key"], "psw":info["psw"], "prototypeModel":info["prototypeModel"], "mode": newDevice["mode"]})
+        
+        # Sovrascrittura file
+        with open("info.json", "w") as infoFile:
+            info = {"id":info["id"], "key":info["key"], "psw":info["psw"], "prototypeModel":info["prototypeModel"], "mode": newDevice["mode"]}
+            infoFile.write(parsedInfo)
+    except Exception as e:
+        print("Errore nella sovrascrittura delle informazioni!")
+        print(e, "\n")
+else:
+    print("Errore nella richiesta delle informazioni!")
+
+# Richiesta nuove impostazioni
+newSettings = getSettings(connInfo["api_url"], token)
+
+# Controllo nuove impostazioni
+if newSettings:
+    try:
+        # Conversione impostazioni
+        parsedSettings = json.dumps(newSettings)
+        
+        # Sovrascrittura file
+        with open("settings.json", "w") as settingsFile:
+            settings = newSettings
+            settingsFile.write(parsedSettings)
+    except Exception as e:
+        print(e, "\n")
+        print("Errore nella sovrascrittura delle impostazioni!")
+else:
+    print("Errore nella richiesta delle impostazioni!")
 
 # Connessione socket
 sock = connSocket(connInfo["api_url"], connInfo["sk_ip"], connInfo["sk_port"], token)
@@ -42,18 +83,8 @@ sensorLum = ADC(Pin(35))
 sensorLum.atten(ADC.ATTN_11DB)
 sensorLum.width(ADC.WIDTH_12BIT)
 
-# Loop principale
-def mainLoop () :
-    # Ricezione evento
-    event = ws_recv(sock, 0.1)
-    
-    # Controllo evento
-    if type(event) is dict and "event" in event:
-        # Gestore evento irrigazione
-        if event["event"] == "irrigation" and "duration" in event:
-            # Effettuazione irrigazione
-            irrigation(pump, duration=event["duration"])
-    
+# Loop misurazioni
+def measurementLoop():
     # Calcolo humI
     humI = measure(sensor, 50) / 4095 * 100
     lum = measure(sensorLum, 50) / 4095 * 100
@@ -97,9 +128,24 @@ def mainLoop () :
     
     # Attesa
     print("\n\n")
-    sleep(4)
+    
+# Timer
+tim.init(mode=Timer.PERIODIC, period=60000, callback=lambda t: measurementLoop())
+
+# Loop principale
+def mainLoop () :
+    # Ricezione evento
+    event = ws_recv(sock, 0.1)
+    
+    # Controllo evento
+    if type(event) is dict and "event" in event:
+        # Gestore evento irrigazione
+        if event["event"] == "irrigation" and "duration" in event:
+            # Effettuazione irrigazione
+            irrigation(pump, duration=event["duration"])
 
 # Esecuzione script
 if __name__ == "__main__":
    while True:
        mainLoop()
+       sleep(0.5)

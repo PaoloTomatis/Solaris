@@ -230,8 +230,12 @@ async function getData(req: Request, res: Response): Promise<Response> {
         // Costruzione query
         const query = DataModel.find(filter);
 
+        // Dichiarazione limite
+        const parsedLimit = parseInt(limit || '-1');
+
         // Controllo limite
-        if (limit && parseInt(limit) > 0) query.limit(parseInt(limit));
+        if (limit && !isNaN(parsedLimit) && parsedLimit > 0)
+            query.limit(parsedLimit);
 
         // Ricavo dati database
         let data = await query;
@@ -243,9 +247,11 @@ async function getData(req: Request, res: Response): Promise<Response> {
         const devicesId = userDevices.map((userDevice) => userDevice._id);
 
         // Controllo deviceId
-        data = data.filter((dato) =>
-            devicesId.some((id) => id === dato.deviceId)
-        );
+        data = data.filter((dato) => {
+            return devicesId.some(
+                (id) => id.toString() === dato.deviceId.toString()
+            );
+        });
 
         // Risposta finale
         return resHandler(

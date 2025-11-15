@@ -74,7 +74,7 @@ function Logs() {
                             tit={logTitle(log.type)}
                             desc={log.desc}
                             type={log.type}
-                            date={log.date}
+                            date={new Date(log.date)}
                             read={log.read}
                             key={log.id}
                         />
