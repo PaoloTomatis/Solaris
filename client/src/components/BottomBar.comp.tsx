@@ -50,7 +50,7 @@ function BottomBar() {
 
     return (
         // Contenitore barra
-        <div className="w-screen bg-[#000] flex align-center justify-center fixed bottom-0 left-0 rounded-tl-4xl rounded-tr-4xl z-40 py-3">
+        <div className="w-full bg-[#000] flex align-center justify-center fixed bottom-0 left-0 rounded-tl-4xl rounded-tr-4xl z-40 py-3">
             <div className="flex items-center justify-around bg-transparent max-w-[500px] w-[100%]">
                 {/* Icona utente */}
                 <UserIcon

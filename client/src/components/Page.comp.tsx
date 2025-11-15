@@ -11,7 +11,7 @@ function Page({
 }) {
     return (
         <div
-            className={`${className} w-screen min-h-screen flex flex-col items-center bg-primary-bg pb-[15vh]`}
+            className={`${className} w-full min-h-screen flex flex-col items-center bg-primary-bg pb-[15vh]`}
         >
             {children}
         </div>

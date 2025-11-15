@@ -23,14 +23,14 @@ function Info({
     if (url) {
         return (
             <Link
-                className={`flex items-center justify-center min-h-[5vh] w-[100%] pl-7 pr-7 ${
+                className={`flex items-center justify-center min-h-[5vh] w-full pl-7 pr-7 ${
                     type !== 'disabled'
-                        ? 'cursor-pointer hover:scale-105'
+                        ? 'cursor-pointer'
                         : 'cursor-not-allowed'
-                } transition-all`}
+                }`}
                 to={url}
             >
-                <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
+                <div className="hover:scale-105 flex items-center justify-between w-[90%] max-w-[400px] min-h-[8vh] transition-all">
                     <Icon
                         className={`fill-current w-[30px] aspect-square ${
                             type == 'error'
@@ -87,14 +87,12 @@ function Info({
 
     return (
         <div
-            className={`flex items-center justify-center min-h-[5vh] w-[100%] pl-7 pr-7 ${
-                type !== 'disabled'
-                    ? 'cursor-pointer hover:scale-105'
-                    : 'cursor-not-allowed'
-            } transition-all`}
+            className={`flex items-center justify-center min-h-[5vh] w-full pl-7 pr-7 ${
+                type !== 'disabled' ? 'cursor-pointer' : 'cursor-not-allowed'
+            }`}
             onClick={onClick}
         >
-            <div className="flex items-center justify-between w-[100%] max-w-[400px] min-h-[8vh]">
+            <div className="hover:scale-105 flex items-center justify-between w-[90%] max-w-[400px] min-h-[8vh] transition-all">
                 <Icon
                     className={`fill-current w-[30px] aspect-square ${
                         type == 'error'
