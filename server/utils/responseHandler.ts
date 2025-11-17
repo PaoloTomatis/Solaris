@@ -35,10 +35,7 @@ function resHandler<T>(
             .status(status)
             .json({ success, message, data, status });
     } else {
-        return emitToRoom(
-            res as string,
-            JSON.stringify({ success, message, data, status })
-        );
+        return emitToRoom(res as string, { success, message, data, status });
     }
 }
 

@@ -67,7 +67,7 @@ function Logs() {
             {/* Barra superiore */}
             <TopBar url={`/dashboard/${deviceId}`}>Log</TopBar>
             {/* Contenitore log */}
-            <div className="flex flex-col items-center justify-center gap-5 w-full">
+            <div className="flex flex-col-reverse items-center justify-center gap-5 w-full">
                 {logs && logs.length > 0 ? (
                     logs.map((log) => (
                         <LogComp

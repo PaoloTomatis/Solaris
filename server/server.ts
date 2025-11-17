@@ -43,40 +43,12 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
     // Middleware autenticazione (socket)
     await jwtMiddlewareWS(ws, req);
 
-    // Controllo utente o dispositivo
-    if (ws.user) {
-        // Inserimento stanza privata
-        joinRoom(ws, `USER-${ws.user.id}`);
-
-        console.log(`Accesso Utente --> ${ws.user.id}`);
-
-        //! Dati evento esempio
-        // let humI = 0;
-        // let humE = 0;
-        // let temp = 0;
-        // let lum = 0;
-
-        //! Invio evento esempio
-        // setInterval(() => {
-        //     ws.send(
-        //         JSON.stringify({
-        //             event: 'data',
-        //             humI,
-        //             humE,
-        //             temp,
-        //             lum,
-        //         })
-        //     );
-        //     humI += 1;
-        //     humE += 2;
-        //     temp += 3;
-        //     lum += 4;
-        // }, 5000);
-
-        // Gestione eventi
-        ws.on('message', async (raw) => {
-            // Gestione errori
-            try {
+    // Gestione messaggi
+    ws.on('message', async (raw) => {
+        // Gestione errori
+        try {
+            // Controllo utente o dispositivo
+            if (ws.user) {
                 // Ricevo dati richiesta
                 const { event, data } = JSON.parse(raw.toString());
 
@@ -85,7 +57,7 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                 // Controllo dati richiesta
                 if (!event || !data)
                     resHandler(
-                        `DEVICE-${ws.device?.id}`,
+                        `USER-${ws.user?.id}`,
                         400,
                         null,
                         'Evento o dati mancanti o invalidi!',
@@ -95,44 +67,9 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
 
                 // Gestore evento stato
                 if (event === 'irrigation') {
-                    console.log(`Irrigazione --> ${data}`);
                     await irrigation(ws, data);
                 }
-            } catch (error: unknown) {
-                // Errore in console
-                console.error(error);
-                const errorMsg =
-                    error instanceof Error
-                        ? error?.message || 'Errore interno del server!'
-                        : 'Errore sconosciuto!';
-                // Risposta finale
-                resHandler(
-                    `DEVICE-${ws.device?.id}`,
-                    500,
-                    null,
-                    errorMsg,
-                    false,
-                    'ws'
-                );
-            }
-        });
-    } else if (ws.device) {
-        // Inserimento stanza privata
-        joinRoom(ws, `DEVICE-${ws.device.id}`);
-
-        //! Invio evento esempio
-        // ws.send(
-        //     JSON.stringify({
-        //         event: 'irrigation',
-        //         duration: 10,
-        //         completed: true,
-        //     })
-        // );
-
-        // Gestione eventi
-        ws.on('message', (raw) => {
-            // Gestione errori
-            try {
+            } else if (ws.device) {
                 // Ricevo dati richiesta
                 const { event, data } = JSON.parse(raw.toString());
 
@@ -149,32 +86,46 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
 
                 // Gestore evento stato
                 if (event === 'status') status(ws, data);
-            } catch (error: unknown) {
-                // Errore in console
-                console.error(error);
-                const errorMsg =
-                    error instanceof Error
-                        ? error?.message || 'Errore interno del server!'
-                        : 'Errore sconosciuto!';
-                // Risposta finale
-                resHandler(
-                    `DEVICE-${ws.device?.id}`,
-                    500,
-                    null,
-                    errorMsg,
-                    false,
-                    'ws'
-                );
             }
-        });
-    }
+        } catch (error: unknown) {
+            // Errore in console
+            console.error(error);
+            const errorMsg =
+                error instanceof Error
+                    ? error?.message || 'Errore interno del server!'
+                    : 'Errore sconosciuto!';
+            // Risposta finale
+            resHandler(`USER-${ws.user?.id}`, 500, null, errorMsg, false, 'ws');
+        }
+    });
 
     // Evento disconnessione
     ws.on('close', (code, reason) => {
         leaveRoom(ws);
         // Debug disconnessione
-        // console.log('Connessione chiusa', code, reason.toString());
+        console.log('Connessione chiusa', code, reason.toString());
     });
+
+    // Gestione errori
+    try {
+        // Middleware autenticazione
+        await jwtMiddlewareWS(ws, req);
+
+        // Controllo utente o dispositivo
+        if (ws.user) {
+            // Inserimento stanza privata
+            joinRoom(ws, `USER-${ws.user.id}`);
+
+            console.log('Accesso Utente -->', ws.user.id);
+        } else if (ws.device) {
+            // Inserimento stanza privata
+            joinRoom(ws, `DEVICE-${ws.device.id}`);
+
+            console.log('Accesso Device -->', ws.device.id);
+        }
+    } catch (err) {
+        ws.close(1008, 'Autenticazione Fallita');
+    }
 });
 
 // Middleware cors

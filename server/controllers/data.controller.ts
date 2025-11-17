@@ -552,8 +552,13 @@ async function postData(req: Request, res: Response): Promise<Response> {
             createdAt: dato.createdAt,
         };
 
+        console.log(returnData);
+
         // Invio dati stanza
-        emitToRoom(`USER-${device.userId}`, { event: 'data', returnData });
+        emitToRoom(`USER-${device.userId}`, {
+            event: 'data',
+            data: returnData,
+        });
 
         // Risposta finale
         return resHandler(

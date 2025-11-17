@@ -92,6 +92,13 @@ async function irrigation(
         completed,
     });
 
+    ws.send(
+        JSON.stringify({
+            event: 'success',
+            message: 'Irrigazione inviata correttamente!',
+        })
+    );
+
     console.log(`Emissione --> ${deviceId} | Durata: ${parsedDuration}`);
 }
 

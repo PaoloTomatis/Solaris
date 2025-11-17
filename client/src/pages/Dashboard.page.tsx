@@ -58,6 +58,8 @@ function Dashboard() {
     const [error, setError] = useState('');
     // Stato caricamento
     const [loading, setLoading] = useState(true);
+    // Stato condizione
+    const [status, setStatus] = useState<Date | null>(null);
 
     // Dichiarazione lista modelli
     const models = { vega: '#ffd60a', helios: '#00d4d8' };
@@ -70,12 +72,7 @@ function Dashboard() {
             try {
                 // Controllo token
                 if (accessToken) {
-                    await getData(
-                        setLogs,
-                        accessToken,
-                        'data',
-                        'limit=3&type=log_info'
-                    );
+                    await getData(setLogs, accessToken, 'data', 'limit=3');
                     await getData(
                         setDevice,
                         accessToken,
@@ -84,39 +81,6 @@ function Dashboard() {
                         true
                     );
                 }
-
-                // Apertura WebSocket
-                const socket = new WebSocket(
-                    `${
-                        import.meta.env.VITE_WS_URL
-                    }?token=${accessToken}&authType=user`
-                );
-
-                // Controllo messaggi
-                socket.addEventListener('message', (event) => {
-                    // Dichiarazione dati evento
-                    const eventData = JSON.parse(event.data);
-
-                    // Controllo tipo evento
-                    if (eventData.event == 'data') {
-                        // Impostazione dati
-                        setRealTimeData({
-                            humE: eventData.data.humE,
-                            humI: eventData.data.humI,
-                            temp: eventData.data.temp,
-                            lum: eventData.data.lum,
-                            date: new Date(),
-                        });
-                    }
-                });
-
-                // Controllo errori
-                socket.addEventListener('error', () => {
-                    setError('Errore comunicazione o connessione a websocket!');
-                });
-
-                // Chiusura connesione
-                return () => socket.close();
             } catch (error: any) {
                 setError(error.message);
             } finally {
@@ -124,7 +88,44 @@ function Dashboard() {
             }
         };
 
+        // Apertura WebSocket
+        const socket = new WebSocket(
+            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`
+        );
+
+        // Controllo messaggi
+        socket.onmessage = (event) => {
+            // Dichiarazione dati evento
+            const eventData = JSON.parse(event.data);
+
+            // Controllo tipo evento
+            if (eventData.event == 'data') {
+                // Impostazione dati
+                setRealTimeData({
+                    humE: eventData.data.humE,
+                    humI: Math.round(eventData.data.humI),
+                    temp: eventData.data.temp,
+                    lum: Math.round(eventData.data.lum),
+                    date: new Date(),
+                });
+            }
+
+            // Controllo tipo evento
+            if (eventData.event == 'status') {
+                // Impostazione dati
+                setStatus(new Date(eventData.lastSeen));
+            }
+        };
+
+        // Controllo errori
+        socket.onerror = () => {
+            setError('Errore comunicazione o connessione a websocket!');
+        };
+
         loadData();
+
+        // Chiusura connesione
+        return () => socket.close();
     }, []);
 
     // Controllo dispositivo
@@ -153,14 +154,14 @@ function Dashboard() {
         // Pagina
         <Page className="gap-[25px] pt-[15vh]">
             {/* Contenitore barra superiore */}
-            <div className="fixed top-0 left-0 w-full h-[14vh] backdrop-blur-[3px] z-40 flex items-center justify-between px-[5%]">
+            <div className="fixed top-0 left-0 w-full h-[14vh] backdrop-blur-[3px] z-40 flex items-center justify-center px-[5%]">
                 {/* Freccia indietro */}
                 <ArrowIcon
                     onClick={() => navigator('/devices')}
-                    className="cursor-pointer w-[20px] rotate-180 fill-current text-primary-text z-[41] mr-auto"
+                    className="cursor-pointer w-[20px] rotate-180 fill-current text-primary-text z-[41]"
                 />
                 {/* Contenitore testi */}
-                <div className="top-[20px] mx-auto gap-7 flex items-center justify-between w-full max-w-[400px]">
+                <div className="top-[20px] gap-7 flex items-center justify-between w-full max-w-[400px] px-[30px]">
                     {/* Icona */}
                     <div className="bg-primary-text rounded-full flex flex-col items-center justify-center w-[50px] h-[50px] aspect-square">
                         <LogoIcon
@@ -185,22 +186,10 @@ function Dashboard() {
                             } fill-current w-[20px]`}
                         />
                         <p className="text-primary-text text-xsmall max-w-[100px] text-center">
-                            {`${
-                                realTimeData?.date
-                                    ? realTimeData.date.getDate()
-                                    : '-'
-                            }/${
-                                realTimeData?.date
-                                    ? realTimeData?.date.getMonth()
-                                    : '-'
-                            }/${
-                                realTimeData?.date
-                                    ? realTimeData?.date.getFullYear()
-                                    : '-'
-                            } ${
-                                realTimeData?.date
-                                    ? realTimeData?.date.toLocaleTimeString()
-                                    : ''
+                            {`${status ? status.getDate() : '-'}/${
+                                status ? status.getMonth() : '-'
+                            }/${status ? status.getFullYear() : '-'} ${
+                                status ? status.toLocaleTimeString() : ''
                             }`}
                         </p>
                     </div>
@@ -260,14 +249,14 @@ function Dashboard() {
                     <LogIcon className="fill-current text-primary w-[25px] aspect-square" />
                 </div>
                 {/* Contenitore log */}
-                <div className="flex flex-col items-center justify-center gap-5 w-full">
+                <div className="flex flex-col-reverse items-center justify-center gap-5 w-full">
                     {logs && logs.length > 0 ? (
                         logs.map((log) => (
                             <Log
                                 tit={logTitle(log.type)}
                                 desc={log.desc}
                                 type={log.type}
-                                date={log.date}
+                                date={new Date(log.date)}
                                 read={log.read}
                                 key={log.id}
                             />

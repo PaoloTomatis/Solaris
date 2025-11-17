@@ -1,6 +1,6 @@
 // Importazione moduli
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/Auth.context';
 import { useNotifications } from '../context/Notifications.context';
 import BottomBar from '../components/BottomBar.comp';
@@ -26,6 +26,8 @@ function Controls() {
     const [loading, setLoading] = useState(false);
     // Stato tempo irrigazione
     const [irrigationTime, setIrrigationTime] = useState(120);
+    // Riferimento socket
+    const socketRef = useRef<WebSocket | null>(null);
 
     // Controllo errore
     useEffect(() => {
@@ -33,6 +35,47 @@ function Controls() {
             notify('ERRORE!', error, 'error');
         }
     }, [error]);
+
+    // Caricamento componente
+    useEffect(() => {
+        // Apertura connessione
+        socketRef.current = new WebSocket(
+            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`
+        );
+
+        // Controllo errori
+        socketRef.current.onerror = () => {
+            setLoading(false);
+            setError('Errore comunicazione o connessione a websocket!');
+        };
+
+        socketRef.current.onmessage = (msg) => {
+            if (msg.data?.event == 'success') {
+                // Invio notifica
+                notify(
+                    'INVIO COMANDO',
+                    'Comando di irrigazione inviato correttamente!',
+                    'success'
+                );
+                // Impostazione tempo irrigazione e caricamento
+                setLoading(false);
+                setIrrigationTime(120);
+            } else if (msg.data?.event == 'error') {
+                // Impostazione errore
+                setError(msg.data?.message);
+                // Impostazione tempo irrigazione e caricamento
+                setLoading(false);
+                setIrrigationTime(120);
+            }
+        };
+
+        // Controllo chiusura
+        socketRef.current.onclose = (ev) =>
+            console.log('CLOSE:', ev.code, ev.reason);
+
+        // Pulizia connessione
+        return () => socketRef.current?.close();
+    }, []);
 
     // Controllo caricamento
     if (loading) {
@@ -57,20 +100,16 @@ function Controls() {
                 onClick={() => {
                     // Gestione errori
                     try {
-                        // Impostazione caricamento
-                        setLoading(true);
+                        // Controllo stato connessione
+                        if (
+                            socketRef.current &&
+                            socketRef.current.readyState === WebSocket.OPEN
+                        ) {
+                            // Impostazione caricamento
+                            setLoading(true);
 
-                        // Apertura WebSocket
-                        const socket = new WebSocket(
-                            `${
-                                import.meta.env.VITE_WS_URL
-                            }?token=${accessToken}&authType=user`
-                        );
-
-                        // Controllo apertura connessione
-                        socket.addEventListener('open', () => {
                             // Invio evento
-                            socket.send(
+                            socketRef.current.send(
                                 JSON.stringify({
                                     event: 'irrigation',
                                     data: {
@@ -80,29 +119,7 @@ function Controls() {
                                     },
                                 })
                             );
-                            setTimeout(() => {
-                                // Invio notifica
-                                notify(
-                                    'INVIO COMANDO',
-                                    'Comando di irrigazione inviato correttamente!',
-                                    'success'
-                                );
-                                // Chiusura connessione
-                                socket.close();
-
-                                // Impostazione tempo irrigazione e caricamento
-                                setLoading(false);
-                                setIrrigationTime(120);
-                            }, 100);
-                        });
-
-                        // Controllo errori
-                        socket.addEventListener('error', () => {
-                            setLoading(false);
-                            setError(
-                                'Errore comunicazione o connessione a websocket!'
-                            );
-                        });
+                        }
                     } catch (error: any) {
                         // Impostazione errore e caricamento
                         setError(error.message);
@@ -119,8 +136,13 @@ function Controls() {
                 <p className="text-primary-text text-xsmall max-w-[300px]">
                     L'irrigazione manuale servirà per poter calcolare le soglie
                     per la modalità automatica. Si consiglia di effettuare
-                    alcune prove con i controlli manuali per poi eliminare
-                    completamente i dati
+                    alcune prove con i controlli manuali per poi{' '}
+                    <Link
+                        className="font-semibold"
+                        to={`/dashboard/${deviceId}/settings`}
+                    >
+                        eliminare completamente i dati
+                    </Link>
                 </p>
             </div>
             {/* Barra inferiore */}
