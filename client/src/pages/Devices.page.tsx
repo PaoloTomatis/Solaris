@@ -14,10 +14,15 @@ import AddIcon from '../assets/icons/add.svg?react';
 
 // Pagina dispositivi
 function Devices() {
+    // Tipo dispositivo completo
+    interface ExtendedDeviceType extends DeviceType {
+        status: boolean;
+    }
+
     // Notificatore
     const notify = useNotifications();
     // Lista dispositivi
-    const [devices, setDevices] = useState<DeviceType[] | null>(null);
+    const [devices, setDevices] = useState<ExtendedDeviceType[] | null>(null);
     // Autenticazione
     const { accessToken } = useAuth();
     // Stato caricamento
@@ -41,7 +46,40 @@ function Devices() {
             }
         };
 
+        // Apertura WebSocket
+        const socket = new WebSocket(
+            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`
+        );
+
+        // Controllo messaggi
+        socket.onmessage = (event) => {
+            // Dichiarazione dati evento
+            const eventData = JSON.parse(event.data);
+
+            // Controllo tipo evento
+            if (eventData.event == 'status') {
+                // Impostazione dati
+                setDevices((prevDevices) =>
+                    prevDevices
+                        ? prevDevices.map((prevDevice) =>
+                              prevDevice.id == eventData?.deviceId
+                                  ? { ...prevDevice, status: true }
+                                  : prevDevice
+                          )
+                        : null
+                );
+            }
+        };
+
+        // Controllo errori
+        socket.onerror = () => {
+            setError('Errore comunicazione o connessione a websocket!');
+        };
+
         loadData();
+
+        // Chiusura connesione
+        return () => socket.close();
     }, []);
 
     // Controllo errore
@@ -59,12 +97,12 @@ function Devices() {
     return (
         <Page className="pt-7 gap-[25px] justify-start">
             {devices && devices.length > 0 ? (
-                devices.map((deviceItem: DeviceType) => {
+                devices.map((deviceItem: ExtendedDeviceType) => {
                     return (
                         <Device
                             name={deviceItem.name}
                             prototypeModel={deviceItem.prototypeModel}
-                            state={true}
+                            state={deviceItem.status}
                             id={deviceItem.id}
                             key={deviceItem.id}
                         />

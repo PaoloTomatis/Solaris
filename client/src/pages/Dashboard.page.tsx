@@ -182,16 +182,14 @@ function Dashboard() {
                     <div className="flex flex-col items-center justify-center">
                         <SignalIcon
                             className={`${
-                                true ? 'text-success' : 'text-error'
+                                status ? 'text-success' : 'text-error'
                             } fill-current w-[20px]`}
                         />
-                        <p className="text-primary-text text-xsmall max-w-[100px] text-center">
-                            {`${status ? status.getDate() : '-'}/${
-                                status ? status.getMonth() : '-'
-                            }/${status ? status.getFullYear() : '-'} ${
-                                status ? status.toLocaleTimeString() : ''
-                            }`}
-                        </p>
+                        {status && (
+                            <p className="text-primary-text text-xsmall max-w-[100px] text-center">
+                                {`${status.getDate()}/${status.getMonth()}/${status.getFullYear()} ${status.toLocaleTimeString()}`}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

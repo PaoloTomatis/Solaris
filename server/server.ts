@@ -52,8 +52,6 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                 // Ricevo dati richiesta
                 const { event, data } = JSON.parse(raw.toString());
 
-                console.log(`Evento --> ${event}: ${data}`);
-
                 // Controllo dati richiesta
                 if (!event || !data)
                     resHandler(
@@ -95,7 +93,24 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                     ? error?.message || 'Errore interno del server!'
                     : 'Errore sconosciuto!';
             // Risposta finale
-            resHandler(`USER-${ws.user?.id}`, 500, null, errorMsg, false, 'ws');
+            if (ws.user)
+                resHandler(
+                    `USER-${ws.user.id}`,
+                    500,
+                    null,
+                    errorMsg,
+                    false,
+                    'ws'
+                );
+            else if (ws.device)
+                resHandler(
+                    `USER-${ws.device.id}`,
+                    500,
+                    null,
+                    errorMsg,
+                    false,
+                    'ws'
+                );
         }
     });
 
@@ -103,7 +118,7 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
     ws.on('close', (code, reason) => {
         leaveRoom(ws);
         // Debug disconnessione
-        console.log('Connessione chiusa', code, reason.toString());
+        // console.log('Connessione chiusa', code, reason.toString());
     });
 
     // Gestione errori
@@ -115,13 +130,9 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
         if (ws.user) {
             // Inserimento stanza privata
             joinRoom(ws, `USER-${ws.user.id}`);
-
-            console.log('Accesso Utente -->', ws.user.id);
         } else if (ws.device) {
             // Inserimento stanza privata
             joinRoom(ws, `DEVICE-${ws.device.id}`);
-
-            console.log('Accesso Device -->', ws.device.id);
         }
     } catch (err) {
         ws.close(1008, 'Autenticazione Fallita');

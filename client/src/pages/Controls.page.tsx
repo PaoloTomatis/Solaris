@@ -70,8 +70,8 @@ function Controls() {
         };
 
         // Controllo chiusura
-        socketRef.current.onclose = (ev) =>
-            console.log('CLOSE:', ev.code, ev.reason);
+        //socketRef.current.onclose = (ev) =>
+        //    console.log('CLOSE:', ev.code, ev.reason);
 
         // Pulizia connessione
         return () => socketRef.current?.close();

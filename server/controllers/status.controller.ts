@@ -31,6 +31,7 @@ function status(ws: AuthenticatedWS, data: { lastSeen?: string | Date }) {
                 // Invio risposta finale
                 emitToRoom(`USER-${ws.device.userId}`, {
                     event: 'status',
+                    deviceId: ws.device.id,
                     lastSeen,
                 });
             }

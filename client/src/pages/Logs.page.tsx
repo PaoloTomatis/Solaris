@@ -37,7 +37,7 @@ function Logs() {
             try {
                 // Controllo token
                 if (accessToken) {
-                    await getData(setLogs, accessToken, 'data');
+                    await getData(setLogs, accessToken, 'data', 'limit=50');
                 }
             } catch (error: any) {
                 setError(error.message);

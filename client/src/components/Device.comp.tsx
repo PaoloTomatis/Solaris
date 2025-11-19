@@ -36,7 +36,7 @@ function Device({
     return (
         <Link
             to={`/dashboard/${id}`}
-            className="flex items-center justify-between rounded-3xl bg-secondary-bg border-[2px] border-primary-text py-1.5 px-2.5 w-[100%] max-w-[400px] min-h-[12vh]"
+            className="flex items-center justify-between rounded-3xl bg-secondary-bg border-[2px] border-primary-text py-1.5 px-2.5 w-[90%] max-w-[400px] min-h-[12vh]"
         >
             <div className="bg-primary-text rounded-full flex flex-col items-center justify-center w-[50px] h-[50px] aspect-square">
                 <LogoIcon

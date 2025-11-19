@@ -98,8 +98,6 @@ async function irrigation(
             message: 'Irrigazione inviata correttamente!',
         })
     );
-
-    console.log(`Emissione --> ${deviceId} | Durata: ${parsedDuration}`);
 }
 
 // Esportazione gestore
