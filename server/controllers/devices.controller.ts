@@ -1,16 +1,20 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
+import type { UserType } from '../types/types.js';
+import type { DataType } from '../models/Data.model.js';
 import resHandler from '../utils/responseHandler.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
-import type { UserType } from '../types/types.js';
 import bcrypt from 'bcrypt';
 import pswGenerator from '../utils/pswGenerator.js';
 import DataModel from '../models/Data.model.js';
 import { emitToRoom } from '../utils/wsRoomHandlers.js';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
-import irrigationAlgorithm from '../utils/irrigationAlgorithm.js';
+import {
+    algorithmHumX,
+    algorithmInterval,
+} from '../utils/irrigationAlgorithm.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
@@ -727,17 +731,73 @@ async function updateModeDevice(
                 "Dispositivo inesistente o non appartenente all'utente autenticato!",
                 false
             );
+
         // Dichiarazione dati
         let humMin: number = 0;
         let humMax: number = 0;
         let interval: number = 0;
 
+        // Controllo modalità
         if (mode == 'auto') {
-            ({ humMin, humMax, interval } = await irrigationAlgorithm(
-                DataModel,
-                resHandler,
-                res
-            ));
+            // Ricavo dati database
+            const data: DataType[] = await DataModel.find({
+                deviceId: device._id,
+                type: 'log_irrigation_config',
+            });
+
+            // Calcolo algoritmo
+            const humMinResult = await algorithmHumX(data, 0);
+            const humMaxResult = await algorithmHumX(data, 1);
+            const intervalResult = await algorithmInterval(data);
+
+            // Controllo errore algoritmo humMin
+            if (
+                typeof humMinResult == 'object' &&
+                humMinResult !== null &&
+                'error' in humMinResult
+            ) {
+                return resHandler(
+                    res,
+                    humMinResult.error.status,
+                    null,
+                    humMinResult.error.message,
+                    false
+                );
+            }
+
+            // Controllo errore algoritmo humMax
+            if (
+                typeof humMaxResult == 'object' &&
+                humMaxResult !== null &&
+                'error' in humMaxResult
+            ) {
+                return resHandler(
+                    res,
+                    humMaxResult.error.status,
+                    null,
+                    humMaxResult.error.message,
+                    false
+                );
+            }
+
+            // Controllo errore algoritmo interval
+            if (
+                typeof intervalResult == 'object' &&
+                intervalResult !== null &&
+                'error' in intervalResult
+            ) {
+                return resHandler(
+                    res,
+                    intervalResult.error.status,
+                    null,
+                    intervalResult.error.message,
+                    false
+                );
+            }
+
+            humMin = humMinResult;
+            humMax = humMaxResult;
+            interval = intervalResult;
         }
 
         // Aggiornamento dispositivo database

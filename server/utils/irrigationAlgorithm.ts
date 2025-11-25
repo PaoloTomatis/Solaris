@@ -1,207 +1,135 @@
-// Funzione calcolo humMin, humMax e interval
-async function irrigationAlgorithm(DataModel: any, resHandler: any, res: any) {
-    // Calcolo humMin
+// Importazione moduli
+import type { DataType } from '../models/Data.model.js';
 
-    // Ricavo dati database
-    const dataDB = await DataModel.find({ type: 'irrigation_config' });
+// Funzione calcolo umidità
+async function algorithmHumX(
+    raw: DataType[],
+    dataIndex: 0 | 1
+): Promise<number | { error: { status: number; message: string } }> {
+    // Filtrazione dati
+    const dataDB = raw.filter(
+        (data) => Array.isArray(data.humI) && data.humI.length == 2
+    ) as { humI: [number, number]; interval: any }[];
 
     // Controllo dati
     if (!dataDB || dataDB?.length < 10)
-        return resHandler(
-            res,
-            404,
-            null,
-            'I dati delle irrigazioni sono mancanti o minori di 10!',
-            false
-        );
+        return {
+            error: {
+                status: 404,
+                message:
+                    'I dati delle irrigazioni sono mancanti o minori di 10!',
+            },
+        };
 
-    // Sort dei dati per humI1
-    const sortedData1 = dataDB
-        .sort((a: any, b: any) => {
-            return Array.isArray(a.humI) && Array.isArray(b.humI)
-                ? a.humI[0] - b.humI[0]
-                : 0;
+    // Dichiarazione set dati
+    let dataSet: number[] | { data: number; weight: number }[] = dataDB
+        .map((data) => {
+            return data.humI[dataIndex];
         })
-        .map((data: any) => (Array.isArray(data.humI) ? data.humI[0] : null));
+        .sort((a, b) => a - b);
 
-    // Dichiarazione lista dati per humI1
-    const data1: ({ humI: number; peso: number } | undefined)[] = [];
+    // Dichiarazione centro
+    const posC = (dataSet.length - 1) / 2;
 
-    // Dichiarazione posizione centrale per humI1
-    const posC1: number | [number, number] =
-        sortedData1.length % 2 == 0
-            ? [sortedData1.length / 2 + 0.5, sortedData1.length / 2 - 0.5]
-            : sortedData1.length / 2;
-
-    // Dichiarazione media
-    let media1 = 0;
-
-    sortedData1.forEach((data: any): any => {
-        // Dichiarazione peso
-        let peso: number;
-
-        // Controllo dato
-        if (data) {
-            // Controllo posC1
-            if (Array.isArray(posC1)) {
-                // Calcolo pesi
-                const pesoM1 =
-                    sortedData1.length / 2 +
-                    Math.abs(posC1[1] - sortedData1.indexOf(data));
-                const pesoM2 =
-                    sortedData1.length / 2 +
-                    Math.abs(posC1[0] - sortedData1.indexOf(data));
-
-                // Assegnazione peso
-                peso = pesoM1 < pesoM2 ? pesoM1 : pesoM2;
-            } else if (!isNaN(posC1)) {
-                // Assegnazione peso
-                peso =
-                    sortedData1.length / 2 +
-                    0.5 +
-                    Math.abs(posC1 - sortedData1.indexOf(data));
-            } else {
-                return resHandler(
-                    res,
-                    500,
-                    null,
-                    "Errore nel calcolo dei pesi per l'algoritmo di humMax e humMin!",
-                    false
-                );
-            }
-
-            data1.push({
-                humI: data,
-                peso,
-            });
-        }
+    // Calcolo pesi
+    dataSet = dataSet.map((data, index) => {
+        return { data, weight: posC - Math.abs(posC - index) + 1 };
     });
 
-    // Calcolo media
-    data1.forEach((data) => {
-        // Somma alla media
-        media1 += data ? data.humI * data.peso : 0;
+    // Dichiarazione media e peso massimo
+    let media = 0;
+    let weightMax = 0;
+
+    // Calcolo media e peso massimo
+    dataSet.forEach((data) => {
+        media += data.data * data.weight;
+        weightMax += data.weight;
     });
+    media = media / weightMax;
 
-    // Calcolo humMin
-    const humMin =
-        sortedData1.length % 2 == 0
-            ? media1 / ((sortedData1.length / 2) * (sortedData1.length / 2 + 1))
-            : (media1 / (data1.length / 2)) ** 2;
-
-    // Calcolo HumMax
-
-    // Sort dei dati per humI2
-    const sortedData2 = dataDB
-        .sort((a: any, b: any) => {
-            return Array.isArray(a.humI) && Array.isArray(b.humI)
-                ? a.humI[1] - b.humI[1]
-                : 0;
-        })
-        .map((data: any) => (Array.isArray(data.humI) ? data.humI[1] : null));
-
-    // Dichiarazione lista dati per humI2
-    const data2: ({ humI: number; peso: number } | undefined)[] = [];
-
-    // Dichiarazione posizione centrale per humI2
-    const posC2: number | [number, number] =
-        sortedData2.length % 2 == 0
-            ? [sortedData2.length / 2 + 0.5, sortedData2.length / 2 - 0.5]
-            : sortedData2.length / 2;
-
-    // Dichiarazione media
-    let media2 = 0;
-
-    sortedData2.forEach((data: any): any => {
-        // Dichiarazione peso
-        let peso: number;
-
-        // Controllo dato
-        if (data) {
-            // Controllo posC2
-            if (Array.isArray(posC2)) {
-                // Calcolo pesi
-                const pesoM1 =
-                    sortedData2.length / 2 +
-                    Math.abs(posC2[1] - sortedData2.indexOf(data));
-                const pesoM2 =
-                    sortedData2.length / 2 +
-                    Math.abs(posC2[0] - sortedData2.indexOf(data));
-
-                // Assegnazione peso
-                peso = pesoM1 < pesoM2 ? pesoM1 : pesoM2;
-            } else if (!isNaN(posC2)) {
-                // Assegnazione peso
-                peso =
-                    sortedData2.length / 2 +
-                    0.5 +
-                    Math.abs(posC2 - sortedData2.indexOf(data));
-            } else {
-                return resHandler(
-                    res,
-                    500,
-                    null,
-                    "Errore nel calcolo dei pesi per l'algoritmo di humMax e humMin!",
-                    false
-                );
-            }
-
-            data2.push({
-                humI: data,
-                peso,
-            });
-        }
-    });
-
-    // Calcolo media
-    data2.forEach((data) => {
-        // Somma alla media
-        media2 += data ? data.humI * data.peso : 0;
-    });
-
-    // Calcolo humMax
-    const humMax =
-        sortedData2.length % 2 == 0
-            ? media2 / ((sortedData2.length / 2) * (sortedData2.length / 2 + 1))
-            : (media2 / (data2.length / 2)) ** 2;
-
-    // Calcolo Interval
-
-    // Dichiarazione medie
-    let mediaInt1 = 0;
-    let mediaInt2 = 0;
-    let valsInt1 = 0;
-    let valsInt2 = 0;
-
-    // Calcolo medie
-    dataDB.forEach((data: any) => {
-        // Controllo interval
-        if (data.interval) {
-            // Somma alla media 1
-            mediaInt1 += data.interval;
-            // Somma valori 1
-            valsInt1 += 1;
-        }
-        // Controllo humI
-        if (Array.isArray(data.humI)) {
-            // Somma alla media 2
-            mediaInt2 += data.humI[1] - data.humI[0];
-            // Somma valori 2
-            valsInt2 += 1;
-        }
-    });
-
-    mediaInt1 = mediaInt1 / valsInt1;
-    mediaInt2 = mediaInt2 / valsInt2;
-    const interval = mediaInt1 / mediaInt2;
-
-    // Ritorno valori
-    return {
-        humMin,
-        humMax,
-        interval,
-    };
+    return media;
 }
 
-// Esportazione funzione
-export default irrigationAlgorithm;
+// Funzione calcolo intervallo
+async function algorithmInterval(
+    raw: DataType[]
+): Promise<number | { error: { status: number; message: string } }> {
+    // Filtrazione dati
+    const dataDB = raw.filter(
+        (data) =>
+            Array.isArray(data.humI) &&
+            data.humI.length == 2 &&
+            !isNaN(data.interval) &&
+            typeof data.interval == 'number'
+    ) as { humI: [number, number]; interval: number }[];
+
+    // Controllo dati
+    if (!dataDB || dataDB?.length < 10)
+        return {
+            error: {
+                status: 404,
+                message:
+                    'I dati delle irrigazioni sono mancanti o minori di 10!',
+            },
+        };
+
+    // Dichiarazione media
+    let mediaInt = 0;
+    let mediaHum = 0;
+
+    // Calcolo medie
+    dataDB.forEach((data) => {
+        mediaInt += data.interval;
+        mediaHum += data.humI[1] - data.humI[0];
+    });
+
+    return mediaInt / dataDB.length / (mediaHum / dataDB.length);
+}
+
+/*
+-   K-INTERVAL (auto-correzione)
+    -   1. Calcolo errore relativo \
+           _**Formula** --> error = (humMax - humI2) / (humMax - humI1)_ \
+           _**es.** error = (70 - 67) / (70 - 30) = 0.075_
+    -   2. Calcolo nuovo coefficiente d'intervallo \
+           _**Formula** --> kIntervalNew = kInterval + (kInterval * error * 0.05)_ \
+           _**es.** kIntervalNew = 2.5258 + (2.5258 * 0.075 * 0.05) = 2.5353_
+    -   3. Calcolo coefficiente d'intervallo massimo e minimo \
+           _**Formula** --> kIntervalMax = kInterval * 110/100 | kIntervalMin = kInterval * 90/100_ \
+           _**es.** kIntervalMax = 2.5258 * 110/100 = 2.7784 | kIntervalMin = 2.5258 * 90/100 = 2.2732_
+    -   4. Controllo coefficiente d'intervallo nuovo \
+           _**Formula** --> kIntervalMin < kIntervalNew < kIntervalMax_ \
+           _**es.** 2.2732 < 2.5353 < 2.7784_
+*/
+
+// Funzione aggiornamento intervallo
+async function algorithmUpdateInterval(
+    humI1: number,
+    humI2: number,
+    humMax: number,
+    interval: number
+): Promise<number | { error: { status: number; message: string } }> {
+    // Calcolo errore relativo
+    const error = (humMax - humI2) / (humMax - humI1);
+
+    // Calcolo nuovo interval
+    const newInterval = interval + interval * error * 0.05;
+
+    // Calcolo interval massimo e minimo
+    const intervalMax = (interval * 110) / 100;
+    const intervalMin = (interval * 90) / 100;
+
+    // Controllo nuovo interval
+    if (newInterval > intervalMax || newInterval < intervalMin)
+        return {
+            error: {
+                status: 400,
+                message: "Il dato dell'irrigazione è errato!",
+            },
+        };
+
+    return newInterval;
+}
+
+// Esportazione funzioni
+export { algorithmInterval, algorithmHumX, algorithmUpdateInterval };

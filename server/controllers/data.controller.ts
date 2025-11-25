@@ -3,9 +3,11 @@ import type { Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import DataModel from '../models/Data.model.js';
 import DeviceModel from '../models/Device.model.js';
+import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import mongoose, { type FilterQuery } from 'mongoose';
 import type { DeviceType, UserType } from '../types/types.js';
 import { emitToRoom } from '../utils/wsRoomHandlers.js';
+import { algorithmUpdateInterval } from '../utils/irrigationAlgorithm.js';
 
 // Gestore get data
 async function getData(req: Request, res: Response): Promise<Response> {
@@ -228,7 +230,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
         }
 
         // Costruzione query
-        const query = DataModel.find(filter);
+        const query = DataModel.find(filter).sort({ date: -1 });
 
         // Dichiarazione limite
         const parsedLimit = parseInt(limit || '-1');
@@ -413,12 +415,9 @@ async function postData(req: Request, res: Response): Promise<Response> {
         }
 
         // Controllo humI
-        if (humI) {
+        if (humI !== undefined) {
             if (Array.isArray(humI)) {
-                if (
-                    humI.length !== 2 ||
-                    humI.some((n) => typeof n !== 'number' || isNaN(n))
-                )
+                if (humI.length !== 2 || humI.some((n) => isNaN(Number(n))))
                     return resHandler(
                         res,
                         400,
@@ -426,6 +425,12 @@ async function postData(req: Request, res: Response): Promise<Response> {
                         'Campo "humI" invalido nella richiesta!',
                         false
                     );
+
+                // Impostazione humI
+                data.humI = [Number(humI[0]), Number(humI[1])] as [
+                    number,
+                    number
+                ];
             } else {
                 if (typeof humI !== 'number' || isNaN(humI))
                     return resHandler(
@@ -435,10 +440,10 @@ async function postData(req: Request, res: Response): Promise<Response> {
                         'Campo "humI" invalido nella richiesta!',
                         false
                     );
-            }
 
-            // Impostazione humI
-            data.humI = Number(humI);
+                // Impostazione humI
+                data.humI = Number(humI);
+            }
         }
 
         // Controllo humE
@@ -533,6 +538,33 @@ async function postData(req: Request, res: Response): Promise<Response> {
         const dato = new DataModel(data);
         // Salvataggio dati
         await dato.save();
+
+        // Controllo tipo
+        if (data.type == 'log_irrigation_auto' && Array.isArray(data.humI)) {
+            // Ricavo impostazioni dispositivo database
+            const settings = await DeviceSettingsModel.findOne({
+                deviceId: device.id,
+            });
+            // Controllo impostazioni
+            if (!settings)
+                return resHandler(
+                    res,
+                    404,
+                    null,
+                    'Impostazioni dispositivo inesistenti!',
+                    false
+                );
+
+            // Calcolo nuovo intervallo
+            const newInterval = algorithmUpdateInterval(
+                data.humI[0],
+                data.humI[1],
+                settings.humMax,
+                settings.interval
+            );
+
+            // TODO - Controllo nuovo intervallo
+        }
 
         // Dato risposta
         const returnData = {

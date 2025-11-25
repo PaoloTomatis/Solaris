@@ -32,7 +32,7 @@ const DataSchema = new Schema(
         desc: { type: String },
         link: { type: String, default: process.env.CLIENT_URL || null },
         read: { type: Boolean, default: false },
-        date: { type: Date, default: () => new Date() },
+        date: { type: Date, default: Date.now },
         humI: { type: Schema.Types.Mixed },
         humE: { type: Number },
         temp: { type: Number },
@@ -59,6 +59,9 @@ const DataSchema = new Schema(
     },
     { timestamps: true }
 );
+
+// Ordinamento
+DataSchema.index({ date: -1 });
 
 // Esportazione modello
 export default model<DataType>('Data', DataSchema);
