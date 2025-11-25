@@ -28,6 +28,8 @@ function Log({
                 <WarningIcon className="fill-current text-error w-[90px] h-[90px] aspect-square" />
             ) : type == 'log_warning' ? (
                 <WarningIcon className="fill-current text-warning w-[90px] h-[90px] aspect-square" />
+            ) : type?.includes('irrigation') ? (
+                <InfoIcon className="fill-current text-success w-[90px] h-[90px] aspect-square" />
             ) : (
                 <InfoIcon className="fill-current text-info w-[90px] h-[90px] aspect-square" />
             )}

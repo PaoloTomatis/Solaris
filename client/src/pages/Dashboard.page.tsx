@@ -108,12 +108,12 @@ function Dashboard() {
                     lum: Math.round(eventData.data.lum),
                     date: new Date(),
                 });
-            }
-
-            // Controllo tipo evento
-            if (eventData.event == 'status') {
+            } else if (eventData.event == 'status') {
                 // Impostazione dati
                 setStatus(new Date(eventData.lastSeen));
+            } else if (eventData.event == 'error') {
+                // Impostazione errore
+                setError(eventData.message);
             }
         };
 
@@ -247,7 +247,7 @@ function Dashboard() {
                     <LogIcon className="fill-current text-primary w-[25px] aspect-square" />
                 </div>
                 {/* Contenitore log */}
-                <div className="flex flex-col-reverse items-center justify-center gap-5 w-full">
+                <div className="flex flex-col items-center justify-center gap-5 w-full">
                     {logs && logs.length > 0 ? (
                         logs.map((log) => (
                             <Log

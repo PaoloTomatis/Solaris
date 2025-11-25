@@ -49,8 +49,11 @@ function Controls() {
             setError('Errore comunicazione o connessione a websocket!');
         };
 
-        socketRef.current.onmessage = (msg) => {
-            if (msg.data?.event == 'success') {
+        socketRef.current.onmessage = (event) => {
+            // Dichiarazione dati evento
+            const eventData = JSON.parse(event.data);
+
+            if (eventData.event == 'success') {
                 // Invio notifica
                 notify(
                     'INVIO COMANDO',
@@ -60,18 +63,14 @@ function Controls() {
                 // Impostazione tempo irrigazione e caricamento
                 setLoading(false);
                 setIrrigationTime(120);
-            } else if (msg.data?.event == 'error') {
+            } else if (eventData.event == 'error') {
                 // Impostazione errore
-                setError(msg.data?.message);
+                setError(eventData.message);
                 // Impostazione tempo irrigazione e caricamento
                 setLoading(false);
                 setIrrigationTime(120);
             }
         };
-
-        // Controllo chiusura
-        //socketRef.current.onclose = (ev) =>
-        //    console.log('CLOSE:', ev.code, ev.reason);
 
         // Pulizia connessione
         return () => socketRef.current?.close();
