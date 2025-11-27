@@ -270,6 +270,9 @@ def irrigation(pump, name, mode, date, token, api, sensor, sensorLum, sensorOut,
     # Dichiarazione tempo irrigazione
     irrigationTime = 0
     
+    # Creazione timer
+    tim = Timer(1)
+    
     # Controllo dati
     if duration:
         # Definizione tempo irrigazione
@@ -284,59 +287,62 @@ def irrigation(pump, name, mode, date, token, api, sensor, sensorLum, sensorOut,
     if irrigationTime > 0:
         pump.on()
         print(f"Irrigazione per {irrigationTime}s")
-        # tim.init(mode=Timer.ONE_SHOT, period=round(((humMax - humI) * interval) * 1000), callback=lambda t: pump.off())
-        sleep(irrigationTime)
+        tim.init(mode=Timer.ONE_SHOT, period=irrigationTime * 1000, callback=lambda t: pumpOff())
+        # sleep(irrigationTime)
+        # pump.off()
+    
+    def pumpOff ():
         pump.off()
         
-    # Calcolo humI2
-    humI2 = measure(sensor, 50) / 4095 * 100
-    lum = measure(sensorLum, 50) / 4095 * 100
+        # Calcolo humI2
+        humI2 = measure(sensor, 50) / 4095 * 100
+        lum = measure(sensorLum, 50) / 4095 * 100
 
-    # Calcolo humE e temp
-    try:
-        sensorOut.measure()
-        temp = sensorOut.temperature()
-        humE = sensorOut.humidity()
-    except Exception as e:
-        print("Errore DHT:", e)
-        temp = None
-        humE = None
+        # Calcolo humE e temp
+        try:
+            sensorOut.measure()
+            temp = sensorOut.temperature()
+            humE = sensorOut.humidity()
+        except Exception as e:
+            print("Errore DHT:", e)
+            temp = None
+            humE = None
+            
+        # Dichiarazione tipo di log
+        logType = "log_info"
         
-    # Dichiarazione tipo di log
-    logType = "log_info"
-    
-    # Controllo modalità
-    if mode == "config":
-        logType = 'log_irrigation_config'
-    elif mode == "auto":
-        logType = 'log_irrigation_auto'
-    
-    # Dichiarazione dati
-    payload = {"desc": f"Irrigazione di {irrigationTime}s del dispositivo {name} effettuata correttamente", "date": date, "interval": irrigationTime, "type": logType, "humI": [humI1, humI2], "humE": humE, "lum": lum, "temp": temp}
-    headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
-    
-    # Dichiarazione dati risposta
-    resData = None
-    
-    # Gestione errori
-    try:
-        # Effettuazione richiesta
-        response = urequests.post(
-            f"{api}/api/data",
-            data=json.dumps(payload),
-            headers=headers
-        )
+        # Controllo modalità
+        if mode == "config":
+            logType = 'log_irrigation_config'
+        elif mode == "auto":
+            logType = 'log_irrigation_auto'
         
-        # Controllo richiesta
-        if response.text and response.status_code == 200:
-            resData = json.loads(response.text)
-        else:
-            raise Exception("Errore nella richiesta!")
+        # Dichiarazione dati
+        payload = {"desc": f"Irrigazione di {irrigationTime}s del dispositivo {name} effettuata correttamente", "date": date, "interval": irrigationTime, "type": logType, "humI": [humI1, humI2], "humE": humE, "lum": lum, "temp": temp}
+        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
         
-        # Chiusura richiesta
-        response.close()
-    except Exception as e:
-        print(e)
+        # Dichiarazione dati risposta
+        resData = None
+        
+        # Gestione errori
+        try:
+            # Effettuazione richiesta
+            response = urequests.post(
+                f"{api}/api/data",
+                data=json.dumps(payload),
+                headers=headers
+            )
+            
+            # Controllo richiesta
+            if response.text and response.status_code == 200:
+                resData = json.loads(response.text)
+            else:
+                raise Exception("Errore nella richiesta!")
+            
+            # Chiusura richiesta
+            response.close()
+        except Exception as e:
+            print(e)
 
 # Funzione calcolo misurazioni
 def measure(sensor, n=10):
@@ -386,7 +392,6 @@ def sendMeasurement (api, token, humI, humE, temp, lum, date, mode):
     except Exception as e:
         print(e)
         return None
-
 
 # Funziona scrittura misurazioni
 def printMeasurement (humI, humE, temp, lum):

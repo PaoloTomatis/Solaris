@@ -42,6 +42,9 @@ interface AuthContextType {
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
         setError: React.Dispatch<React.SetStateAction<string>>
     ) => Promise<void>;
+    refreshToken: (
+        setError: React.Dispatch<React.SetStateAction<string>>
+    ) => Promise<void>;
     loading: boolean;
 }
 
@@ -87,6 +90,20 @@ function AuthProvider({ children }: { children: ReactNode }) {
     // Tipo output registrazione
     interface Register extends APIResponse {
         data: {
+            user: {
+                id: string;
+                email: string;
+                role: 'user' | 'admin';
+                updatedAt: Date;
+                createdAt: Date;
+            };
+        };
+    }
+
+    // Tipo output registrazione
+    interface Refresh extends APIResponse {
+        data: {
+            accessToken: string;
             user: {
                 id: string;
                 email: string;
@@ -387,6 +404,45 @@ function AuthProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    // Funzione rinnovo token
+    async function refreshToken(
+        setError: React.Dispatch<React.SetStateAction<string>>
+    ) {
+        // Gestione errori
+        try {
+            // Richiesta logout
+            const res = await axios.get<Refresh | null>(
+                `${import.meta.env.VITE_API_URL}/auth/refresh`,
+                { headers: { Authorization: `Bearer ${accessToken}` } }
+            );
+
+            // Controllo dati
+            if (!res.data || !res.data?.success)
+                throw new Error(res.data?.message || 'Errore nella richiesta!');
+
+            // Impostazione utente e accessToken
+            setAccessToken(res.data.data.accessToken);
+            localStorage.removeItem('accessToken');
+
+            navigator('/auth/register');
+        } catch (error: unknown) {
+            let errorMsg = 'Errore sconosciuto!';
+
+            if (axios.isAxiosError(error)) {
+                // Caso 1: risposta dal server con campo "message"
+                errorMsg =
+                    (error as any).response?.data?.message ||
+                    (error as any).message;
+            } else if (error instanceof Error) {
+                // Caso 2: altri errori generici
+                errorMsg = error.message;
+            }
+
+            // Impostazione errore
+            setError(errorMsg);
+        }
+    }
+
     return (
         <AuthContext.Provider
             value={{
@@ -400,6 +456,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 logout,
                 deleteAccount,
                 loading,
+                refreshToken,
             }}
         >
             {children}

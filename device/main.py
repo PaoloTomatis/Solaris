@@ -83,6 +83,12 @@ sensorLum = ADC(Pin(35))
 sensorLum.atten(ADC.ATTN_11DB)
 sensorLum.width(ADC.WIDTH_12BIT)
 
+# Funzione riconnessione websocket
+def reconnect():
+    global token, sock
+    # Richesta connessione socket
+    sock = connSocket(connInfo["api_url"], connInfo["sk_ip"], connInfo["sk_port"], token)
+
 # Loop misurazioni
 def measurementLoop():
     # Dichiarazione tempo corrente
@@ -130,6 +136,9 @@ tim.init(mode=Timer.PERIODIC, period=60000, callback=lambda t: measurementLoop()
 
 # Loop principale
 def mainLoop () :
+    # Globalizzazione variabili
+    global info, settings, token, sock, connInfo
+    
     # Dichiarazione tempo corrente
     currentTime = f"{rtc.datetime()[0]:04d}-{rtc.datetime()[1]:02d}-{rtc.datetime()[2]:02d}T{rtc.datetime()[4]:02d}:{rtc.datetime()[5]:02d}:{rtc.datetime()[6]:02d}"
     
@@ -142,14 +151,75 @@ def mainLoop () :
         if event["event"] == "irrigation" and "duration" in event and token:            
             # Effettuazione irrigazione
             irrigation(pump, info["name"], info["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, duration=event["duration"])
-            
+        elif event["event"] == "mode" and "mode" in event:
+            try:
+                if event["mode"] == "auto" and "info" in event:
+                        print("Cambio modalità: AUTO")
+                        print(f'Nuove impostazioni:\thumMin --> {event["info"]["humMin"]}\thumMax --> {event["info"]["humMax"]}\tinterval --> {event["info"]["interval"]}')
+                        
+                        # Nuove impostazioni
+                        newSettings = {"deviceId": settings["deviceId"], "id": settings["id"], "interval": event["info"]["interval"], "humMax": event["info"]["humMax"], "createdAt": settings["createdAt"], "updatedAt": event["info"]["updatedAt"], "humMin": event["info"]["humMin"]}
+                        
+                        # Conversione impostazioni
+                        parsedSettings = json.dumps(newSettings)
+                        
+                        # Sovrascrittura file
+                        with open("settings.json", "w") as settingsFile:
+                            settings = newSettings
+                            settingsFile.write(parsedSettings)
+                            
+                        # Nuove informazioni
+                        newInfo = {"key": info["key"], "psw": info["psw"], "name": info["name"], "prototypeModel": info["prototypeModel"], "id": info["id"], "mode": event["mode"]}
+                            
+                        # Conversione info
+                        parsedInfo = json.dumps(newInfo)
+                        
+                        # Sovrascrittura file
+                        with open("info.json", "w") as infoFile:
+                            info = newInfo
+                            infoFile.write(parsedInfo)
+
+                elif event["mode"] == "config" or event["mode"] == "safe":
+                        print(f'Cambio modalità: {event["mode"].upper()}')
+                        
+                        # Nuove informazioni
+                        newInfo = {"key": info["key"], "psw": info["psw"], "name": info["name"], "prototypeModel": info["prototypeModel"], "id": info["id"], "mode": event["mode"]}
+                            
+                        # Conversione info
+                        parsedInfo = json.dumps(newInfo)
+                        
+                        # Sovrascrittura file
+                        with open("info.json", "w") as infoFile:
+                            info = newInfo
+                            infoFile.write(parsedInfo)
+                    
+                else:
+                    print("Richiesta modifica modalità invalida!")
+            except Exception as e:
+                print(e, "\n")
+                print("Errore nel cambio modalità!")
     # Controllo socket
     if sock:
-        # Invio stato
-        ws_send(sock, json.dumps({"event": "status", "data":{"lastSeen":currentTime}}))
+        try:
+            # Invio stato
+            ws_send(sock, json.dumps({"event": "status", "data":{"lastSeen":currentTime}}))
+        except Exception as e:
+            print("Timeout durante ws_send:", e)
+            print("Riconnessione WebSocket...")
+
+            try:
+                # Chiusura connessione
+                sock.close()
+            except:
+                pass
+
+            # Riconnessione
+            reconnect()
 
 # Esecuzione script
 if __name__ == "__main__":
    while True:
        mainLoop()
        sleep(0.5)
+
+
