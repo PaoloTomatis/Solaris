@@ -8,6 +8,7 @@ import mongoose, { type FilterQuery } from 'mongoose';
 import type { DeviceType, UserType } from '../types/types.js';
 import { emitToRoom } from '../utils/wsRoomHandlers.js';
 import { algorithmUpdateInterval } from '../utils/irrigationAlgorithm.js';
+import trimData from '../utils/trimData.js';
 
 // Gestore get data
 async function getData(req: Request, res: Response): Promise<Response> {
@@ -545,6 +546,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
             const settings = await DeviceSettingsModel.findOne({
                 deviceId: device.id,
             });
+
             // Controllo impostazioni
             if (!settings)
                 return resHandler(
@@ -563,8 +565,35 @@ async function postData(req: Request, res: Response): Promise<Response> {
                 settings.interval
             );
 
-            // TODO - Controllo nuovo intervallo
+            // Controllo nuovo intervallo
+            if (typeof newInterval !== 'object' && newInterval !== null) {
+                // Aggiornamento impostazioni dispositivo database
+                const settingsUpdate =
+                    await DeviceSettingsModel.findOneAndUpdate(
+                        { deviceId: data.deviceId },
+                        { interval: newInterval },
+                        { new: true }
+                    );
+
+                // Controllo modifiche
+                if (!settingsUpdate)
+                    return resHandler(
+                        res,
+                        500,
+                        null,
+                        'Modifica impostazioni non apportata correttamente!',
+                        false
+                    );
+            }
         }
+
+        // Eliminazione dati
+        await Promise.all([
+            trimData(device.id, 'data_auto', 20),
+            trimData(device.id, 'data_config', 20),
+            trimData(device.id, 'log_irrigation_auto'),
+            trimData(device.id, 'log_irrigation_config'),
+        ]);
 
         // Dato risposta
         const returnData = {

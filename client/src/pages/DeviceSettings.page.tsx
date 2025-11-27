@@ -358,24 +358,16 @@ function DeviceSettings() {
                                 if (accessToken) {
                                     // Gestione errori
                                     try {
-                                        // Modifica impostazioni dispositivo
-                                        await patchData(
-                                            accessToken,
-                                            'device_settings',
-                                            {
-                                                humMin: settings?.humMin || 0,
-                                                humMax: settings?.humMax || 0,
-                                                interval:
-                                                    settings?.interval || 0,
-                                            },
-                                            deviceId
-                                        );
                                         // Modifica dispositivo
                                         await patchData(
                                             accessToken,
                                             'update_mode',
                                             {
                                                 mode: settings?.mode || 'safe',
+                                                humMin: settings?.humMin || 0,
+                                                humMax: settings?.humMax || 0,
+                                                interval:
+                                                    settings?.interval || 0,
                                             },
                                             deviceId
                                         );

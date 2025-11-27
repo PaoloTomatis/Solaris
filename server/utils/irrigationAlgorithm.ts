@@ -2,13 +2,16 @@
 import type { DataType } from '../models/Data.model.js';
 
 // Funzione calcolo umidità
-async function algorithmHumX(
+function algorithmHumX(
     raw: DataType[],
     dataIndex: 0 | 1
-): Promise<number | { error: { status: number; message: string } }> {
+): number | { error: { status: number; message: string } } {
     // Filtrazione dati
     const dataDB = raw.filter(
-        (data) => Array.isArray(data.humI) && data.humI.length == 2
+        (data) =>
+            Array.isArray(data.humI) &&
+            data.humI.length == 2 &&
+            data.humI[1] > data.humI[0]
     ) as { humI: [number, number]; interval: any }[];
 
     // Controllo dati
@@ -51,9 +54,9 @@ async function algorithmHumX(
 }
 
 // Funzione calcolo intervallo
-async function algorithmInterval(
+function algorithmInterval(
     raw: DataType[]
-): Promise<number | { error: { status: number; message: string } }> {
+): number | { error: { status: number; message: string } } {
     // Filtrazione dati
     const dataDB = raw.filter(
         (data) =>
@@ -86,29 +89,13 @@ async function algorithmInterval(
     return mediaInt / dataDB.length / (mediaHum / dataDB.length);
 }
 
-/*
--   K-INTERVAL (auto-correzione)
-    -   1. Calcolo errore relativo \
-           _**Formula** --> error = (humMax - humI2) / (humMax - humI1)_ \
-           _**es.** error = (70 - 67) / (70 - 30) = 0.075_
-    -   2. Calcolo nuovo coefficiente d'intervallo \
-           _**Formula** --> kIntervalNew = kInterval + (kInterval * error * 0.05)_ \
-           _**es.** kIntervalNew = 2.5258 + (2.5258 * 0.075 * 0.05) = 2.5353_
-    -   3. Calcolo coefficiente d'intervallo massimo e minimo \
-           _**Formula** --> kIntervalMax = kInterval * 110/100 | kIntervalMin = kInterval * 90/100_ \
-           _**es.** kIntervalMax = 2.5258 * 110/100 = 2.7784 | kIntervalMin = 2.5258 * 90/100 = 2.2732_
-    -   4. Controllo coefficiente d'intervallo nuovo \
-           _**Formula** --> kIntervalMin < kIntervalNew < kIntervalMax_ \
-           _**es.** 2.2732 < 2.5353 < 2.7784_
-*/
-
 // Funzione aggiornamento intervallo
-async function algorithmUpdateInterval(
+function algorithmUpdateInterval(
     humI1: number,
     humI2: number,
     humMax: number,
     interval: number
-): Promise<number | { error: { status: number; message: string } }> {
+): number | { error: { status: number; message: string } } {
     // Calcolo errore relativo
     const error = (humMax - humI2) / (humMax - humI1);
 

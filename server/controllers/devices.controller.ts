@@ -696,7 +696,16 @@ async function updateModeDevice(
     try {
         // Ricavo dati richiesta
         const user: UserType | undefined = req.user;
-        const mode: string | undefined = req.body.mode;
+        const mode: string = req.body.mode;
+        let {
+            humMin,
+            humMax,
+            interval,
+        }: {
+            humMin?: string | number;
+            humMax?: string | number;
+            interval?: string | number;
+        } = req.body;
         const id: string | undefined = req.params.id;
 
         // Controllo utente
@@ -732,13 +741,13 @@ async function updateModeDevice(
                 false
             );
 
-        // Dichiarazione dati
-        let humMin: number = 0;
-        let humMax: number = 0;
-        let interval: number = 0;
-
         // Controllo modalità
-        if (mode == 'auto') {
+        if (
+            mode == 'auto' &&
+            Number(humMin) == 0 &&
+            Number(humMax) == 0 &&
+            Number(interval) == 0
+        ) {
             // Ricavo dati database
             const data: DataType[] = await DataModel.find({
                 deviceId: device._id,
@@ -746,9 +755,9 @@ async function updateModeDevice(
             });
 
             // Calcolo algoritmo
-            const humMinResult = await algorithmHumX(data, 0);
-            const humMaxResult = await algorithmHumX(data, 1);
-            const intervalResult = await algorithmInterval(data);
+            const humMinResult = algorithmHumX(data, 0);
+            const humMaxResult = algorithmHumX(data, 1);
+            const intervalResult = algorithmInterval(data);
 
             // Controllo errore algoritmo humMin
             if (
@@ -803,28 +812,37 @@ async function updateModeDevice(
         // Aggiornamento dispositivo database
         const deviceUpdate = await DeviceModel.findOneAndUpdate(
             { _id: id },
-            { mode, humMin, humMax, interval },
+            { mode },
+            { new: true }
+        );
+
+        // Aggiornamento impostazioni dispositivo database
+        const deviceSettingsUpdate = await DeviceSettingsModel.findOneAndUpdate(
+            { deviceId: id },
+            { humMin, humMax, interval },
             { new: true }
         );
 
         // Controllo modifiche
-        if (!deviceUpdate)
+        if (!deviceUpdate || !deviceSettingsUpdate)
             return resHandler(
                 res,
                 500,
                 null,
-                'Modifica non apportata correttamente!',
+                'Modifiche non apportate correttamente!',
                 false
             );
 
         // Invio eventi ws
         emitToRoom(`DEVICE-${device._id.toString()}`, {
-            event: 'activate',
-            activate: true,
-        });
-        emitToRoom(`DEVICE-${device._id.toString()}`, {
             event: 'mode',
-            mode: 'config',
+            mode,
+            info: {
+                humMin: Number(humMin),
+                humMax: Number(humMax),
+                interval: Number(interval),
+                updatedAt: deviceUpdate.updatedAt,
+            },
         });
 
         // Risposta finale
