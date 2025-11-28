@@ -10,11 +10,14 @@ async function trimData(deviceId: string, type: string, maxLength = 50) {
     if (count <= maxLength) return;
     const toDelete = count - maxLength;
 
-    // Eliminazione dati database
-    await DataModel.find({ deviceId, type })
+    // Ricavo dati database
+    const oldRecords = await DataModel.find({ deviceId, type })
         .sort({ createdAt: 1 })
         .limit(toDelete)
-        .deleteMany();
+        .select('_id');
+
+    // Eliminazione dati database
+    await DataModel.deleteMany({ _id: { $in: oldRecords.map((r) => r._id) } });
 }
 
 // Esportazione funzione

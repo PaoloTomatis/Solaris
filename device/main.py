@@ -109,24 +109,28 @@ def measurementLoop():
         humE = None
     print(currentTime)
     
+    def sendData():
+        # Gestore errore invio dati
+        try:     
+            # Controllo dati
+            if humI is not None and humE is not None and temp is not None and lum is not None and token and info["mode"] != "dev":
+                # Invio misurazioni
+                sendMeasurement(connInfo["api_url"], token, humI, humE, temp, lum, currentTime, info["mode"])
+        except Exception as e:
+            print("Errore nell'invio dei dati!")
+            print(e)
+    
     # Controllo modalità config
     if info["mode"] == "config":
         printMeasurement(humI, humE, temp, lum)
+        sendData()
     # Controllo modalità auto
     elif info["mode"] == "auto" and token:
         printMeasurement(humI, humE, temp, lum)
         if settings["humMin"] > humI:
             irrigation(pump, info["name"], info["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, humI, settings["humMax"], settings["interval"])
-    
-    # Gestore errore invio dati
-    try:                    
-        # Controllo dati
-        if humI is not None and humE is not None and temp is not None and lum is not None and token and info["mode"] != "dev":
-            # Invio misurazioni
-            sendMeasurement(connInfo["api_url"], token, humI, humE, temp, lum, currentTime, info["mode"])
-    except Exception as e:
-        print("Errore nell'invio dei dati!")
-        print(e)
+        else:
+            sendData()
     
     # Attesa
     print("\n\n")

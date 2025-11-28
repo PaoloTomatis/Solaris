@@ -294,9 +294,13 @@ def irrigation(pump, name, mode, date, token, api, sensor, sensorLum, sensorOut,
     def pumpOff ():
         pump.off()
         
-        # Calcolo humI2
-        humI2 = measure(sensor, 50) / 4095 * 100
-        lum = measure(sensorLum, 50) / 4095 * 100
+        # Dichiarazione humI2
+        humI2 = 0
+        
+        while humI2 <= 0:
+            # Calcolo humI2
+            humI2 = measure(sensor, 50) / 4095 * 100
+            lum = measure(sensorLum, 50) / 4095 * 100
 
         # Calcolo humE e temp
         try:
@@ -308,21 +312,31 @@ def irrigation(pump, name, mode, date, token, api, sensor, sensorLum, sensorOut,
             temp = None
             humE = None
             
-        # Dichiarazione tipo di log
-        logType = "log_info"
-        
-        # Controllo modalità
-        if mode == "config":
-            logType = 'log_irrigation_config'
-        elif mode == "auto":
-            logType = 'log_irrigation_auto'
-        
-        # Dichiarazione dati
-        payload = {"desc": f"Irrigazione di {irrigationTime}s del dispositivo {name} effettuata correttamente", "date": date, "interval": irrigationTime, "type": logType, "humI": [humI1, humI2], "humE": humE, "lum": lum, "temp": temp}
-        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
+        # Dichiarazione payload e headers
+        payload = {}
+        headers = {}
         
         # Dichiarazione dati risposta
         resData = None
+            
+        # Controllo variazione umidità
+        if humI2 < (humMax * 80/100):
+            # Dichiarazione dati
+            payload = {"desc": f"Irrigazione di {irrigationTime}s del dispositivo {name} non effettuata correttamente, controllare tanica d'acqua!", "date": date, "interval": irrigationTime, "type": "log_error", "humI": [humI1, humI2], "humE": humE, "lum": lum, "temp": temp}
+            headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
+        else:
+            # Dichiarazione tipo di log
+            logType = "log_info"
+            
+            # Controllo modalità
+            if mode == "config":
+                logType = 'log_irrigation_config'
+            elif mode == "auto":
+                logType = 'log_irrigation_auto'
+            
+            # Dichiarazione dati
+            payload = {"desc": f"Irrigazione di {irrigationTime}s del dispositivo {name} effettuata correttamente", "date": date, "interval": irrigationTime, "type": logType, "humI": [humI1, humI2], "humE": humE, "lum": lum, "temp": temp}
+            headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
         
         # Gestione errori
         try:

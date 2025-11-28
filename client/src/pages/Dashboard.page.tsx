@@ -72,12 +72,24 @@ function Dashboard() {
             try {
                 // Controllo token
                 if (accessToken) {
-                    await getData(setLogs, accessToken, 'data', 'limit=3');
+                    await getData(
+                        setLogs,
+                        accessToken,
+                        'data',
+                        `limit=3&deviceId=${deviceId}`
+                    );
                     await getData(
                         setDevice,
                         accessToken,
                         'devices',
                         `id=${deviceId}`,
+                        true
+                    );
+                    await getData(
+                        setRealTimeData,
+                        accessToken,
+                        'data',
+                        `type=data_auto&deviceId=${deviceId}&limit=1`,
                         true
                     );
                 }
@@ -211,7 +223,7 @@ function Dashboard() {
                         />
                         <Data
                             img={LuminosityIcon}
-                            dato={`${realTimeData?.lum || '-'}%`}
+                            dato={`${realTimeData?.lum.toFixed(0) || '-'}%`}
                         />
                     </div>
                     <div className="flex items-center justify-center gap-7 w-full">
@@ -227,7 +239,9 @@ function Dashboard() {
                         <div className="flex items-center justify-center relative">
                             <Data
                                 img={HumidityIcon}
-                                dato={`${realTimeData?.humI || '-'}%`}
+                                dato={`${
+                                    realTimeData?.humI.toFixed(0) || '-'
+                                }%`}
                             />
                             <p className="text-white font-bold text-xlarge absolute top-[40%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
                                 I

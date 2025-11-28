@@ -584,11 +584,26 @@ async function postData(req: Request, res: Response): Promise<Response> {
                         'Modifica impostazioni non apportata correttamente!',
                         false
                     );
+
+                // Invio eventi ws
+                emitToRoom(`DEVICE-${device.id}`, {
+                    event: 'mode',
+                    mode: 'auto',
+                    info: {
+                        humMin: settingsUpdate.humMin,
+                        humMax: settingsUpdate.humMax,
+                        interval: settingsUpdate.interval,
+                        updatedAt: settingsUpdate.updatedAt,
+                    },
+                });
             }
         }
 
         // Eliminazione dati
         await Promise.all([
+            trimData(device.id, 'log_info', 10),
+            trimData(device.id, 'log_error', 10),
+            trimData(device.id, 'log_warning', 10),
             trimData(device.id, 'data_auto', 20),
             trimData(device.id, 'data_config', 20),
             trimData(device.id, 'log_irrigation_auto'),
@@ -613,11 +628,11 @@ async function postData(req: Request, res: Response): Promise<Response> {
             createdAt: dato.createdAt,
         };
 
-        // Invio dati stanza
-        emitToRoom(`USER-${device.userId}`, {
-            event: 'data',
-            data: returnData,
-        });
+        if (data.type == 'data_auto' || data.type == 'data_config')
+            emitToRoom(`USER-${device.userId}`, {
+                event: 'data',
+                data: returnData,
+            });
 
         // Risposta finale
         return resHandler(
