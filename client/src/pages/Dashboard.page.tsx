@@ -1,6 +1,6 @@
 // Importazione moduli
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Page from '../components/Page.comp';
 import BottomBar from '../components/BottomBar.comp';
 import Data from '../components/Data.comp';
@@ -54,6 +54,8 @@ function Dashboard() {
         lum: number;
         date: Date;
     } | null>(null);
+    // Stato timeout
+    const statusTimeout = useRef<NodeJS.Timeout | null>(null);
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
@@ -92,6 +94,10 @@ function Dashboard() {
                         `type=data_auto&deviceId=${deviceId}&limit=1`,
                         true
                     );
+
+                    setRealTimeData((prev) =>
+                        prev ? { ...prev, date: new Date(prev.date) } : null
+                    );
                 }
             } catch (error: any) {
                 setError(error.message);
@@ -123,6 +129,16 @@ function Dashboard() {
             } else if (eventData.event == 'status') {
                 // Impostazione dati
                 setStatus(new Date(eventData.lastSeen));
+
+                // Reset timeout precedente
+                if (statusTimeout.current) {
+                    clearTimeout(statusTimeout.current);
+                }
+
+                // Impostazione timeout
+                statusTimeout.current = setTimeout(() => {
+                    setStatus(null);
+                }, 30000);
             } else if (eventData.event == 'error') {
                 // Impostazione errore
                 setError(eventData.message);
@@ -137,7 +153,12 @@ function Dashboard() {
         loadData();
 
         // Chiusura connesione
-        return () => socket.close();
+        return () => {
+            socket.close();
+            if (statusTimeout.current) {
+                clearTimeout(statusTimeout.current);
+            }
+        };
     }, []);
 
     // Controllo dispositivo
@@ -199,7 +220,9 @@ function Dashboard() {
                         />
                         {status && (
                             <p className="text-primary-text text-xsmall max-w-[100px] text-center">
-                                {`${status.getDate()}/${status.getMonth()}/${status.getFullYear()} ${status.toLocaleTimeString()}`}
+                                {`${status.toLocaleDateString() || '-'} ${
+                                    status.toLocaleTimeString() || '-'
+                                }`}
                             </p>
                         )}
                     </div>
@@ -207,12 +230,18 @@ function Dashboard() {
             </div>
             {/* Contenitore principale dati live */}
             <div className="flex flex-col items-center justify-center gap-5 w-full">
-                {/* Titolo */}
-                <div className="flex items-center justify-center gap-1.5 w-full">
-                    <h2 className="text-primary-text text-medium font-bold">
-                        Ultimi Dati
-                    </h2>
-                    <SignalIcon className="fill-current text-primary w-[25px] aspect-square" />
+                <div className="flex flex-col">
+                    {/* Titolo */}
+                    <div className="flex items-center justify-center gap-1.5 w-full">
+                        <h2 className="text-primary-text text-medium font-bold">
+                            Ultimi Dati
+                        </h2>
+                        <SignalIcon className="fill-current text-primary w-[25px] aspect-square" />
+                    </div>
+                    {/* Data */}
+                    <p className="text-primary-text text-xsmall">{`${
+                        realTimeData?.date?.toLocaleDateString() || '-'
+                    } - ${realTimeData?.date?.toLocaleTimeString() || '-'}`}</p>
                 </div>
                 {/* Contenitore dati */}
                 <div className="flex flex-col items-center justify-center gap-5 w-full">

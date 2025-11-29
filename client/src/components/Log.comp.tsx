@@ -44,10 +44,8 @@ function Log({
             </div>
             {/* Contenitore data */}
             <p className="text-xsmall text-primary-text absolute bottom-0.5 right-3">
-                {`${date ? date.getDate() : '-'}/${
-                    date ? date.getMonth() : '-'
-                }/${date ? date.getFullYear() : '-'} - ${
-                    date ? date.toLocaleTimeString() : '-'
+                {`${date?.toLocaleDateString() || '-'} - ${
+                    date?.toLocaleTimeString() || '-'
                 }`}
             </p>
         </div>
