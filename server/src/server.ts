@@ -1,5 +1,6 @@
 // Importazione moduli
 import express, { type Request, type Response } from 'express';
+import helmet from 'helmet';
 import type { AuthenticatedWS } from './types/types.js';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
@@ -139,10 +140,22 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
     }
 });
 
+// Middleware debug
+// app.use((req, res, next) => {
+//     console.log({
+//         ip: req.ip,
+//         ips: req.ips,
+//         xff: req.headers['x-forwarded-for'],
+//     });
+//     next();
+// });
+// Middleware helmet
+app.use(helmet());
 // Middleware cors
 app.use(
     cors({
         origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
         credentials: true,
     })
 );

@@ -6,16 +6,23 @@ import {
     patchData,
     deleteData,
 } from '../controllers/data.controller.js';
+import rateLimit from 'express-rate-limit';
+import {
+    getRequestsLimiter,
+    postRequestsLimiter,
+    patchRequestsLimiter,
+    deleteRequestsLimiter,
+} from '../utils/rateLimit.js';
 
 // Creazione router
 const dataRouter = Router();
 
 // Rotte get, post, patch, delete data
 dataRouter
-    .get('/', getData)
-    .post('/', postData)
-    .patch('/:id', patchData)
-    .delete('/', deleteData);
+    .get('/', rateLimit(getRequestsLimiter), getData)
+    .post('/', rateLimit(postRequestsLimiter), postData)
+    .patch('/:id', rateLimit(patchRequestsLimiter), patchData)
+    .delete('/', rateLimit(deleteRequestsLimiter), deleteData);
 
 // Esportazione router
 export default dataRouter;
