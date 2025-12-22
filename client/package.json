@@ -1,14 +1,36 @@
 {
     "name": "client",
     "private": true,
-    "version": "0.0.0",
+    "version": "1.0.0",
+    "description": "client of Solaris HUB",
+    "homepage": "https://github.com/PaoloTomatis/Solaris#readme",
+    "bugs": {
+        "url": "https://github.com/PaoloTomatis/Solaris/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/PaoloTomatis/Solaris.git"
+    },
+    "license": "ISC",
+    "author": "Paolo Tomatis",
     "type": "module",
+    "directories": {
+        "doc": "docs"
+    },
     "scripts": {
         "dev": "vite --host",
         "build": "tsc -b && vite build",
         "lint": "eslint .",
         "preview": "vite preview"
     },
+    "keywords": [
+        "gardening",
+        "automation",
+        "dashboard",
+        "web",
+        "app",
+        "plants"
+    ],
     "dependencies": {
         "@tailwindcss/vite": "^4.1.13",
         "axios": "^1.13.1",

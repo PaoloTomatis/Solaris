@@ -29,11 +29,9 @@ Per testare Solaris bisogna utilizzare questi comandi nel terminale (avendo già
 6. Installazione librerie --> `npm install`
 7. Variabili d'ambiente (bisogna aprirlo e modificare i dati in base ai propri) --> `cp .env.example .env`
 8. Aprire due terminali
-9. Entrare nella directory /client
+9. Entrare nella root directory
 10. Eseguire il client --> `npm run dev`
-11. Entrare nella directory /server
-12. Eseguire il server --> `npm run dev`
-13. Aprire il link --> `http://localhost:3000`
+11. Aprire il link che viene stampato nella console --> `http://xx.xx.xx.xx:3000`
 
 ### _Funzionalità_
 
@@ -197,11 +195,9 @@ _Colore_ --> _mod. Chiara_ | _mod. Scura_ (i pallini colorati non sono accurati)
 -   Sensore Umidità Suolo Resistivo
 -   Fotoresistenza
 -   Resistenze
--   Led
--   Buzzer
 -   Pompa
 -   Power Supply
--   Mosfet / Relè
+-   Mosfet
 -   Diodo
 -   Jumper Wires
 

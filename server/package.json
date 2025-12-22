@@ -1,14 +1,29 @@
 {
     "name": "server",
+    "private": true,
     "version": "1.0.0",
     "description": "server of Solaris HUB",
+    "homepage": "https://github.com/PaoloTomatis/Solaris#readme",
+    "bugs": {
+        "url": "https://github.com/PaoloTomatis/Solaris/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/PaoloTomatis/Solaris.git"
+    },
+    "license": "ISC",
+    "author": "Paolo Tomatis",
     "main": "server.ts",
     "type": "module",
+    "directories": {
+        "doc": "docs"
+    },
     "scripts": {
-        "dev": "nodemon --watch . --ext ts --ignore dist --exec \"node dist/server.js\"",
-        "build-dev": "nodemon --watch . --ext ts --ignore dist --exec \"npm run build && node dist/server.js\"",
+        "dev": "concurrently -n BUILD,SERVER -c red,cyan \"npm run build:watch\" \"npm run server:watch\"",
         "build": "tsc",
-        "start": "node dist/server.js"
+        "start": "node dist/server.js",
+        "build:watch": "tsc --watch",
+        "server:watch": "nodemon --watch src --ext ts --ignore dist --exec \"node dist/server.js\""
     },
     "keywords": [
         "gardening",
@@ -18,8 +33,6 @@
         "app",
         "plants"
     ],
-    "author": "Paolo Tomatis",
-    "license": "ISC",
     "dependencies": {
         "bcrypt": "^6.0.0",
         "cookie-parser": "^1.4.7",
@@ -45,6 +58,7 @@
         "@types/socket.io": "^3.0.1",
         "@types/uuid": "^10.0.0",
         "@types/ws": "^8.18.1",
+        "concurrently": "^9.2.1",
         "nodemon": "^3.1.10"
     }
 }
