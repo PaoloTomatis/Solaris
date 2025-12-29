@@ -206,7 +206,7 @@ def mainLoop () :
     if sock:
         try:
             # Invio stato
-            ws_send(sock, json.dumps({"event": "status", "data":{"lastSeen":currentTime}}))
+            ws_send(sock, json.dumps({"event": "v1/status", "data":{"lastSeen":currentTime}}))
         except Exception as e:
             print("Timeout durante ws_send:", e)
             print("Riconnessione WebSocket...")
