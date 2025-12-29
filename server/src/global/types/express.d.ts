@@ -1,4 +1,4 @@
-import type { UserType, DeviceType } from '../utils/type.utils';
+import type { UserType, DeviceType } from '../../global/utils/type.utils';
 
 declare global {
     namespace Express {

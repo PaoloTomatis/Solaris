@@ -1,7 +1,7 @@
 // Importazione moduli
-import type { AuthenticatedWS } from '../types/types.js';
-import resHandler from '../utils/responseHandler.js';
-import { emitToRoom } from '../utils/wsRoomHandlers.js';
+import type { AuthenticatedWS } from '../../global/types/types.js';
+import resHandler from '../../global/utils/responseHandler.js';
+import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
 // Gestore stato
 function status(ws: AuthenticatedWS, data: { lastSeen?: string | Date }) {

@@ -1,5 +1,5 @@
 // Importazione moduli
-import DataModel from '../models/Data.model.js';
+import DataModel from '../../v1/models/Data.model.js';
 
 // Funzione eliminazione dati
 async function trimData(deviceId: string, type: string, maxLength = 50) {

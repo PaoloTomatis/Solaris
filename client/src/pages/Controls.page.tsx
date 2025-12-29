@@ -110,7 +110,7 @@ function Controls() {
                             // Invio evento
                             socketRef.current.send(
                                 JSON.stringify({
-                                    event: 'irrigation',
+                                    event: 'v1/irrigation',
                                     data: {
                                         duration: irrigationTime,
                                         completed: true,

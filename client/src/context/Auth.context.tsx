@@ -203,7 +203,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             // Richiesta login
             const res = await axios.post<Login | undefined>(
-                `${import.meta.env.VITE_API_URL}/auth/login?authType=user`,
+                `${import.meta.env.VITE_AUTH_URL}/login?authType=user`,
                 { email, psw, type: 'user' }
             );
 
@@ -216,9 +216,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
             // Richiesta impostazioni
             const res2 = await axios.get<UserSettingsOutput | undefined>(
-                `${
-                    import.meta.env.VITE_API_URL
-                }/api/user_settings?authType=user`,
+                `${import.meta.env.VITE_API_URL}/user_settings?authType=user`,
                 {
                     headers: {
                         Authorization: `Bearer ${res.data.data.accessToken}`,
@@ -279,7 +277,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             // Richiesta registrazione
             const res = await axios.post<Register | null>(
-                `${import.meta.env.VITE_API_URL}/auth/register`,
+                `${import.meta.env.VITE_AUTH_URL}/register`,
                 {
                     email,
                     psw,
@@ -322,7 +320,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             // Richiesta logout
             const res = await axios.get<Register | null>(
-                `${import.meta.env.VITE_API_URL}/auth/logout`
+                `${import.meta.env.VITE_AUTH_URL}/logout`
             );
 
             // Controllo dati
@@ -368,7 +366,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             // Richiesta logout
             const res = await axios.delete<Register | null>(
-                `${import.meta.env.VITE_API_URL}/api/user?authType=user`,
+                `${import.meta.env.VITE_API_URL}/user?authType=user`,
                 { headers: { Authorization: `Bearer ${accessToken}` } }
             );
 
@@ -412,7 +410,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         try {
             // Richiesta logout
             const res = await axios.get<Refresh | null>(
-                `${import.meta.env.VITE_API_URL}/auth/refresh`,
+                `${import.meta.env.VITE_AUTH_URL}/refresh`,
                 { headers: { Authorization: `Bearer ${accessToken}` } }
             );
 

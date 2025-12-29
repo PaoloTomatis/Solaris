@@ -1,5 +1,5 @@
 // Importazione moduli
-import type { DataType } from '../models/Data.model.js';
+import type { DataType } from '../../v1/models/Data.model.js';
 
 // Funzione calcolo umidità
 function algorithmHumX(
