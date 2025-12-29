@@ -59,7 +59,7 @@ def getSettings(api, token):
     try:
         # Effettuazione richiesta
         response = urequests.get(
-            f"{api}/api/device_settings",
+            f"{api}/device_settings",
             headers=headers
         )
         
@@ -131,7 +131,7 @@ def login(api, key, psw):
     try:
         # Effettuazione richiesta
         response = urequests.post(
-            f"{api}/auth/login?authType=device",
+            f"{api}/login?authType=device",
             data=json.dumps(payload),
             headers=headers
         )
@@ -155,7 +155,7 @@ def login(api, key, psw):
         return None
     
 # Funzione connessione socket
-def connSocket(api, ip, port, token):
+def connSocket(ip, port, token):
     
     print("\nConnessione al backend in corso...")
     
@@ -315,9 +315,6 @@ def irrigation(pump, name, mode, date, token, api, sensor, sensorLum, sensorOut,
         # Dichiarazione payload e headers
         payload = {}
         headers = {}
-        
-        # Dichiarazione dati risposta
-        resData = None
             
         # Controllo variazione umidità
         if humI2 < (humMax * 80/100):
@@ -338,25 +335,27 @@ def irrigation(pump, name, mode, date, token, api, sensor, sensorLum, sensorOut,
             payload = {"desc": f"Irrigazione di {irrigationTime}s del dispositivo {name} effettuata correttamente", "date": date, "interval": irrigationTime, "type": logType, "humI": [humI1, humI2], "humE": humE, "lum": lum, "temp": temp}
             headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
         
-        # Gestione errori
-        try:
-            # Effettuazione richiesta
-            response = urequests.post(
-                f"{api}/api/data",
-                data=json.dumps(payload),
-                headers=headers
-            )
-            
-            # Controllo richiesta
-            if response.text and response.status_code == 200:
-                resData = json.loads(response.text)
-            else:
-                raise Exception("Errore nella richiesta!")
-            
-            # Chiusura richiesta
-            response.close()
-        except Exception as e:
-            print(e)
+            # Gestione errori
+            try:
+                # Effettuazione richiesta
+                response = urequests.post(
+                    f"{api}/data",
+                    data=json.dumps(payload),
+                    headers=headers
+                )
+                
+                # Controllo richiesta
+                if not response.text or response.status_code != 200:
+                    raise Exception("Errore nella richiesta!")
+                
+                # Chiusura richiesta
+                response.close()
+                
+                # Ritorno dati
+                return None
+            except Exception as e:
+                print(e)
+                return None
 
 # Funzione calcolo misurazioni
 def measure(sensor, n=10):
@@ -380,22 +379,17 @@ def sendMeasurement (api, token, humI, humE, temp, lum, date, mode):
     payload = {"desc": "Misurazione dati con sensori", "date": date, "humI": humI, "humE": humE, "temp":temp, "lum":lum, "type": logType}
     headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
     
-    # Dichiarazione dati risposta
-    resData = None
-    
     # Gestione errori
     try:
         # Effettuazione richiesta
         response = urequests.post(
-            f"{api}/api/data",
+            f"{api}/data",
             data=json.dumps(payload),
             headers=headers
         )
         
         # Controllo richiesta
-        if response.text and response.status_code == 200:
-            resData = json.loads(response.text)
-        else:
+        if not response.text or response.status_code != 200:
             raise Exception("Errore nella richiesta!")
         
         # Chiusura richiesta

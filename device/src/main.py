@@ -21,7 +21,7 @@ wlan = connWifi(secrets["ssid"], secrets["psw"])
 syncTime(rtc)
 
 # Effettuazione login
-loginData = login(connInfo["api_url"], info["key"], info["psw"])
+loginData = login(connInfo["auth_url"], info["key"], info["psw"])
 
 if loginData:
     token = loginData["accessToken"]
@@ -65,7 +65,7 @@ else:
     print("Errore nella richiesta delle impostazioni!")
 
 # Connessione socket
-sock = connSocket(connInfo["api_url"], connInfo["sk_ip"], connInfo["sk_port"], token)
+sock = connSocket(connInfo["sk_ip"], connInfo["sk_port"], token)
 
 # Dichiarazione pompa
 pump = Pin(26, Pin.OUT)
@@ -87,7 +87,7 @@ sensorLum.width(ADC.WIDTH_12BIT)
 def reconnect():
     global token, sock
     # Richesta connessione socket
-    sock = connSocket(connInfo["api_url"], connInfo["sk_ip"], connInfo["sk_port"], token)
+    sock = connSocket(connInfo["sk_ip"], connInfo["sk_port"], token)
 
 # Loop misurazioni
 def measurementLoop():
