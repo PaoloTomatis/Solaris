@@ -1,20 +1,20 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
-import type { UserType } from '../types/types.js';
+import type { UserType } from '../../global/types/types.js';
 import type { DataType } from '../models/Data.model.js';
-import resHandler from '../utils/responseHandler.js';
+import resHandler from '../../global/utils/responseHandler.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
 import bcrypt from 'bcrypt';
-import pswGenerator from '../utils/pswGenerator.js';
+import pswGenerator from '../../global/utils/pswGenerator.js';
 import DataModel from '../models/Data.model.js';
-import { emitToRoom } from '../utils/wsRoomHandlers.js';
+import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import {
     algorithmHumX,
     algorithmInterval,
-} from '../utils/irrigationAlgorithm.js';
+} from '../../global/utils/irrigationAlgorithm.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {

@@ -1,14 +1,14 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
-import resHandler from '../utils/responseHandler.js';
+import resHandler from '../../global/utils/responseHandler.js';
 import DataModel from '../models/Data.model.js';
 import DeviceModel from '../models/Device.model.js';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import mongoose, { type FilterQuery } from 'mongoose';
-import type { DeviceType, UserType } from '../types/types.js';
-import { emitToRoom } from '../utils/wsRoomHandlers.js';
-import { algorithmUpdateInterval } from '../utils/irrigationAlgorithm.js';
-import trimData from '../utils/trimData.js';
+import type { DeviceType, UserType } from '../../global/types/types.js';
+import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
+import { algorithmUpdateInterval } from '../../global/utils/irrigationAlgorithm.js';
+import trimData from '../../global/utils/trimData.js';
 
 // Gestore get data
 async function getData(req: Request, res: Response): Promise<Response> {

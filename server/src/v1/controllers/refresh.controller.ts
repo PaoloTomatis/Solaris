@@ -2,7 +2,7 @@
 import type { Request, Response } from 'express';
 import type { JwtPayload } from 'jsonwebtoken';
 import jwt from 'jsonwebtoken';
-import resHandler from '../utils/responseHandler.js';
+import resHandler from '../../global/utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
 
 // Interfaccia payload

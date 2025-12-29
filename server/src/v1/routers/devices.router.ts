@@ -14,7 +14,7 @@ import {
     postRequestsLimiter,
     patchRequestsLimiter,
     deleteRequestsLimiter,
-} from '../utils/rateLimit.js';
+} from '../../global/utils/rateLimit.js';
 
 // Creazione router
 const deviceRouter = Router();

@@ -1,23 +1,23 @@
 // Importazione moduli
 import express, { type Request, type Response } from 'express';
 import helmet from 'helmet';
-import type { AuthenticatedWS } from './types/types.js';
+import type { AuthenticatedWS } from './global/types/types.js';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import { configDotenv } from 'dotenv';
-import connectDB from './database/connection.database.js';
-import resHandler from './utils/responseHandler.js';
+import connectDB from './global/database/connection.database.js';
+import resHandler from './global/utils/responseHandler.js';
 import cookieParser from 'cookie-parser';
-import authRouter from './routers/auth.router.js';
-import apiRouter from './routers/api.router.js';
+import authRouterV1 from './v1/routers/auth.router.js';
+import apiRouterV1 from './v1/routers/api.router.js';
 import {
     jwtMiddlewareRest,
     jwtMiddlewareWS,
-} from './middleware/jwt_verify.middleware.js';
-import status from './controllers/status.controller.js';
-import irrigation from './controllers/irrigation.controller.js';
-import { joinRoom, leaveRoom } from './utils/wsRoomHandlers.js';
+} from './global/middleware/jwt_verify.middleware.js';
+import statusV1 from './v1/controllers/status.controller.js';
+import irrigationV1 from './v1/controllers/irrigation.controller.js';
+import { joinRoom, leaveRoom } from './global/utils/wsRoomHandlers.js';
 
 // Configurazione
 configDotenv();
@@ -65,8 +65,8 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                     );
 
                 // Gestore evento stato
-                if (event === 'irrigation') {
-                    await irrigation(ws, data);
+                if (event === 'v1/irrigation') {
+                    await irrigationV1(ws, data);
                 }
             } else if (ws.device) {
                 // Ricevo dati richiesta
@@ -84,7 +84,7 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                     );
 
                 // Gestore evento stato
-                if (event === 'status') status(ws, data);
+                if (event === 'v1/status') statusV1(ws, data);
             }
         } catch (error: unknown) {
             // Errore in console
@@ -178,10 +178,10 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // Rotta autenticazione
-app.use('/auth', authRouter);
+app.use('/v1/auth', authRouterV1);
 
 // Rotta api
-app.use('/api', jwtMiddlewareRest, apiRouter);
+app.use('/v1/api', jwtMiddlewareRest, apiRouterV1);
 
 // Rotta 404
 app.use((req: Request, res: Response) => {

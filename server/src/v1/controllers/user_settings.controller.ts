@@ -1,8 +1,8 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
-import resHandler from '../utils/responseHandler.js';
+import resHandler from '../../global/utils/responseHandler.js';
 import UserSettingsModel from '../models/UserSettings.model.js';
-import type { UserType } from '../types/types.js';
+import type { UserType } from '../../global/types/types.js';
 
 // Gestore get user settings
 async function getUserSettings(req: Request, res: Response): Promise<Response> {
