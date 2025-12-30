@@ -144,15 +144,17 @@
 -   `humIMax` — positivo, decimale, <100, <humIMax, non presente se mode è diverso da "auto"
 -   `kInterval` — positivo, decimale, non presente se mode è diverso da "auto"
 
-### UsersSessions
+### Sessions
 
 **Campi principali:**
 
 -   `id` — string PK — identificativo univoco
--   `userId` — string FK — collegamento a utente
+-   `userId` — string? FK — collegamento a utente
+-   `deviceId` — string? FK — collegamento a dispositivo
 -   `refreshToken` — string — token
 -   `ipAddress` — string — indirizzo ip
 -   `userAgent` — string — browser e sistema operativo
+-   `subject` — "user" | "device" — soggetto
 -   `status` — "active" | "expired" | "revoked" — stato
 -   `schemaVersion` — 1 | 2 | ... — versione schema
 -   `updatedAt` — date — data modifica elemento
