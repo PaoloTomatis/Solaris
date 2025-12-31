@@ -1,5 +1,5 @@
 // Importazione moduli
-import { rooms } from '../server.js';
+import { rooms } from '../../server.js';
 import type { AuthenticatedWS } from '../types/types.js';
 
 // Funzione gestione partecipazione stanza
