@@ -33,6 +33,9 @@ const MeasurementsSchema = new Schema(
     { timestamps: true }
 );
 
+// Definizione indici
+MeasurementsSchema.index({ createdAt: 1, updatedAt: 1, measuredAt: 1 });
+
 // Esportazione modello misurazioni
 export default model<MeasurementsType>('Measurements', MeasurementsSchema);
 // Esportazione tipo misurazioni

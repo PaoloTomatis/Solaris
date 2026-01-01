@@ -39,6 +39,9 @@ const IrrigationsSchema = new Schema(
     { timestamps: true }
 );
 
+// Definizione indici
+IrrigationsSchema.index({ createdAt: 1, updatedAt: 1, irrigatedAt: 1 });
+
 // Esportazione modello irrigazioni
 export default model<IrrigationsType>('Irrigations', IrrigationsSchema);
 // Esportazione tipo irrigazioni

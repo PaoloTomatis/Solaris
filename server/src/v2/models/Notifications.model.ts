@@ -33,6 +33,9 @@ const NotificationsSchema = new Schema(
     { timestamps: true }
 );
 
+// Definizione indici
+NotificationsSchema.index({ createdAt: 1, updatedAt: 1 });
+
 // Esportazione modello notifiche
 export default model<NotificationsType>('Notifications', NotificationsSchema);
 // Esportazione tipo notifiche
