@@ -32,7 +32,7 @@ const QuerySchema = z
             )
             .optional(),
     })
-    .refine((val) => !(val.from && val.to) || val.from > val.to, {
+    .refine((val) => !val.from || !val.to || val.from <= val.to, {
         error: 'Invalid from/to range',
         path: ['from', 'to'],
     });
