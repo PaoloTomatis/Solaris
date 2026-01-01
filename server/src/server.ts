@@ -7,7 +7,7 @@ import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import { configDotenv } from 'dotenv';
 import connectDB from './global/database/connection.database.js';
-import resHandler from './global/utils/responseHandler.js';
+import resHandler from './v1/utils/responseHandler.js';
 import cookieParser from 'cookie-parser';
 import authRouterV1 from './v1/routers/auth.router.js';
 import apiRouterV1 from './v1/routers/api.router.js';

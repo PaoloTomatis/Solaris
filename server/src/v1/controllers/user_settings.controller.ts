@@ -1,6 +1,6 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
-import resHandler from '../../global/utils/responseHandler.js';
+import resHandler from '../../v1/utils/responseHandler.js';
 import UserSettingsModel from '../models/UserSettings.model.js';
 import type { UserType } from '../../global/types/types.js';
 

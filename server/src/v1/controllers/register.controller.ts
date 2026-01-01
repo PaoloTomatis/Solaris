@@ -1,7 +1,7 @@
 // Importazione moduli
 import bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
-import resHandler from '../../global/utils/responseHandler.js';
+import resHandler from '../../v1/utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
 import UserSettingsModel from '../models/UserSettings.model.js';
 

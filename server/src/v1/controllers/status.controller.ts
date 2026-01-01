@@ -1,6 +1,6 @@
 // Importazione moduli
 import type { AuthenticatedWS } from '../../global/types/types.js';
-import resHandler from '../../global/utils/responseHandler.js';
+import resHandler from '../../v1/utils/responseHandler.js';
 import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
 // Gestore stato

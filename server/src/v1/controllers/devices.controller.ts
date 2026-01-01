@@ -2,7 +2,7 @@
 import type { Request, Response } from 'express';
 import type { UserType } from '../../global/types/types.js';
 import type { DataType } from '../models/Data.model.js';
-import resHandler from '../../global/utils/responseHandler.js';
+import resHandler from '../../v1/utils/responseHandler.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';

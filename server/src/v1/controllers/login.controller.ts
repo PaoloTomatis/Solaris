@@ -2,7 +2,7 @@
 import bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import resHandler from '../../global/utils/responseHandler.js';
+import resHandler from '../../v1/utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
 import type { UserType } from '../models/User.model.js';
 import type { DeviceType } from '../models/Device.model.js';

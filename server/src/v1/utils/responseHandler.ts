@@ -1,6 +1,6 @@
 // Importazione moduli
 import type { Response } from 'express';
-import { emitToRoom } from './wsRoomHandlers.js';
+import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
 // Firme funzione
 function resHandler<T>(
