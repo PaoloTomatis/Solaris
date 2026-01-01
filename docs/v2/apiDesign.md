@@ -44,7 +44,7 @@
         -   Note --> l'utente deve essere un amministratore
         -   Autenticazione --> ✔️
 
-    -   **_PATCH_ /devices/:id**:
+    -   **_PATCH_ /devices/:deviceId**:
 
         -   Autore --> user
         -   Params --> `/:id`
@@ -53,7 +53,7 @@
         -   Note --> il dispositivo deve essere posseduto dall'utente
         -   Autenticazione --> ✔️
 
-    -   **_DELETE_ /devices/:id**:
+    -   **_DELETE_ /devices/:deviceId**:
         -   Autore --> user (admin)
         -   Params --> `/:id`
         -   Output --> `null`
@@ -65,7 +65,7 @@
     -   **_GET_ /irrigations**:
 
         -   Autore --> user
-        -   Query --> `?deviceId & from & to & limit & cursor & sort & order & type`
+        -   Query --> `?deviceId & from & to & limit & sort & type`
         -   Output --> `{ id, deviceId, temp, lum, humE, humIBefore, humIAfter, interval, type, irrigatedAt, updatedAt, createdAt }`
         -   Note --> il dispositivo deve essere posseduto dall'utente
         -   Autenticazione --> ✔️
@@ -91,7 +91,7 @@
     -   **_GET_ /measurements**:
 
         -   Autore --> user
-        -   Query --> `?deviceId & from & to & limit & cursor & sort & order`
+        -   Query --> `?deviceId & from & to & limit & sort`
         -   Output --> `{ id, deviceId, temp, lum, humE, humI, measuredAt, updatedAt, createdAt }`
         -   Note --> il dispositivo deve essere posseduto dall'utente
         -   Autenticazione --> ✔️
@@ -109,7 +109,7 @@
     -   **_GET_ /notifications**:
 
         -   Autore --> user
-        -   Query --> `? from & to & limit & cursor & sort & order & type`
+        -   Query --> `? from & to & limit & sort & type`
         -   Output --> `{ id, irrigationId, measurementId, title, description, type, updatedAt, createdAt }`
         -   Note --> la notifica deve essere posseduta dall'utente, il dispositivo da cui provengono l'irrigazione o la misurazione deve essere posseduto dall'utente
         -   Autenticazione --> ✔️
@@ -124,14 +124,14 @@
 
 -   **UserSettings**
 
-    -   **_GET_ /user-settings**:
+    -   **_GET_ /me/user-settings**:
 
         -   Autore --> user
         -   Output --> `{ id, userId, styleMode, units, updatedAt, createdAt }`
         -   Note --> le impostazioni restituite sono quelle dell'utente autenticato
         -   Autenticazione --> ✔️
 
-    -   **_PATCH_ /user-settings**:
+    -   **_PATCH_ /me/user-settings**:
 
         -   Autore --> user
         -   Body --> `{ styleMode?, units? }`
@@ -141,39 +141,47 @@
 
 -   **DeviceSettings**
 
-    -   **_GET_ /device-settings**:
-
-        -   Autore --> device / user
-        -   Query --> `?deviceId`
-        -   Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, updatedAt, createdAt }`
-        -   Note --> le impostazioni restituite sono quelle del dispositivo autenticato, se è un utente ad effettuare la richiesta allora deve possedere il dispositivo e deve specificare il deviceId, altrimenti non deve essere presente
-        -   Autenticazione --> ✔️
-
-    -   **_PATCH_ /device-settings**:
+    -   **_GET_ /device-settings/:deviceId**:
 
         -   Autore --> user
-        -   Body --> `{ deviceId?, mode?, humIMax?, humIMin?, kInterval? }`
+        -   Params --> `:deviceId`
         -   Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, updatedAt, createdAt }`
-        -   Note --> le impostazioni modificate sono quelle del dispositivo autenticato, se è un utente ad effettuare la richiesta allora deve possedere il dispositivo e deve specificare il deviceId
+        -   Note --> l'utente deve possedere il dispositivo
+        -   Autenticazione --> ✔️
+
+    -   **_GET_ /me/device-settings**:
+
+        -   Autore --> device
+        -   Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, updatedAt, createdAt }`
+        -   Note --> le impostazioni restituite sono quelle del dispositivo autenticato
+        -   Autenticazione --> ✔️
+
+    -   **_PATCH_ /device-settings/:deviceId**:
+
+        -   Autore --> user
+        -   Params --> `:deviceId`
+        -   Body --> `{ mode?, humIMax?, humIMin?, kInterval? }`
+        -   Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, updatedAt, createdAt }`
+        -   Note --> l'utente deve possedere il dispositivo
         -   Autenticazione --> ✔️
 
 -   **Authentication**
 
-    -   **_POST /user-login_**:
+    -   **_POST_ /user-login**:
 
         -   Autore --> user
         -   Body --> `{ email, psw }`
         -   Output --> `{ accessToken, { id, email, updatedAt, createdAt } }`
         -   Autenticazione --> ❌
 
-    -   **_POST /device-login_**:
+    -   **_POST_ /device-login**:
 
         -   Autore --> device
         -   Body --> `{ key, psw }`
         -   Output --> `{ accessToken, { id, userId, name, prototypeModel, activatedAt, updatedAt, createdAt } }`
         -   Autenticazione --> ❌
 
-    -   **_POST /register_**:
+    -   **_POST_ /register**:
 
         -   Autore --> user
         -   Body --> `{ email, psw }`
@@ -181,7 +189,7 @@
         -   Note --> l'email non è valida se è già utilizzata
         -   Autenticazione --> ❌
 
-    -   **_POST /refresh_**:
+    -   **_POST_ /refresh**:
 
         -   Autore --> device / user
         -   Output --> `{ accessToken, { id, email, updatedAt, createdAt } }` | `{ accessToken, { id, userId, name, prototypeModel, activatedAt, updatedAt, createdAt } }`

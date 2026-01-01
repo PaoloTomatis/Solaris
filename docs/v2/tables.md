@@ -61,7 +61,7 @@
 
 **Vincoli/Regole:**
 
--   `temp` — positivo, decimale, <100
+-   `temp` — decimale, >-50, <100
 -   `lum` — positivo, decimale, <100
 -   `humE` — positivo, decimale, <100
 -   `humIBefore` — positivo, decimale, <100
@@ -85,7 +85,7 @@
 
 **Vincoli/Regole:**
 
--   `temp` — positivo, decimale, <100
+-   `temp` — decimale, >-50, <100
 -   `lum` — positivo, decimale, <100
 -   `humE` — positivo, decimale, <100
 -   `humI` — positivo, decimale, <100
@@ -109,7 +109,7 @@
 
 -   `irrigationId` — non è necessario, utilizzato solo se si vuole collegare un log ad una irrigazione, non può essere presente se c'è measurementId
 -   `measurementId` — non è necessario, utilizzato solo se si vuole collegare un log ad una misurazione, non può essere presente se c'è irrigationId
--   `title` — >3 caratteri
+-   `title` — >3 caratteri, <50 caratteri
 -   `description` — >3 caratteri, <200 caratteri
 
 ### UserSettings
