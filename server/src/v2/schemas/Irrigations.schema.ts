@@ -5,12 +5,7 @@ import { Types } from 'mongoose';
 import sortParser from '../../global/utils/sortParser.js';
 
 // Lista campi consentiti
-const irrigationSortFields = [
-    'createdAt',
-    'updatedAt',
-    'irrigatedAt',
-    'interval',
-];
+const irrigationSortFields = ['createdAt', 'updatedAt', 'irrigatedAt'];
 
 // Schema query get /irrigations
 const GetIrrigationsQuerySchema = z
