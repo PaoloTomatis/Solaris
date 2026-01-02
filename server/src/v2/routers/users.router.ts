@@ -6,10 +6,10 @@ import {
 } from '../controllers/users.controller.js';
 
 // Dichiarazione router
-const userRouter = Router();
+const usersRouter = Router();
 
 // Definizione rotte
-userRouter.get('/', getMeController).delete('/', deleteMeController);
+usersRouter.get('/', getMeController).delete('/', deleteMeController);
 
 // Esportazione router
-export default userRouter;
+export default usersRouter;
