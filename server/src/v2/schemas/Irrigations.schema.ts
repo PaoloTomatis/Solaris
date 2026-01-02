@@ -1,6 +1,6 @@
 // Importazione moduli
 import z from 'zod';
-import { QuerySchema } from './Global.schema.js';
+import { baseQuerySchema } from './Global.schema.js';
 import { Types } from 'mongoose';
 import sortParser from '../../global/utils/sortParser.js';
 
@@ -10,6 +10,7 @@ const irrigationSortFields = ['createdAt', 'updatedAt', 'irrigatedAt'];
 // Schema query get /irrigations
 const GetIrrigationsQuerySchema = z
     .object({
+        ...baseQuerySchema,
         deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
             error: 'Invalid deviceId',
             path: ['deviceId'],
@@ -18,15 +19,23 @@ const GetIrrigationsQuerySchema = z
             .string()
             .optional()
             .transform((val) => (val ? sortParser(val) : []))
-            .refine((val) => {
-                val.every((obj) => !irrigationSortFields.includes(obj.field), {
+            .refine(
+                (val) => {
+                    val.every(
+                        (obj) => !irrigationSortFields.includes(obj.field)
+                    );
+                },
+                {
                     error: 'Invalid sort field (should be "createdAt", "updatedAt", "irrigatedAt" or "interval")',
                     path: ['sort'],
-                });
-            }),
+                }
+            ),
         type: z.enum(['config', 'auto']).optional(),
     })
-    .extend(QuerySchema);
+    .refine((val) => !val.from || !val.to || val.from <= val.to, {
+        error: 'Invalid from/to range',
+        path: ['from', 'to'],
+    });
 
 // Schema body post /irrigations/execute
 const PostIrrigationsExecuteBodySchema = z.object({

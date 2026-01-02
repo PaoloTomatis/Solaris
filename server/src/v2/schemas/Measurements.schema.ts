@@ -1,6 +1,6 @@
 // Importazione moduli
 import z from 'zod';
-import { QuerySchema } from './Global.schema.js';
+import { baseQuerySchema } from './Global.schema.js';
 import { Types } from 'mongoose';
 import sortParser from '../../global/utils/sortParser.js';
 
@@ -10,6 +10,7 @@ const measurementSortFields = ['createdAt', 'updatedAt', 'measuredAt'];
 // Schema query get /measurements
 const GetMeasurementsQuerySchema = z
     .object({
+        ...baseQuerySchema,
         deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
             error: 'Invalid deviceId',
             path: ['deviceId'],
@@ -25,7 +26,10 @@ const GetMeasurementsQuerySchema = z
                 });
             }),
     })
-    .extend(QuerySchema);
+    .refine((val) => !val.from || !val.to || val.from <= val.to, {
+        error: 'Invalid from/to range',
+        path: ['from', 'to'],
+    });
 
 // Schema body post /measurements
 const PostMeasurementsBodySchema = z.object({

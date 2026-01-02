@@ -1,7 +1,7 @@
 // Importazione moduli
 import z from 'zod';
 import { Types } from 'mongoose';
-import { QuerySchema } from './Global.schema.js';
+import { baseQuerySchema } from './Global.schema.js';
 import sortParser from '../../global/utils/sortParser.js';
 
 // Lista
@@ -10,6 +10,7 @@ const notificationSortFields = ['createdAt', 'updatedAt'];
 // Schema query get /notifications
 const GetNotificationsQuerySchema = z
     .object({
+        ...baseQuerySchema,
         sort: z
             .string()
             .optional()
@@ -27,7 +28,10 @@ const GetNotificationsQuerySchema = z
             ),
         type: z.enum(['error', 'warning', 'info', 'success']).optional(),
     })
-    .extend(QuerySchema);
+    .refine((val) => !val.from || !val.to || val.from <= val.to, {
+        error: 'Invalid from/to range',
+        path: ['from', 'to'],
+    });
 
 // Schema body post /notifications
 const PostNotificationsBodySchema = z
