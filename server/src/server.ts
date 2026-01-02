@@ -11,6 +11,7 @@ import resHandler from './v1/utils/responseHandler.js';
 import cookieParser from 'cookie-parser';
 import authRouterV1 from './v1/routers/auth.router.js';
 import apiRouterV1 from './v1/routers/api.router.js';
+import apiRouterV2 from './v2/routers/api.router.js';
 import {
     jwtMiddlewareRest,
     jwtMiddlewareWS,
@@ -180,8 +181,11 @@ app.get('/', (req: Request, res: Response) => {
 // Rotta autenticazione
 app.use('/v1/auth', authRouterV1);
 
-// Rotta api
+// Rotta api v1
 app.use('/v1/api', jwtMiddlewareRest, apiRouterV1);
+
+// Rotta api v2
+app.use('/v2/api', jwtMiddlewareRest, apiRouterV2);
 
 // Rotta 404
 app.use((req: Request, res: Response) => {
