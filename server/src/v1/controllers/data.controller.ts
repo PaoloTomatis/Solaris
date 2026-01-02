@@ -911,7 +911,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
         }
 
         // Ricavo dati database
-        const data = await DataModel.deleteMany(filter);
+        await DataModel.deleteMany(filter);
 
         // Risposta finale
         return resHandler(res, 200, null, 'Dati eliminati con successo!', true);

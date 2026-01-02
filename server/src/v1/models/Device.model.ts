@@ -1,5 +1,5 @@
 // Importazione moduli
-import mongoose, { Schema, model, type ObjectId } from 'mongoose';
+import { Schema, model, type ObjectId } from 'mongoose';
 import DataModel from './Data.model.js';
 import DeviceSettingsModel from './DeviceSettings.model.js';
 

@@ -1,6 +1,5 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
-import type { JwtPayload } from 'jsonwebtoken';
 import resHandler from '../../v1/utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
 
