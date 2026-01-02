@@ -12,10 +12,10 @@ const devicesRouter = Router();
 
 // Definizione rotte
 devicesRouter
-    .get('/', getDeviceController)
+    .get('/:deviceId', getDeviceController)
     .post('/', postDevicesController)
     .patch('/', patchDevicesController)
-    .delete('/', deleteDevicesController);
+    .delete('/:deviceId', deleteDevicesController);
 
 // Esportazione router
 export default devicesRouter;
