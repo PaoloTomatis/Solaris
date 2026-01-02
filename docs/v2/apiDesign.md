@@ -28,7 +28,7 @@
 
 -   **Devices**
 
-    -   **_GET_ /devices/:id**:
+    -   **_GET_ /devices/:deviceId**:
 
         -   Autore --> user
         -   Params --> `/:id`
