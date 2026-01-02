@@ -43,7 +43,7 @@ async function postDevicesController(
 ) {
     // Gestione errori
     try {
-        // Validazione parametri
+        // Validazione body
         const body = PostDevicesBodySchema.parse(req.body);
 
         // Chiamata servizio
@@ -64,8 +64,10 @@ async function patchDevicesController(
 ) {
     // Gestione errori
     try {
-        // Validazione parametri
+        // Validazione body
         const body = PatchDevicesBodySchema.parse(req.body);
+
+        // Validazione parametri
         const params = PatchDevicesParamsSchema.parse(req.params);
 
         // Chiamata servizio
