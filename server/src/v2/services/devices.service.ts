@@ -1,0 +1,120 @@
+// Importazione moduli
+import { v4 } from 'uuid';
+import type { UsersType } from '../models/Users.model.js';
+import devicesRepository from '../repositories/devices.repository.js';
+import { hash } from 'bcrypt';
+import pswGenerator from '../../global/utils/pswGenerator.js';
+import z from 'zod';
+import {
+    PatchDevicesBodySchema,
+    PatchDevicesParamsSchema,
+    PostDevicesBodySchema,
+} from '../schemas/Devices.schema.js';
+
+// Servizio get /devices/:id
+async function getDevicesService(deviceId: string, user?: UsersType) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Richiesta dispositivo
+    const device = await devicesRepository.findOneSafe(deviceId, user._id);
+
+    //TODO Errore custom
+    // Controllo dispositivo
+    if (!device)
+        throw new Error(
+            "The device does not exists or the user isn't allowed to get it"
+        );
+
+    // Ritorno utente
+    return device;
+}
+
+// Servizio post /devices
+async function postDevicesService(
+    body: z.infer<typeof PostDevicesBodySchema>,
+    user?: UsersType
+) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    //TODO Errore custom
+    // Controllo ruolo utente
+    if (user.role !== 'admin')
+        throw new Error('The user has to be an admin to perform this action');
+
+    // Dichiarazione key
+    const key = body.key ?? v4();
+    // Dichiarazione psw
+    const psw = body.psw ?? (await hash(pswGenerator(15), 10));
+
+    // Richiesta dispositivo
+    const device = await devicesRepository.createOne({ ...body, psw, key });
+
+    //TODO Errore custom
+    // Controllo dispositivo
+    if (!device) throw new Error('Creation of the device failed');
+
+    // Ritorno utente
+    return device;
+}
+
+// Servizio patch /devices/:deviceId
+async function patchDevicesService(
+    body: z.infer<typeof PatchDevicesBodySchema>,
+    { deviceId }: z.infer<typeof PatchDevicesParamsSchema>,
+    user?: UsersType
+) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Modifica dispositivo
+    const newDevice = await devicesRepository.updateOneSafe(
+        deviceId,
+        user._id,
+        body
+    );
+
+    //TODO Errore custom
+    // Controllo nuovo device
+    if (!newDevice)
+        throw new Error(
+            "The device does not exists or the user isn't allowed to modify it"
+        );
+
+    // Ritorno utente
+    return newDevice;
+}
+
+// Servizio delete /devices/:deviceId
+async function deleteDevicesService(deviceId: string, user?: UsersType) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    //TODO Errore custom
+    // Controllo ruolo utente
+    if (user.role !== 'admin') throw new Error('Forbidden');
+
+    // Eliminazione dispositivo
+    const oldDevice = await devicesRepository.deleteOne(deviceId);
+
+    //TODO Errore custom
+    // Controllo vecchio dispositivo
+    if (!oldDevice)
+        throw new Error('The device does not exists or the elimination failed');
+
+    // Ritorno utente
+    return oldDevice;
+}
+
+// Esportazione servizi
+export {
+    getDevicesService,
+    postDevicesService,
+    patchDevicesService,
+    deleteDevicesService,
+};
