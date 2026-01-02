@@ -1,57 +1,45 @@
 // Importazione moduli
 import IrrigationsModel from '../models/Irrigations.model.js';
-import { type FilterQuery } from 'mongoose';
-import { PostIrrigationsBodySchema } from '../schemas/Irrigations.schema.js';
+import type { FilterQuery, ObjectId } from 'mongoose';
+import {
+    PostIrrigationsBodySchema,
+    GetIrrigationsQuerySchema,
+} from '../schemas/Irrigations.schema.js';
 import z from 'zod';
 
 // Respository irrigazioni
 class IrrigationsRepository {
     // Funzione ricevi irrigazioni
-    async findMany({
-        deviceId,
-        from,
-        to,
-        limit,
-        sort,
-        type,
-    }: {
-        deviceId?: string;
-        from?: Date;
-        to?: Date;
-        limit: number;
-        sort?: {
-            field: string;
-            order: 'asc' | 'desc';
-        }[];
-        type: 'config' | 'auto';
-    }) {
+    async findMany(payload: z.infer<typeof GetIrrigationsQuerySchema>) {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof IrrigationsModel> = {};
+        const filter: FilterQuery<typeof IrrigationsModel> = {
+            deviceId: payload.deviceId,
+        };
 
         // Controllo from/to
-        if (from) filter.irrigatedAt.$gte = from;
-        if (to) filter.irrigatedAt.$lte = to;
-
-        // Controllo deviceId
-        if (deviceId) filter.deviceId = deviceId;
+        if (payload.from || payload.to) {
+            filter.irrigatedAt = {};
+            if (payload.from) filter.irrigatedAt.$gte = payload.from;
+            if (payload.to) filter.irrigatedAt.$lte = payload.to;
+        }
 
         // Controllo type
-        if (type) filter.type = type;
+        if (payload.type) filter.type = payload.type;
 
         // Richiesta irrigazione database
         const query = IrrigationsModel.find(filter);
 
         // Controllo lunghezza sort
-        if (sort?.length) {
+        if (payload.sort?.length) {
             const sortObj: Record<string, 1 | -1> = {};
-            for (const s of sort) {
+            for (const s of payload.sort) {
                 sortObj[s.field] = s.order === 'asc' ? 1 : -1;
             }
             query.sort(sortObj);
         }
 
         // Impostazione limite
-        query.limit(limit);
+        query.limit(payload.limit);
 
         // Esecuzione query
         const irrigations = await query;
@@ -61,9 +49,12 @@ class IrrigationsRepository {
     }
 
     // Funzione creazione irrigazione
-    async createOne(params: z.infer<typeof PostIrrigationsBodySchema>) {
+    async createOne(
+        payload: z.infer<typeof PostIrrigationsBodySchema>,
+        deviceId: string | ObjectId
+    ) {
         // Creazione irrigazione
-        const irrigation = new IrrigationsModel(params);
+        const irrigation = new IrrigationsModel({ ...payload, deviceId });
 
         // Salvataggio irrigazione
         await irrigation.save();
