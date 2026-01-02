@@ -1,6 +1,6 @@
 // Importazione moduli
 import { v4 } from 'uuid';
-import type { UsersType } from '../models/Users.model.js';
+import type { UserType } from '../../global/types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import { hash } from 'bcrypt';
 import pswGenerator from '../../global/utils/pswGenerator.js';
@@ -12,13 +12,13 @@ import {
 } from '../schemas/Devices.schema.js';
 
 // Servizio get /devices/:id
-async function getDevicesService(deviceId: string, user?: UsersType) {
+async function getDevicesService(deviceId: string, user?: UserType) {
     //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta dispositivo
-    const device = await devicesRepository.findOneSafe(deviceId, user._id);
+    const device = await devicesRepository.findOneSafe(deviceId, user.id);
 
     //TODO Errore custom
     // Controllo dispositivo
@@ -27,14 +27,14 @@ async function getDevicesService(deviceId: string, user?: UsersType) {
             "The device does not exists or the user isn't allowed to get it"
         );
 
-    // Ritorno utente
+    // Ritorno dispositivo
     return device;
 }
 
 // Servizio post /devices
 async function postDevicesService(
     body: z.infer<typeof PostDevicesBodySchema>,
-    user?: UsersType
+    user?: UserType
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -57,7 +57,7 @@ async function postDevicesService(
     // Controllo dispositivo
     if (!device) throw new Error('Creation of the device failed');
 
-    // Ritorno utente
+    // Ritorno dispositivo
     return device;
 }
 
@@ -65,7 +65,7 @@ async function postDevicesService(
 async function patchDevicesService(
     body: z.infer<typeof PatchDevicesBodySchema>,
     { deviceId }: z.infer<typeof PatchDevicesParamsSchema>,
-    user?: UsersType
+    user?: UserType
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -74,7 +74,7 @@ async function patchDevicesService(
     // Modifica dispositivo
     const newDevice = await devicesRepository.updateOneSafe(
         deviceId,
-        user._id,
+        user.id,
         body
     );
 
@@ -85,12 +85,12 @@ async function patchDevicesService(
             "The device does not exists or the user isn't allowed to modify it"
         );
 
-    // Ritorno utente
+    // Ritorno dispositivo
     return newDevice;
 }
 
 // Servizio delete /devices/:deviceId
-async function deleteDevicesService(deviceId: string, user?: UsersType) {
+async function deleteDevicesService(deviceId: string, user?: UserType) {
     //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
@@ -107,7 +107,7 @@ async function deleteDevicesService(deviceId: string, user?: UsersType) {
     if (!oldDevice)
         throw new Error('The device does not exists or the elimination failed');
 
-    // Ritorno utente
+    // Ritorno dispositivo
     return oldDevice;
 }
 

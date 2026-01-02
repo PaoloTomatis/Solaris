@@ -1,9 +1,9 @@
 // Importazione moduli
-import type { UsersType } from '../models/Users.model.js';
 import usersRepository from '../repositories/users.repository.js';
+import type { UserType } from '../../global/types/types.js';
 
 // Servizio get /me
-async function getMeService(user?: UsersType) {
+async function getMeService(user?: UserType) {
     //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
@@ -13,13 +13,13 @@ async function getMeService(user?: UsersType) {
 }
 
 // Servizio delete /me
-async function deleteMeService(user?: UsersType) {
+async function deleteMeService(user?: UserType) {
     //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
     // Eliminazione utente
-    const oldUser = await usersRepository.deleteOne(user._id);
+    const oldUser = await usersRepository.deleteOne(user.id);
 
     //TODO Errore custom
     // Controllo vecchio utente
