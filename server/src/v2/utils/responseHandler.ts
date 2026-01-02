@@ -47,9 +47,9 @@ function resHandler<T>(
     if (type === 'rest') {
         return (res as Response)
             .status(status)
-            .json({ success, message, data, status });
+            .json(success ? { data } : { message });
     } else {
-        return emitToRoom(res as string, { success, message, data, status });
+        return emitToRoom(res as string, success ? { data } : { message });
     }
 }
 
