@@ -1,6 +1,6 @@
 // Importazione moduli
 import usersRepository from '../repositories/users.repository.js';
-import type { UserType } from '../../global/types/types.js';
+import type { UserType } from '../types/types.js';
 
 // Servizio get /me
 async function getMeService(user?: UserType) {

@@ -4,15 +4,14 @@ import type {
     GetIrrigationsQuerySchema,
     PostIrrigationsBodySchema,
 } from '../schemas/Irrigations.schema.js';
-import type { UsersType } from '../models/Users.model.js';
+import type { UserType, DeviceType } from '../types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import irrigationsRepository from '../repositories/irrigations.repository.js';
-import type { DeviceType } from '../../global/types/types.js';
 
 // Servizio get /irrigations
 async function getIrrigationsService(
     payload: z.infer<typeof GetIrrigationsQuerySchema>,
-    user?: UsersType
+    user?: UserType
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -21,7 +20,7 @@ async function getIrrigationsService(
     // Richiesta dispositivo database
     const device = await devicesRepository.findOneSafe(
         payload.deviceId,
-        user._id
+        user.id
     );
 
     //TODO Errore custom

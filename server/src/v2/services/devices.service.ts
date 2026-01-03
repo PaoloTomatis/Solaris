@@ -1,6 +1,6 @@
 // Importazione moduli
 import { v4 } from 'uuid';
-import type { UserType } from '../../global/types/types.js';
+import type { UserType } from '../types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import { hash } from 'bcrypt';
 import pswGenerator from '../../global/utils/pswGenerator.js';
