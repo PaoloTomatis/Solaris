@@ -1,0 +1,56 @@
+// Importazione moduli
+import type { NextFunction, Request, Response } from 'express';
+import {
+    GetNotificationsQuerySchema,
+    PostNotificationsBodySchema,
+} from '../schemas/Notifications.schema.js';
+import {
+    getNotificationsService,
+    postNotificationsService,
+} from '../services/notifications.service.js';
+import resHandler from '../utils/responseHandler.js';
+
+// Controller get /notifications
+async function getNotificationsController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    // Gestione errori
+    try {
+        // Validazione query
+        const parsedQuery = GetNotificationsQuerySchema.parse(req.query);
+
+        // Chiamata servizio
+        const notifications = getNotificationsService(parsedQuery, req.user);
+
+        // Risposta
+        resHandler(res, true, 200, notifications);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Controller post /notifications
+async function postNotificationsController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    // Gestione errori
+    try {
+        // Validazione body
+        const parsedBody = PostNotificationsBodySchema.parse(req.body);
+
+        // Chiamata servizio
+        const notification = postNotificationsService(parsedBody, req.device);
+
+        // Risposta
+        resHandler(res, true, 200, notification);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Esportazione controller
+export { getNotificationsController, postNotificationsController };

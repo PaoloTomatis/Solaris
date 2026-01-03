@@ -1,57 +1,45 @@
 // Importazione moduli
 import NotificationsModel from '../models/Notifications.model.js';
-import { type FilterQuery } from 'mongoose';
-import { PostNotificationsBodySchema } from '../schemas/Notifications.schema.js';
+import { type FilterQuery, type ObjectId } from 'mongoose';
+import {
+    GetNotificationsQuerySchema,
+    PostNotificationsBodySchema,
+} from '../schemas/Notifications.schema.js';
 import z from 'zod';
 
 // Respository notifiche
 class NotificationsRepository {
     // Funzione ricevi notifiche
-    async findMany({
-        deviceId,
-        from,
-        to,
-        limit,
-        sort,
-        type,
-    }: {
-        deviceId?: string;
-        from?: Date;
-        to?: Date;
-        limit: number;
-        sort?: {
-            field: string;
-            order: 'asc' | 'desc';
-        }[];
-        type: 'error' | 'warning' | 'info' | 'success';
-    }) {
+    async findMany(payload: z.infer<typeof GetNotificationsQuerySchema>) {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof NotificationsModel> = {};
+        const filter: FilterQuery<typeof NotificationsModel> = {
+            deviceId: payload.deviceId,
+        };
 
         // Controllo from/to
-        if (from) filter.createdAt.$gte = from;
-        if (to) filter.createdAt.$lte = to;
-
-        // Controllo deviceId
-        if (deviceId) filter.deviceId = deviceId;
+        if (payload.from || payload.to) {
+            filter.measuredAt = {};
+            if (payload.from) filter.measuredAt.$gte = payload.from;
+            if (payload.to) filter.measuredAt.$lte = payload.to;
+        }
 
         // Controllo type
-        if (type) filter.type = type;
+        if (payload.type) filter.type = payload.type;
 
         // Richiesta notifica database
         const query = NotificationsModel.find(filter);
 
         // Controllo lunghezza sort
-        if (sort?.length) {
+        if (payload.sort?.length) {
             const sortObj: Record<string, 1 | -1> = {};
-            for (const s of sort) {
+            for (const s of payload.sort) {
                 sortObj[s.field] = s.order === 'asc' ? 1 : -1;
             }
             query.sort(sortObj);
         }
 
         // Impostazione limite
-        query.limit(limit);
+        query.limit(payload.limit);
 
         // Esecuzione query
         const notifications = await query;
@@ -61,9 +49,12 @@ class NotificationsRepository {
     }
 
     // Funzione creazione notifica
-    async createOne(params: z.infer<typeof PostNotificationsBodySchema>) {
+    async createOne(
+        params: z.infer<typeof PostNotificationsBodySchema>,
+        deviceId: string | ObjectId
+    ) {
         // Creazione notifica
-        const notification = new NotificationsModel(params);
+        const notification = new NotificationsModel({ ...params, deviceId });
 
         // Salvataggio notifica
         await notification.save();
