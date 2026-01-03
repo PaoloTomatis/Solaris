@@ -50,11 +50,11 @@ class NotificationsRepository {
 
     // Funzione creazione notifica
     async createOne(
-        params: z.infer<typeof PostNotificationsBodySchema>,
+        payload: z.infer<typeof PostNotificationsBodySchema>,
         deviceId: string | ObjectId
     ) {
         // Creazione notifica
-        const notification = new NotificationsModel({ ...params, deviceId });
+        const notification = new NotificationsModel({ ...payload, deviceId });
 
         // Salvataggio notifica
         await notification.save();
