@@ -5,16 +5,18 @@ import {
     getMeController,
 } from '../controllers/users.controller.js';
 import {
-    getMeSettingsController,
+    getMeSettingsController as getMeUsersSettingsController,
     patchMeSettingsController,
 } from '../controllers/usersSettings.controller.js';
+import { getMeSettingsController as getMeDevicesSettingsController } from '../controllers/devicesSettings.controller.js';
 
 // Dichiarazione router
 const usersRouter = Router();
 
 // Definizione rotte
 usersRouter
-    .get('/user-settings', getMeSettingsController)
+    .get('/user-settings', getMeUsersSettingsController)
+    .get('/device-settings', getMeDevicesSettingsController)
     .get('/', getMeController)
     .patch('/user-settings', patchMeSettingsController)
     .delete('/', deleteMeController);
