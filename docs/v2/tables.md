@@ -96,6 +96,7 @@
 
 -   `id` — string PK — identificativo univoco
 -   `userId` — string FK — collegamento a utente
+-   `deviceId` — string? FK — collegamento a dispositivo
 -   `irrigationId` — string? FK — collegamento a irrigazione
 -   `measurementId` — string? FK — collegamento a misurazione
 -   `title` — string — titolo
@@ -107,8 +108,9 @@
 
 **Vincoli/Regole:**
 
--   `irrigationId` — non è necessario, utilizzato solo se si vuole collegare un log ad una irrigazione, non può essere presente se c'è measurementId
--   `measurementId` — non è necessario, utilizzato solo se si vuole collegare un log ad una misurazione, non può essere presente se c'è irrigationId
+-   `deviceId` — non è necessario, utilizzato solo se si vuole collegare un log ad un dispositivo, se non è presente non ci possono essere nè irrigationId nè measurementId
+-   `irrigationId` — non è necessario, utilizzato solo se si vuole collegare un log ad una irrigazione, se presente insieme al deviceId l'irrigazione deve possedere la stessa proprietà, non può essere presente se c'è measurementId
+-   `measurementId` — non è necessario, utilizzato solo se si vuole collegare un log ad una misurazione, se presente insieme al deviceId la misurazione deve possedere la stessa proprietà, non può essere presente se c'è irrigationId
 -   `title` — >3 caratteri, <50 caratteri
 -   `description` — >3 caratteri, <200 caratteri
 

@@ -109,17 +109,17 @@
     -   **_GET_ /notifications**:
 
         -   Autore --> user
-        -   Query --> `? from & to & limit & sort & type`
-        -   Output --> `{ id, irrigationId, measurementId, title, description, type, updatedAt, createdAt }`
+        -   Query --> `? deviceId & from & to & limit & sort & type`
+        -   Output --> `{ id, irrigationId, measurementId, deviceId, title, description, type, updatedAt, createdAt }`
         -   Note --> la notifica deve essere posseduta dall'utente, il dispositivo da cui provengono l'irrigazione o la misurazione deve essere posseduto dall'utente
         -   Autenticazione --> ✔️
 
     -   **_POST_ /notifications**:
 
-        -   Autore --> device / user (admin)
-        -   Body --> `{ userId, irrigationId?, measurementId?, title, description, type }`
-        -   Output --> `{ id, irrigationId, measurementId, title, description, type, updatedAt, createdAt }`
-        -   Note --> l'utente deve essere un amministratore, il dispositivo da cui provengono l'irrigazione o la misurazione deve essere posseduto dall'utente, se non viene specificato uno userId allora deve essere un device ad avere effettuato la richiesta (si prende direttamente dai suoi dati)
+        -   Autore --> device
+        -   Body --> `{ deviceId, irrigationId?, measurementId?, title, description, type }`
+        -   Output --> `{ id, irrigationId, measurementId, deviceId, title, description, type, updatedAt, createdAt }`
+        -   Note --> il dispositivo da cui provengono l'irrigazione o la misurazione deve essere posseduto da un utente
         -   Autenticazione --> ✔️
 
 -   **UserSettings**
