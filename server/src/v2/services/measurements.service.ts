@@ -19,7 +19,10 @@ async function getMeasurementsService(
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta dispositivo database
-    const device = devicesRepository.findOneSafe(payload.deviceId, user.id);
+    const device = await devicesRepository.findOneSafe(
+        payload.deviceId,
+        user.id
+    );
 
     //TODO Errore custom
     // Controllo dispositivo
@@ -45,7 +48,7 @@ async function postMeasurementsService(
     if (!device) throw new Error('Invalid authentication');
 
     // Richiesta utente database
-    const user = usersRepository.findOne(device.userId || '');
+    const user = await usersRepository.findOne(device.userId || '');
 
     // Controllo utente
     if (!user) throw new Error('The device must be owned by a user');

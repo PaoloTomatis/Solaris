@@ -47,7 +47,10 @@ async function postIrrigationsService(
     if (!device) throw new Error('Invalid authentication');
 
     // Creazione irrigazione database
-    const irrigation = irrigationsRepository.createOne(payload, device.id);
+    const irrigation = await irrigationsRepository.createOne(
+        payload,
+        device.id
+    );
 
     // Ritorno irrigazione
     return irrigation;
