@@ -13,9 +13,9 @@ import authRouterV1 from './v1/routers/auth.router.js';
 import apiRouterV1 from './v1/routers/api.router.js';
 import apiRouterV2 from './v2/routers/api.router.js';
 import {
-    jwtMiddlewareRest,
-    jwtMiddlewareWS,
-} from './global/middleware/jwt_verify.middleware.js';
+    jwtMiddlewareRest as jwtMiddlewareRestV1,
+    jwtMiddlewareWS as jwtMiddlewareWSV1,
+} from './v1/middleware/jwt_verify.middleware.js';
 import statusV1 from './v1/controllers/status.controller.js';
 import irrigationV1 from './v1/controllers/irrigation.controller.js';
 import { joinRoom, leaveRoom } from './global/utils/wsRoomHandlers.js';
@@ -43,7 +43,7 @@ const rooms: Map<string, Set<AuthenticatedWS>> = new Map();
 // Connessione socket
 wss.on('connection', async (ws: AuthenticatedWS, req) => {
     // Middleware autenticazione (socket)
-    await jwtMiddlewareWS(ws, req);
+    await jwtMiddlewareWSV1(ws, req);
 
     // Gestione messaggi
     ws.on('message', async (raw) => {
@@ -126,7 +126,7 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
     // Gestione errori
     try {
         // Middleware autenticazione
-        await jwtMiddlewareWS(ws, req);
+        await jwtMiddlewareWSV1(ws, req);
 
         // Controllo utente o dispositivo
         if (ws.user) {
@@ -182,10 +182,10 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/v1/auth', authRouterV1);
 
 // Rotta api v1
-app.use('/v1/api', jwtMiddlewareRest, apiRouterV1);
+app.use('/v1/api', jwtMiddlewareRestV1, apiRouterV1);
 
-// Rotta api v2
-app.use('/v2/api', jwtMiddlewareRest, apiRouterV2);
+// Rotta api v2 (utilizzo autenticazione v1 solo per testing)
+app.use('/v2/api', jwtMiddlewareRestV1, apiRouterV2);
 
 // Rotta 404
 app.use((req: Request, res: Response) => {

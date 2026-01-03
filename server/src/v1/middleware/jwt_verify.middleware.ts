@@ -2,12 +2,12 @@
 import jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import type { Request, Response, NextFunction } from 'express';
-import resHandler from '../../v1/utils/responseHandler.js';
-import UserModel from '../../v1/models/User.model.js';
-import type { AuthenticatedWS } from '../types/types.js';
-import type { UserType } from '../../v1/models/User.model.js';
-import type { DeviceType } from '../../v1/models/Device.model.js';
-import DeviceModel from '../../v1/models/Device.model.js';
+import resHandler from '../utils/responseHandler.js';
+import UserModel from '../models/User.model.js';
+import type { AuthenticatedWS } from '../../global/types/types.js';
+import type { UserType } from '../models/User.model.js';
+import type { DeviceType } from '../models/Device.model.js';
+import DeviceModel from '../models/Device.model.js';
 import type { IncomingMessage } from 'http';
 
 // Interfaccia payload
