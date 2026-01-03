@@ -1,4 +1,5 @@
 // Importazione moduli
+import type { ObjectId } from 'mongoose';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import { PatchDevicesSettingsBodySchema } from '../schemas/DevicesSettings.schema.js';
 import z from 'zod';
@@ -6,16 +7,16 @@ import z from 'zod';
 // Respository impostazioni dispositivi
 class DeviceSettingsRepository {
     // Funzione ricevi impostazioni dispositivo
-    async findOne(deviceId: string) {
-        // Richiesta utente database
-        const user = await DeviceSettingsModel.findOne({ deviceId });
+    async findOne(deviceId: string | ObjectId) {
+        // Richiesta impostazioni dispositivo database
+        const deviceSettings = await DeviceSettingsModel.findOne({ deviceId });
 
-        // Ritorno utente
-        return user;
+        // Ritorno impostazioni dispositivo
+        return deviceSettings;
     }
 
     // Funzione creazione impostazioni dispositivo
-    async createOne(params: {
+    async createOne(payload: {
         deviceId: string;
         mode?: 'config' | 'auto' | 'safe';
         humIMax?: number;
@@ -23,7 +24,7 @@ class DeviceSettingsRepository {
         kInterval?: number;
     }) {
         // Creazione impostazioni dispositivo
-        const deviceSettings = new DeviceSettingsModel(params);
+        const deviceSettings = new DeviceSettingsModel(payload);
 
         // Salvataggio impostazioni dispositivo
         await deviceSettings.save();
@@ -34,13 +35,13 @@ class DeviceSettingsRepository {
 
     // Funzione modifica impostazioni dispositivo
     async updateOne(
-        userId: string,
-        params: z.infer<typeof PatchDevicesSettingsBodySchema>
+        payload: z.infer<typeof PatchDevicesSettingsBodySchema>,
+        deviceId: string | ObjectId
     ) {
         // Modifica impostazioni dispositivo database
         const deviceSettings = await DeviceSettingsModel.findOneAndUpdate(
-            { userId },
-            params,
+            { deviceId },
+            payload,
             { new: true }
         );
 
