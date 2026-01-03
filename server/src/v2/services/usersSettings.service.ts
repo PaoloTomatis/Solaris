@@ -14,10 +14,10 @@ async function getMeSettingsService(user?: UserType) {
     const userSettings = await usersSettingsRepository.findOne(user.id);
 
     //TODO Errore custom
-    // Controllo vecchio utente
+    // Controllo impostazioni utente
     if (!userSettings) throw new Error('User settings not found');
 
-    // Ritorno utente
+    // Ritorno impostazioni utente
     return userSettings;
 }
 
@@ -30,17 +30,17 @@ async function patchMeSettingsService(
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
-    // Eliminazione utente
+    // Modifica impostazioni utente
     const userSettings = await usersSettingsRepository.updateOne(
         payload,
         user.id
     );
 
     //TODO Errore custom
-    // Controllo vecchio utente
+    // Controllo impostazioni utente
     if (!userSettings) throw new Error('Update of user settings failed');
 
-    // Ritorno utente
+    // Ritorno impostazioni utente
     return userSettings;
 }
 

@@ -141,7 +141,7 @@
 
 -   **DeviceSettings**
 
-    -   **_GET_ /device-settings/:deviceId**:
+    -   **_GET_ /devices-settings/:deviceId**:
 
         -   Autore --> user
         -   Params --> `:deviceId`
@@ -156,7 +156,7 @@
         -   Note --> le impostazioni restituite sono quelle del dispositivo autenticato
         -   Autenticazione --> ✔️
 
-    -   **_PATCH_ /device-settings/:deviceId**:
+    -   **_PATCH_ /devices-settings/:deviceId**:
 
         -   Autore --> user
         -   Params --> `:deviceId`
