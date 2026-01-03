@@ -11,6 +11,10 @@ const notificationSortFields = ['createdAt', 'updatedAt'];
 const GetNotificationsQuerySchema = z
     .object({
         ...baseQuerySchema,
+        deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            error: 'Invalid deviceId',
+            path: ['deviceId'],
+        }),
         sort: z
             .string()
             .optional()
@@ -36,10 +40,6 @@ const GetNotificationsQuerySchema = z
 // Schema body post /notifications
 const PostNotificationsBodySchema = z
     .object({
-        userId: z.string().refine((val) => Types.ObjectId.isValid(val), {
-            error: 'Invalid userId',
-            path: ['userId'],
-        }),
         irrigationId: z
             .string()
             .optional()
@@ -59,7 +59,7 @@ const PostNotificationsBodySchema = z
         type: z.enum(['error', 'warning', 'info', 'success']),
     })
     .refine((val) => !(val.irrigationId && val.measurementId), {
-        error: "IrrigationId and measurementId can't be both assigned",
+        message: "IrrigationId and measurementId can't be both assigned",
         path: ['irrigationId', 'measurementId'],
     });
 

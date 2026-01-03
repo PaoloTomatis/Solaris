@@ -4,7 +4,7 @@ import { model, Schema, type ObjectId } from 'mongoose';
 // Tipo notifiche
 interface NotificationsType {
     _id: ObjectId;
-    userId: ObjectId;
+    deviceId: ObjectId;
     irrigationId?: ObjectId;
     measurementId?: ObjectId;
     title: string;
@@ -18,7 +18,11 @@ interface NotificationsType {
 // Schema notifiche
 const NotificationsSchema = new Schema(
     {
-        userId: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+        deviceId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Devices',
+            required: true,
+        },
         irrigationId: { type: Schema.Types.ObjectId, ref: 'Irrigations' },
         measurementId: { type: Schema.Types.ObjectId, ref: 'Measurements' },
         title: { type: String, required: true },
