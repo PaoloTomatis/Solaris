@@ -181,7 +181,7 @@
         -   Output --> `{ accessToken, { id, userId, name, prototypeModel, activatedAt, updatedAt, createdAt } }`
         -   Autenticazione --> ❌
 
-    -   **_POST_ /register**:
+    -   **_POST_ /user-register**:
 
         -   Autore --> user
         -   Body --> `{ email, psw }`
