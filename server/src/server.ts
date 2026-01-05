@@ -200,8 +200,13 @@ app.use((req: Request, res: Response) => {
 
 // Funzione avvio
 async function start() {
+    // Controllo variabili d'ambiente
+    if (!process.env.JWT_ACCESS || !process.env.JWT_REFRESH || !process.env.PORT || !process.env.CLIENT_URL || !process.env.DB_URL)
+        throw new Error('Environment variables are missing');
+
     // Connessione database
     await connectDB();
+
     // Attivazione server
     server.listen(PORT, () => console.log(`Server online at port ${PORT}`));
 }
