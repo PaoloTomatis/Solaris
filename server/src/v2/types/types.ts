@@ -11,7 +11,6 @@ interface UserType {
 interface DeviceType {
     id: string;
     userId?: string;
-    key: string;
     name: string;
     prototypeModel: string;
     activatedAt: Date;
