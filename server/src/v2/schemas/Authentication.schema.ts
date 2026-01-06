@@ -13,6 +13,18 @@ const DevicesLoginBodySchema = z.object({
     psw: z.string().regex(/^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,255}$/),
 });
 
+// Schema info
+const InfoSchema = z.object({
+    ipAddress: z.string(),
+    userAgent: z.string(),
+});
+
+// Schema middleware autenticazione
+const AuthMiddlewareSchema = z.object({
+    accessToken: z.string(),
+    type: z.enum(['user', 'device']),
+});
+
 // Schema body /register
 const UsersRegisterBodySchema = UsersLoginBodySchema;
 
@@ -20,5 +32,7 @@ const UsersRegisterBodySchema = UsersLoginBodySchema;
 export {
     UsersLoginBodySchema,
     DevicesLoginBodySchema,
+    InfoSchema,
+    AuthMiddlewareSchema,
     UsersRegisterBodySchema,
 };
