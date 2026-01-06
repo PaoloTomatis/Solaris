@@ -1,5 +1,9 @@
 // Importazione moduli
-import express, { type Request, type Response } from 'express';
+import express, {
+    type Request,
+    type Response,
+    type NextFunction,
+} from 'express';
 import helmet from 'helmet';
 import type { AuthenticatedWS } from './global/types/types.js';
 import { createServer } from 'http';
@@ -7,15 +11,18 @@ import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import { configDotenv } from 'dotenv';
 import connectDB from './global/database/connection.database.js';
-import resHandler from './v1/utils/responseHandler.js';
+import resHandlerV1 from './v1/utils/responseHandler.js';
+import resHandlerV2 from './v2/utils/responseHandler.js';
 import cookieParser from 'cookie-parser';
 import authRouterV1 from './v1/routers/auth.router.js';
 import apiRouterV1 from './v1/routers/api.router.js';
+import authRouterV2 from './v2/routers/auth.router.js';
 import apiRouterV2 from './v2/routers/api.router.js';
 import {
     jwtMiddlewareRest as jwtMiddlewareRestV1,
     jwtMiddlewareWS as jwtMiddlewareWSV1,
 } from './v1/middleware/jwt_verify.middleware.js';
+import { jwtMiddlewareRest as jwtMiddlewareRestV2 } from './v2/middlewares/jwt.middleware.js';
 import statusV1 from './v1/controllers/status.controller.js';
 import irrigationV1 from './v1/controllers/irrigation.controller.js';
 import { joinRoom, leaveRoom } from './global/utils/wsRoomHandlers.js';
@@ -56,7 +63,7 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
 
                 // Controllo dati richiesta
                 if (!event || !data)
-                    resHandler(
+                    resHandlerV1(
                         `USER-${ws.user?.id}`,
                         400,
                         null,
@@ -75,7 +82,7 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
 
                 // Controllo dati richiesta
                 if (!event || !data)
-                    resHandler(
+                    resHandlerV1(
                         `DEVICE-${ws.device?.id}`,
                         400,
                         null,
@@ -96,7 +103,7 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                     : 'Errore sconosciuto!';
             // Risposta finale
             if (ws.user)
-                resHandler(
+                resHandlerV1(
                     `USER-${ws.user.id}`,
                     500,
                     null,
@@ -105,7 +112,7 @@ wss.on('connection', async (ws: AuthenticatedWS, req) => {
                     'ws'
                 );
             else if (ws.device)
-                resHandler(
+                resHandlerV1(
                     `USER-${ws.device.id}`,
                     500,
                     null,
@@ -169,7 +176,7 @@ app.use(cookieParser());
 
 // Rotta default
 app.get('/', (req: Request, res: Response) => {
-    return resHandler(
+    return resHandlerV1(
         res,
         200,
         null,
@@ -184,12 +191,15 @@ app.use('/v1/auth', authRouterV1);
 // Rotta api v1
 app.use('/v1/api', jwtMiddlewareRestV1, apiRouterV1);
 
+// Rotta autenticazione
+app.use('/v2/auth', authRouterV2);
+
 // Rotta api v2 (utilizzo autenticazione v1 solo per testing)
-app.use('/v2/api', jwtMiddlewareRestV1, apiRouterV2);
+app.use('/v2/api', jwtMiddlewareRestV2, apiRouterV2);
 
 // Rotta 404
 app.use((req: Request, res: Response) => {
-    return resHandler(
+    return resHandlerV1(
         res,
         404,
         null,
@@ -198,10 +208,29 @@ app.use((req: Request, res: Response) => {
     );
 });
 
+// Middleware errori
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+    // Errore in console
+    console.error(err);
+    const errorMsg =
+        err instanceof Error
+            ? err?.message || 'Errore interno del server!'
+            : 'Errore sconosciuto!';
+
+    // Risposta finale
+    return resHandlerV2(res, false, 500, errorMsg);
+});
+
 // Funzione avvio
 async function start() {
     // Controllo variabili d'ambiente
-    if (!process.env.JWT_ACCESS || !process.env.JWT_REFRESH || !process.env.PORT || !process.env.CLIENT_URL || !process.env.DB_URL)
+    if (
+        !process.env.JWT_ACCESS ||
+        !process.env.JWT_REFRESH ||
+        !process.env.PORT ||
+        !process.env.CLIENT_URL ||
+        !process.env.DB_URL
+    )
         throw new Error('Environment variables are missing');
 
     // Connessione database
