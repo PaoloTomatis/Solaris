@@ -68,7 +68,7 @@ async function patchDevicesSettingsController(
         // Chiamata servizio
         const deviceSettings = await patchDevicesSettingsService(
             parsedBody,
-            parsedParams.deviceId,
+            parsedParams,
             req.device
         );
 

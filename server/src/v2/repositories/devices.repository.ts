@@ -5,12 +5,21 @@ import DevicesModel, { type DevicesType } from '../models/Devices.model.js';
 // Respository dispositivi
 class DevicesRepository {
     // Lista campi
-    private selectedFields = '-psw -key -schemaVersion';
+    // private selectedFields = '-psw -key -schemaVersion';
 
-    // Funzione ricevi dispositivo
-    async findOne(id: string) {
+    // Funzione ricevi dispositivo da id
+    async findOneById(id: string | ObjectId) {
         // Richiesta dispositivo database
         const device = await DevicesModel.findById(id);
+
+        // Ritorno dispositivo
+        return device;
+    }
+
+    // Funzione ricevi dispositivo da key
+    async findOneByKey(key: string) {
+        // Richiesta dispositivo database
+        const device = await DevicesModel.findOne({ key });
 
         // Ritorno dispositivo
         return device;
@@ -19,9 +28,7 @@ class DevicesRepository {
     // Funzione ricevi dispositivo sicura
     async findOneSafe(id: string, userId: string | ObjectId) {
         // Richiesta dispositivo database
-        const device = await DevicesModel.findOne({ _id: id, userId }).select(
-            this.selectedFields
-        );
+        const device = await DevicesModel.findOne({ _id: id, userId });
 
         // Ritorno dispositivo
         return device;
@@ -45,7 +52,7 @@ class DevicesRepository {
         const device = await DevicesModel.findByIdAndUpdate(id, payload, {
             new: true,
             runValidators: true,
-        }).select(this.selectedFields);
+        });
 
         // Ritorno dispositivo
         return device;
@@ -65,7 +72,7 @@ class DevicesRepository {
                 new: true,
                 runValidators: true,
             }
-        ).select(this.selectedFields);
+        );
 
         // Ritorno dispositivo
         return device;
@@ -76,7 +83,7 @@ class DevicesRepository {
         // Eliminazione dispositivo database
         const device = await DevicesModel.findByIdAndDelete(id, {
             runValidators: true,
-        }).select(this.selectedFields);
+        });
 
         // Ritorno dispositivo
         return device;
@@ -90,7 +97,7 @@ class DevicesRepository {
             {
                 runValidators: true,
             }
-        ).select(this.selectedFields);
+        );
 
         // Ritorno dispositivo
         return device;

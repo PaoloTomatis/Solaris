@@ -34,7 +34,7 @@ class UserSettingsRepository {
     // Funzione modifica impostazioni utente
     async updateOne(
         payload: z.infer<typeof PatchUsersSettingsBodySchema>,
-        userId: string
+        userId: string | ObjectId
     ) {
         // Modifica impostazioni utente database
         const userSettings = await UserSettingsModel.findOneAndUpdate(

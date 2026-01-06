@@ -2,13 +2,13 @@
 import type { DeviceType, UserType } from '../types/types.js';
 import z from 'zod';
 import devicesSettingsRepository from '../repositories/devicesSettings.repository.js';
-import type { PatchDevicesSettingsBodySchema } from '../schemas/DevicesSettings.schema.js';
+import type {
+    PatchDevicesSettingsBodySchema,
+    PatchDevicesSettingsParamsSchema,
+} from '../schemas/DevicesSettings.schema.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import usersRepository from '../repositories/users.repository.js';
-import type {
-    GetDevicesParamsSchema,
-    PatchDevicesParamsSchema,
-} from '../schemas/Devices.schema.js';
+import type { GetDevicesParamsSchema } from '../schemas/Devices.schema.js';
 
 // Servizio get /devices-settings/:deviceId
 async function getDevicesSettingsService(
@@ -47,7 +47,7 @@ async function getMeSettingsService(device?: DeviceType) {
     if (!device) throw new Error('Invalid authentication');
 
     // Richiesta utente database
-    const user = await usersRepository.findOne(device.userId || '');
+    const user = await usersRepository.findOneById(device.userId || '');
 
     // Controllo utente
     if (!user) throw new Error('The device must be owned by a user');
@@ -66,7 +66,7 @@ async function getMeSettingsService(device?: DeviceType) {
 // Servizio patch /device-settings/:deviceId
 async function patchDevicesSettingsService(
     payload: z.infer<typeof PatchDevicesSettingsBodySchema>,
-    deviceId: string,
+    { deviceId }: z.infer<typeof PatchDevicesSettingsParamsSchema>,
     user?: UserType
 ) {
     //TODO Errore custom
