@@ -15,7 +15,7 @@ function resHandler<T>(
     res: Response,
     success: false,
     status: number,
-    message: null,
+    message: string,
     type?: 'rest'
 ): Response;
 
