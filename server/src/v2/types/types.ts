@@ -1,6 +1,9 @@
+// Importazione moduli
+import type { ObjectId } from 'mongoose';
+
 // Interfaccia utente
 interface UserType {
-    id: string;
+    id: string | ObjectId;
     email: string;
     role: 'user' | 'admin';
     updatedAt: Date;
@@ -9,8 +12,8 @@ interface UserType {
 
 // Interfaccia dispositivo
 interface DeviceType {
-    id: string;
-    userId?: string;
+    id: string | ObjectId;
+    userId?: string | ObjectId;
     name: string;
     prototypeModel: string;
     activatedAt: Date;
@@ -18,5 +21,11 @@ interface DeviceType {
     createdAt: Date;
 }
 
+// Interfaccia socket
+interface AuthenticatedWS extends WebSocket {
+    user?: UserType;
+    device?: DeviceType;
+}
+
 // Esportazione tipi
-export type { UserType, DeviceType };
+export type { UserType, DeviceType, AuthenticatedWS };
