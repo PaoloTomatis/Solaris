@@ -22,7 +22,7 @@ const InfoSchema = z.object({
 // Schema middleware autenticazione
 const AuthMiddlewareSchema = z.object({
     accessToken: z.string(),
-    type: z.enum(['user', 'device']),
+    authType: z.enum(['user', 'device']),
 });
 
 // Schema body /register

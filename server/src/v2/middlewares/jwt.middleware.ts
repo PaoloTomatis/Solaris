@@ -86,13 +86,16 @@ async function jwtMiddlewareRest(
         // Ricavo dati richiesta
         const accessTokenRes = req.headers.authorization;
         const accessToken = accessTokenRes?.split(' ')[1] || null;
-        const type = req.query?.authType;
+        const authType = req.query?.authType;
 
         // Conversione dati
-        const data = AuthMiddlewareSchema.parse({ accessToken, type });
+        const data = AuthMiddlewareSchema.parse({
+            accessToken,
+            authType,
+        });
 
         // Controllo tipo autenticazione
-        if (type === 'user') {
+        if (authType === 'user') {
             // Impostazione utente
             req.user = await jwtVerify(data.accessToken, 'user');
         } else {
