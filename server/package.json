@@ -19,11 +19,11 @@
         "doc": "docs"
     },
     "scripts": {
-        "dev": "concurrently -n BUILD,SERVER -c red,cyan \"npm run build:watch\" \"npm run server:watch\"",
         "build": "tsc",
         "start": "node dist/server.js",
-        "build:watch": "tsc --watch",
-        "server:watch": "nodemon --watch src --ext ts --ignore dist --exec \"node dist/server.js\""
+        "build:watch": "tsc --watch --preserveWatchOutput",
+        "server:watch": "nodemon --watch dist --delay 1 --exec \"node dist/server.js\"",
+        "dev": "npm run build && concurrently -n BUILD,SERVER -c red,cyan \"npm run build:watch\" \"npm run server:watch\""
     },
     "keywords": [
         "gardening",
