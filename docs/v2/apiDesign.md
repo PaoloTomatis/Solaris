@@ -36,6 +36,14 @@
         -   Note --> il dispositivo deve essere posseduto dall'utente
         -   Autenticazione --> ✔️
 
+    -   **_GET_ /devices**:
+
+        -   Autore --> user
+        -   Query --> `?userId & from & to & limit & sort &`
+        -   Output --> `{ id, userId, name, prototypeModel, activatedAt, updatedAt, createdAt }`
+        -   Note --> il dispositivo deve essere posseduto dall'utente
+        -   Autenticazione --> ✔️
+
     -   **_POST_ /devices**:
 
         -   Autore --> user (admin)

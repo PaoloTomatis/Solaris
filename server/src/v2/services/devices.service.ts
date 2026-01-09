@@ -6,13 +6,14 @@ import { hash } from 'bcrypt';
 import pswGenerator from '../../global/utils/pswGenerator.js';
 import z from 'zod';
 import {
+    GetDevicesQuerySchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,
     PostDevicesBodySchema,
 } from '../schemas/Devices.schema.js';
 
 // Servizio get /devices/:id
-async function getDevicesService(deviceId: string, user?: UserType) {
+async function getDeviceService(deviceId: string, user?: UserType) {
     //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
@@ -29,6 +30,22 @@ async function getDevicesService(deviceId: string, user?: UserType) {
 
     // Ritorno dispositivo
     return device;
+}
+
+// Servizio get /devices
+async function getDevicesService(
+    payload: z.infer<typeof GetDevicesQuerySchema>,
+    user?: UserType
+) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Richiesta dispositivi
+    const devices = await devicesRepository.findManySafe(payload, user);
+
+    // Ritorno dispositivi
+    return devices;
 }
 
 // Servizio post /devices
@@ -113,6 +130,7 @@ async function deleteDevicesService(deviceId: string, user?: UserType) {
 
 // Esportazione servizi
 export {
+    getDeviceService,
     getDevicesService,
     postDevicesService,
     patchDevicesService,

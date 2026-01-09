@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
     deleteDevicesController,
     getDeviceController,
+    getDevicesController,
     patchDevicesController,
     postDevicesController,
 } from '../controllers/devices.controller.js';
@@ -13,8 +14,9 @@ const devicesRouter = Router();
 // Definizione rotte
 devicesRouter
     .get('/:deviceId', getDeviceController)
+    .get('/', getDevicesController)
     .post('/', postDevicesController)
-    .patch('/', patchDevicesController)
+    .patch('/:deviceId', patchDevicesController)
     .delete('/:deviceId', deleteDevicesController);
 
 // Esportazione router

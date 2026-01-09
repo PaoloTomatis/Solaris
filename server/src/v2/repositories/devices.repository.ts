@@ -1,12 +1,12 @@
 // Importazione moduli
-import type { ObjectId, UpdateQuery } from 'mongoose';
+import type { ObjectId, UpdateQuery, FilterQuery } from 'mongoose';
 import DevicesModel, { type DevicesType } from '../models/Devices.model.js';
+import type { GetDevicesQuerySchema } from '../schemas/Devices.schema.js';
+import z from 'zod';
+import type { UserType } from '../types/types.js';
 
 // Respository dispositivi
 class DevicesRepository {
-    // Lista campi
-    // private selectedFields = '-psw -key -schemaVersion';
-
     // Funzione ricevi dispositivo da id
     async findOneById(id: string | ObjectId) {
         // Richiesta dispositivo database
@@ -32,6 +32,45 @@ class DevicesRepository {
 
         // Ritorno dispositivo
         return device;
+    }
+
+    // Funzione ricevi dispositivi
+    async findManySafe(
+        payload: z.infer<typeof GetDevicesQuerySchema>,
+        user: UserType
+    ) {
+        // Dichiarazione filtri
+        const filter: FilterQuery<typeof DevicesModel> = {
+            deviceId: payload.deviceId,
+        };
+
+        // Controllo from/to
+        if (payload.from || payload.to) {
+            filter.activatedAt = {};
+            if (payload.from) filter.activatedAt.$gte = payload.from;
+            if (payload.to) filter.activatedAt.$lte = payload.to;
+        }
+
+        // Richiesta irrigazione database
+        const query = DevicesModel.find(filter);
+
+        // Controllo lunghezza sort
+        if (payload.sort?.length) {
+            const sortObj: Record<string, 1 | -1> = {};
+            for (const s of payload.sort) {
+                sortObj[s.field] = s.order === 'asc' ? 1 : -1;
+            }
+            query.sort(sortObj);
+        }
+
+        // Impostazione limite
+        query.limit(payload.limit);
+
+        // Esecuzione query
+        const irrigations = await query;
+
+        // Ritorno irrigazione
+        return irrigations;
     }
 
     // Funzione creazione dispositivo

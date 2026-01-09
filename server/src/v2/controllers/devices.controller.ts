@@ -1,13 +1,15 @@
 // Importazione moduli
 import type { Request, Response, NextFunction } from 'express';
 import {
-    GetDevicesParamsSchema,
+    GetDeviceParamsSchema,
+    GetDevicesQuerySchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,
     PostDevicesBodySchema,
 } from '../schemas/Devices.schema.js';
 import resHandler from '../utils/responseHandler.js';
 import {
+    getDeviceService,
     getDevicesService,
     postDevicesService,
     patchDevicesService,
@@ -23,13 +25,34 @@ async function getDeviceController(
     // Gestione errori
     try {
         // Validazione parametri
-        const { deviceId } = GetDevicesParamsSchema.parse(req.params);
+        const { deviceId } = GetDeviceParamsSchema.parse(req.params);
 
         // Chiamata servizio
-        const device = await getDevicesService(deviceId, req.user);
+        const device = await getDeviceService(deviceId, req.user);
 
         // Risposta
         resHandler(res, true, 200, device);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Controller get /devices
+async function getDevicesController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    // Gestione errori
+    try {
+        // Validazione parametri
+        const payload = GetDevicesQuerySchema.parse(req.query);
+
+        // Chiamata servizio
+        const devices = await getDevicesService(payload, req.user);
+
+        // Risposta
+        resHandler(res, true, 200, devices);
     } catch (error) {
         next(error);
     }
@@ -104,6 +127,7 @@ async function deleteDevicesController(
 // Esportazione controller
 export {
     getDeviceController,
+    getDevicesController,
     postDevicesController,
     patchDevicesController,
     deleteDevicesController,

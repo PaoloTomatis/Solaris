@@ -1,14 +1,49 @@
 // Importazione moduli
 import z from 'zod';
 import { Types } from 'mongoose';
+import { baseQuerySchema } from './Global.schema.js';
+import sortParser from '../../global/utils/sortParser.js';
 
 // Schema params get /devices/:deviceId
-const GetDevicesParamsSchema = z.object({
+const GetDeviceParamsSchema = z.object({
     deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
         error: 'Invalid deviceId',
         path: ['deviceId'],
     }),
 });
+
+// Lista campi consentiti
+const devicesSortFields = ['createdAt', 'updatedAt', 'activatedAt'];
+
+// Schema query get /irrigations
+const GetDevicesQuerySchema = z
+    .object({
+        ...baseQuerySchema,
+        deviceId: z
+            .string()
+            .optional()
+            .refine((val) => !val || Types.ObjectId.isValid(val), {
+                error: 'Invalid deviceId',
+            }),
+        sort: z
+            .string()
+            .optional()
+            .transform((val) => (val ? sortParser(val) : []))
+            .refine(
+                (val) => {
+                    return val.every(
+                        (obj) => !devicesSortFields.includes(obj.field)
+                    );
+                },
+                {
+                    error: 'Invalid sort field (should be "createdAt", "updatedAt" or "activatedAt")',
+                }
+            ),
+    })
+    .refine((val) => !val.from || !val.to || val.from <= val.to, {
+        error: 'Invalid from/to range',
+        path: ['from', 'to'],
+    });
 
 // Schema body post /devices
 const PostDevicesBodySchema = z.object({
@@ -27,14 +62,15 @@ const PatchDevicesBodySchema = z.object({
 });
 
 // Schema params patch /devices/:deviceId
-const PatchDevicesParamsSchema = GetDevicesParamsSchema;
+const PatchDevicesParamsSchema = GetDeviceParamsSchema;
 
 // Schema params delete /devices/:id
-const DeleteDevicesParamsSchema = GetDevicesParamsSchema;
+const DeleteDevicesParamsSchema = GetDeviceParamsSchema;
 
 // Esportazione schemi
 export {
-    GetDevicesParamsSchema,
+    GetDeviceParamsSchema,
+    GetDevicesQuerySchema,
     PostDevicesBodySchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,
