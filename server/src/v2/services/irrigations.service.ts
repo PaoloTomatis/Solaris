@@ -7,6 +7,7 @@ import type {
 import type { UserType, DeviceType } from '../types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import irrigationsRepository from '../repositories/irrigations.repository.js';
+import dataParser from '../utils/dataParser.js';
 
 // Servizio get /irrigations
 async function getIrrigationsService(
@@ -33,6 +34,16 @@ async function getIrrigationsService(
     // Richiesta irrigazione database
     const irrigations = await irrigationsRepository.findMany(payload);
 
+    // Iterazione irrigazioni
+    irrigations.map((irrigation) => {
+        // Conversione irrigazione
+        return dataParser(
+            irrigation.toObject(),
+            ['schemaVersion', '__v'],
+            true
+        );
+    });
+
     // Ritorno irrigazioni
     return irrigations;
 }
@@ -52,8 +63,15 @@ async function postIrrigationsService(
         device.id
     );
 
+    // Conversione irrigazione
+    const parsedIrrigation = dataParser(
+        irrigation.toObject(),
+        ['schemaVersion', '__v'],
+        true
+    );
+
     // Ritorno irrigazione
-    return irrigation;
+    return parsedIrrigation;
 }
 
 // Esportazione servizio

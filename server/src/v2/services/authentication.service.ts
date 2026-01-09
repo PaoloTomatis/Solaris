@@ -115,7 +115,11 @@ async function devicesLoginService(
         throw new Error('Sign keys are missing');
 
     // Conversione dispositivo
-    const parsedDevice = dataParser(device, ['key', 'psw', 'schemaVersion']);
+    const parsedDevice = dataParser(
+        device.toObject(),
+        ['key', 'psw', 'schemaVersion', '__v'],
+        true
+    );
 
     // Conversione dispositivo minimale
     const minimalParsedDevice = dataParser(device, [
@@ -187,10 +191,14 @@ async function usersRegisterService(
     const user = await usersRepository.createOne({ ...payload, psw: pswHash });
 
     // Conversione utente
-    const parsedUser = dataParser(user, ['psw', 'schemaVersion']);
+    const parsedUser = dataParser(
+        user.toObject(),
+        ['psw', 'schemaVersion', '__v'],
+        true
+    );
 
-    // Ritorno access token e dispositivo
-    return { parsedUser };
+    // Ritorno utente
+    return parsedUser;
 }
 
 // Servizio post /refresh

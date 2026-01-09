@@ -9,6 +9,7 @@ import type {
 import devicesRepository from '../repositories/devices.repository.js';
 import usersRepository from '../repositories/users.repository.js';
 import type { GetDeviceParamsSchema } from '../schemas/Devices.schema.js';
+import dataParser from '../utils/dataParser.js';
 
 // Servizio get /devices-settings/:deviceId
 async function getDevicesSettingsService(
@@ -36,8 +37,15 @@ async function getDevicesSettingsService(
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Device settings not found');
 
+    // Conversione impostazioni dispositivo
+    const parsedDeviceSettings = dataParser(
+        deviceSettings.toObject(),
+        ['__v', 'schemaVersion'],
+        true
+    );
+
     // Ritorno impostazioni dispositivo
-    return deviceSettings;
+    return parsedDeviceSettings;
 }
 
 // Servizio get me/device-settings
@@ -59,8 +67,15 @@ async function getMeSettingsService(device?: DeviceType) {
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Device settings not found');
 
+    // Conversione impostazioni dispositivo
+    const parsedDeviceSettings = dataParser(
+        deviceSettings.toObject(),
+        ['__v', 'schemaVersion'],
+        true
+    );
+
     // Ritorno impostazioni dispositivo
-    return deviceSettings;
+    return parsedDeviceSettings;
 }
 
 // Servizio patch /device-settings/:deviceId
@@ -93,8 +108,15 @@ async function patchDevicesSettingsService(
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Update of device settings failed');
 
+    // Conversione impostazioni dispositivo
+    const parsedDeviceSettings = dataParser(
+        deviceSettings.toObject(),
+        ['__v', 'schemaVersion'],
+        true
+    );
+
     // Ritorno impostazioni dispositivo
-    return deviceSettings;
+    return parsedDeviceSettings;
 }
 
 // Esportazione servizi

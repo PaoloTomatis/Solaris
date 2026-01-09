@@ -1,6 +1,7 @@
 // Importazione moduli
 import usersRepository from '../repositories/users.repository.js';
 import type { UserType } from '../types/types.js';
+import dataParser from '../utils/dataParser.js';
 
 // Servizio get /me
 async function getMeService(user?: UserType) {
@@ -25,8 +26,15 @@ async function deleteMeService(user?: UserType) {
     // Controllo vecchio utente
     if (!oldUser) throw new Error('Elimination of the user failed');
 
+    // Conversione utente
+    const parsedUser = dataParser(
+        oldUser.toObject(),
+        ['psw', 'schemaVersion', '__v'],
+        true
+    );
+
     // Ritorno utente
-    return oldUser;
+    return parsedUser;
 }
 
 // Esportazione servizi

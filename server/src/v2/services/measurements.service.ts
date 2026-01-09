@@ -8,6 +8,7 @@ import type {
 } from '../schemas/Measurements.schema.js';
 import z from 'zod';
 import measurementsRepository from '../repositories/measurements.repository.js';
+import dataParser from '../utils/dataParser.js';
 
 // Servizio get /measurements
 async function getMeasurementsService(
@@ -34,6 +35,16 @@ async function getMeasurementsService(
     // Richiesta misurazione database
     const measurements = await measurementsRepository.findMany(payload);
 
+    // Iterazione misurazioni
+    measurements.map((measurement) => {
+        // Conversione misurazione
+        return dataParser(
+            measurement.toObject(),
+            ['schemaVersion', '__v'],
+            true
+        );
+    });
+
     // Ritorno irrigazioni
     return measurements;
 }
@@ -54,10 +65,20 @@ async function postMeasurementsService(
     if (!user) throw new Error('The device must be owned by a user');
 
     // Creazione misurazione database
-    const measurement = measurementsRepository.createOne(payload, device.id);
+    const measurement = await measurementsRepository.createOne(
+        payload,
+        device.id
+    );
+
+    // Conversione misurazione
+    const parsedMeasurement = dataParser(
+        measurement.toObject(),
+        ['schemaVersion', '__v'],
+        true
+    );
 
     // Ritorno misurazione
-    return measurement;
+    return parsedMeasurement;
 }
 
 // Esportazione servizi

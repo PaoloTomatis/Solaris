@@ -8,6 +8,7 @@ import type {
 } from '../schemas/Notifications.schema.js';
 import z from 'zod';
 import notificationsRepository from '../repositories/notifications.repository.js';
+import dataParser from '../utils/dataParser.js';
 
 // Servizio get /notifications
 async function getNotificationsService(
@@ -34,6 +35,16 @@ async function getNotificationsService(
     // Richiesta notifica database
     const notifications = await notificationsRepository.findMany(payload);
 
+    // Iterazione notifiche
+    notifications.map((notification) => {
+        // Conversione notifica
+        return dataParser(
+            notification.toObject(),
+            ['schemaVersion', '__v'],
+            true
+        );
+    });
+
     // Ritorno irrigazioni
     return notifications;
 }
@@ -59,8 +70,15 @@ async function postNotificationsService(
         device.id
     );
 
+    // Conversione notifica
+    const parsedNotification = dataParser(
+        notification.toObject(),
+        ['schemaVersion', '__v'],
+        true
+    );
+
     // Ritorno notifica
-    return notification;
+    return parsedNotification;
 }
 
 // Esportazione servizi

@@ -3,6 +3,7 @@ import type { UserType } from '../types/types.js';
 import usersSettingsRepository from '../repositories/usersSettings.repository.js';
 import z from 'zod';
 import { PatchUsersSettingsBodySchema } from '../schemas/UsersSettings.schema.js';
+import dataParser from '../utils/dataParser.js';
 
 // Servizio get /me/user-settings
 async function getMeSettingsService(user?: UserType) {
@@ -17,8 +18,15 @@ async function getMeSettingsService(user?: UserType) {
     // Controllo impostazioni utente
     if (!userSettings) throw new Error('User settings not found');
 
+    // Conversione impostazioni utente
+    const parsedUserSettings = dataParser(
+        userSettings.toObject(),
+        ['__v', 'schemaVersion'],
+        true
+    );
+
     // Ritorno impostazioni utente
-    return userSettings;
+    return parsedUserSettings;
 }
 
 // Servizio patch /me/user-settings
@@ -40,8 +48,15 @@ async function patchMeSettingsService(
     // Controllo impostazioni utente
     if (!userSettings) throw new Error('Update of user settings failed');
 
+    // Conversione impostazioni utente
+    const parsedUserSettings = dataParser(
+        userSettings.toObject(),
+        ['__v', 'schemaVersion'],
+        true
+    );
+
     // Ritorno impostazioni utente
-    return userSettings;
+    return parsedUserSettings;
 }
 
 // Esportazione servizi

@@ -11,6 +11,7 @@ import {
     PatchDevicesParamsSchema,
     PostDevicesBodySchema,
 } from '../schemas/Devices.schema.js';
+import dataParser from '../utils/dataParser.js';
 
 // Servizio get /devices/:id
 async function getDeviceService(deviceId: string, user?: UserType) {
@@ -28,8 +29,15 @@ async function getDeviceService(deviceId: string, user?: UserType) {
             "The device does not exists or the user isn't allowed to get it"
         );
 
+    // Conversione dispositivo
+    const parsedDevice = dataParser(
+        device.toObject(),
+        ['key', 'psw', 'schemaVersion', '__v'],
+        true
+    );
+
     // Ritorno dispositivo
-    return device;
+    return parsedDevice;
 }
 
 // Servizio get /devices
@@ -43,6 +51,16 @@ async function getDevicesService(
 
     // Richiesta dispositivi
     const devices = await devicesRepository.findManySafe(payload, user);
+
+    // Iterazione dispositivi
+    devices.map((device) => {
+        // Conversione dispositivo
+        return dataParser(
+            device.toObject(),
+            ['key', 'psw', 'schemaVersion', '__v'],
+            true
+        );
+    });
 
     // Ritorno dispositivi
     return devices;
@@ -74,8 +92,15 @@ async function postDevicesService(
     // Controllo dispositivo
     if (!device) throw new Error('Creation of the device failed');
 
+    // Conversione dispositivo
+    const parsedDevice = dataParser(
+        device.toObject(),
+        ['key', 'psw', 'schemaVersion', '__v'],
+        true
+    );
+
     // Ritorno dispositivo
-    return device;
+    return parsedDevice;
 }
 
 // Servizio patch /devices/:deviceId
@@ -102,8 +127,15 @@ async function patchDevicesService(
             "The device does not exists or the user isn't allowed to modify it"
         );
 
+    // Conversione dispositivo
+    const parsedDevice = dataParser(
+        newDevice.toObject(),
+        ['key', 'psw', 'schemaVersion', '__v'],
+        true
+    );
+
     // Ritorno dispositivo
-    return newDevice;
+    return parsedDevice;
 }
 
 // Servizio delete /devices/:deviceId
@@ -124,8 +156,15 @@ async function deleteDevicesService(deviceId: string, user?: UserType) {
     if (!oldDevice)
         throw new Error('The device does not exists or the elimination failed');
 
+    // Conversione dispositivo
+    const parsedDevice = dataParser(
+        oldDevice.toObject(),
+        ['key', 'psw', 'schemaVersion', '__v'],
+        true
+    );
+
     // Ritorno dispositivo
-    return oldDevice;
+    return parsedDevice;
 }
 
 // Esportazione servizi
