@@ -8,11 +8,11 @@ import type {
 } from '../schemas/DevicesSettings.schema.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import usersRepository from '../repositories/users.repository.js';
-import type { GetDevicesParamsSchema } from '../schemas/Devices.schema.js';
+import type { GetDeviceParamsSchema } from '../schemas/Devices.schema.js';
 
 // Servizio get /devices-settings/:deviceId
 async function getDevicesSettingsService(
-    { deviceId }: z.infer<typeof GetDevicesParamsSchema>,
+    { deviceId }: z.infer<typeof GetDeviceParamsSchema>,
     user?: UserType
 ) {
     //TODO Errore custom

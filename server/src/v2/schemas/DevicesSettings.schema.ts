@@ -6,7 +6,6 @@ import { Types } from 'mongoose';
 const GetDevicesSettingsParamsSchema = z.object({
     deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
         error: 'Invalid deviceId',
-        path: ['deviceId'],
     }),
 });
 

@@ -13,7 +13,6 @@ const GetIrrigationsQuerySchema = z
         ...baseQuerySchema,
         deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
             error: 'Invalid deviceId',
-            path: ['deviceId'],
         }),
         sort: z
             .string()
@@ -21,13 +20,12 @@ const GetIrrigationsQuerySchema = z
             .transform((val) => (val ? sortParser(val) : []))
             .refine(
                 (val) => {
-                    val.every(
+                    return val.every(
                         (obj) => !irrigationSortFields.includes(obj.field)
                     );
                 },
                 {
-                    error: 'Invalid sort field (should be "createdAt", "updatedAt", "irrigatedAt" or "interval")',
-                    path: ['sort'],
+                    error: 'Invalid sort field (should be "createdAt", "updatedAt" or "irrigatedAt")',
                 }
             ),
         type: z.enum(['config', 'auto']).optional(),

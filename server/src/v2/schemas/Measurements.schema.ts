@@ -13,18 +13,21 @@ const GetMeasurementsQuerySchema = z
         ...baseQuerySchema,
         deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
             error: 'Invalid deviceId',
-            path: ['deviceId'],
         }),
         sort: z
             .string()
             .optional()
             .transform((val) => (val ? sortParser(val) : []))
-            .refine((val) => {
-                val.every((obj) => !measurementSortFields.includes(obj.field), {
+            .refine(
+                (val) => {
+                    return val.every(
+                        (obj) => !measurementSortFields.includes(obj.field)
+                    );
+                },
+                {
                     error: 'Invalid sort field (should be "createdAt", "updatedAt" or "measuredAt")',
-                    path: ['sort'],
-                });
-            }),
+                }
+            ),
     })
     .refine((val) => !val.from || !val.to || val.from <= val.to, {
         error: 'Invalid from/to range',
