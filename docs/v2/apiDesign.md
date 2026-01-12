@@ -125,7 +125,7 @@
     -   **_POST_ /notifications**:
 
         -   Autore --> device
-        -   Body --> `{ deviceId, irrigationId?, measurementId?, title, description, type }`
+        -   Body --> `{ irrigationId?, measurementId?, title, description, type }`
         -   Output --> `{ id, irrigationId, measurementId, deviceId, title, description, type, updatedAt, createdAt }`
         -   Note --> il dispositivo da cui provengono l'irrigazione o la misurazione deve essere posseduto da un utente
         -   Autenticazione --> ✔️
