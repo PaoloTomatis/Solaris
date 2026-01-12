@@ -1,0 +1,401 @@
+# Importazione moduli
+from machine import Timer, reset
+import network, json, ubinascii, urandom, urequests, struct, ntptime, utime
+from time import sleep
+import usocket as sk
+
+# Funzione caricamento dati
+def loadData():
+    secrets = {}
+    connInfo = {}
+    settings = {}
+    info = {}
+    # Caricamento informazione wifi
+    try:
+        with open('secrets.json', 'r') as secretsFile:
+            secrets = json.load(secretsFile)
+    except:
+        print("Errore nel caricamento o nella conversione delle informazioni wifi!")
+        
+    # Caricamento informazioni connessioni
+    try:
+        with open('connInfo.json', 'r') as connInfoFile:
+            connInfo = json.load(connInfoFile)
+    except:
+        print("Errore nel caricamento o nella conversione delle informazioni per la connessione!")
+        
+    # Caricamento impostazioni
+    try:
+        with open('settings.json', 'r') as settingsFile:
+            settings = json.load(settingsFile)
+    except:
+        print("Errore nel caricamento o nella conversione delle impostazioni!")
+        
+    # Caricamento informazioni
+    try:
+        with open('info.json', 'r') as infoFile:
+            info = json.load(infoFile)
+    except:
+        print("Errore nel caricamento o nella conversione delle informazioni!")
+        
+    # Controllo dati
+    if (len(secrets) <= 0 or len(connInfo) <= 0 or len(settings) <= 0 or len(info) <= 0):
+        print("Riavvio dispositivo per errore nei caricamenti")
+        sleep(1)
+        reset()
+    else:
+        return [secrets, connInfo, settings, info]
+
+# Funzione caricamento impostazioni
+def getSettings(api, token):
+    print("\nRichiesta impostazioni in corso...")
+    
+    # Dichiarazione dati
+    headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
+    
+    # Dichiarazione dati risposta
+    resData = None
+    
+    # Gestione errori
+    try:
+        # Effettuazione richiesta
+        response = urequests.get(
+            f"{api}/me/device-settings",
+            headers=headers
+        )
+        
+        # Controllo richiesta
+        if response.text and response.status_code == 200:
+            resData = json.loads(response.text)
+        else:
+            raise Exception("Errore nella richiesta!")
+
+        # Chiusura richiesta
+        response.close()
+        
+        print("Richiesta impostazioni dispositivo!\n")
+        
+        # Ritorno token
+        return resData["data"]
+    except Exception as e:
+        print("Errore nella richiesta delle impostazioni del dispositivo!")
+        print(e, "\n")
+        return None
+    
+# Funzione sincronizzazione orario
+def syncTime(rtc):
+    try:
+        print("\nSincronizzazione orario in corso...")
+        # Aggiornamento orario
+        ntptime.settime()
+        epoch_local = utime.time() + 2 * 3600  # UTC+2
+        lt = utime.localtime(epoch_local)
+        rtc.datetime((lt[0], lt[1], lt[2], lt[6] + 1, lt[3], lt[4], lt[5], 0))
+        print("Orario sincronizzato!\n")
+    except Exception as e:
+        print("Errore nella sincronizzazione dell'orario!")
+        print(e, "\n")
+
+# Funzione connessione wifi
+def connWifi(ssid, psw):
+    # Configurazione wifi
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+
+    # Connessione wifi
+    wlan.connect(ssid, psw)
+    print("Connessione al wifi in corso...")
+
+    # Tentativi connessione
+    for i in range(10):
+        if wlan.isconnected():
+            print("Connesso al wifi!")
+            break
+        sleep(1)
+        print(f"Tentativo di connessione {i}")
+    return wlan
+
+# Funzione login
+def login(auth, key, psw):
+    
+    print("\nAutenticazione dispositivo in corso...")
+    
+    # Dichiarazione dati
+    payload = {"key": key, "psw": psw}
+    headers = {"Content-Type": "application/json"}
+    
+    # Dichiarazione dati risposta
+    resData = None
+    
+    # Gestione errori
+    try:
+        # Effettuazione richiesta
+        response = urequests.post(
+            f"{auth}/device-login?authType=device",
+            data=json.dumps(payload),
+            headers=headers
+        )
+        
+        # Controllo richiesta
+        if response.text and response.status_code == 200:
+            resData = json.loads(response.text)
+        else:
+            raise Exception("Errore nella richiesta!")
+
+        # Chiusura richiesta
+        response.close()
+        
+        print("Autenticazione dispositivo!\n")
+        
+        # Ritorno token
+        return resData["data"]
+    except Exception as e:
+        print("Errore nell'autenticazione del dispositivo!")
+        print(e, "\n")
+        return None
+    
+# Funzione connessione socket
+def connSocket(ip, port, token):
+    
+    print("\nConnessione al backend in corso...")
+    
+    # Creazione chiave casuale
+    key_bytes = bytes([urandom.getrandbits(8) for _ in range(16)])
+    key = ubinascii.b2a_base64(key_bytes).strip().decode()
+    
+    type_ = "device"
+
+    # Costruzione richiesta
+    req = (
+        f"GET /?token={token}&type={type_} HTTP/1.1\r\n"
+        f"Host: {ip}:{port}\r\n"
+        "Upgrade: websocket\r\n"
+        "Connection: Upgrade\r\n"
+        f"Sec-WebSocket-Key: {key}\r\n"
+        "Sec-WebSocket-Version: 13\r\n"
+        "\r\n"
+    )
+    
+    # Configurazione socket
+    s = sk.socket()
+    addr = sk.getaddrinfo(ip, port)[0][-1]
+
+    # Connessione socket
+    try:
+        s.connect(addr)
+        s.send(req.encode())
+        
+        # Ricevi la risposta dal server
+        resp = s.recv(1024)
+
+        # Verifica che la risposta contenga il codice 101 (Switching Protocols)
+        if b"101" in resp:
+            print("Connesso al backend!\n")
+            return s
+        else:
+            print("Non connesso al backend!")
+            s.close()
+            return None
+    except Exception as e:
+        print("Errore nella connessione con il backend!")
+        print(e, "\n")
+    return s
+
+# Funzione invio messaggi
+def ws_send(sock, msg):
+    payload = msg.encode()
+    payload_len = len(payload)
+
+    # Header del frame
+    header = bytearray()
+    header.append(0x81)  # FIN + opcode text frame
+
+    # Gestione lunghezza
+    if payload_len <= 125:
+        header.append(0x80 | payload_len)  # mascherato + lunghezza
+    elif payload_len <= 65535:
+        header.append(0x80 | 126)  # mascherato + 126 = lunghezza estesa 16bit
+        header.extend(struct.pack(">H", payload_len))
+    else:
+        header.append(0x80 | 127)  # mascherato + 127 = lunghezza estesa 64bit
+        header.extend(struct.pack(">Q", payload_len))
+
+    # Maschera (4 byte)
+    mask = bytes([urandom.getrandbits(8) for _ in range(4)])
+    header.extend(mask)
+
+    # Applica maschera al payload
+    masked_payload = bytes(b ^ mask[i % 4] for i, b in enumerate(payload))
+
+    # Invia frame completo
+    sock.send(header + masked_payload)
+
+# Funzione ricezione messaggi
+def ws_recv(sock, timeout=2):
+    sock.settimeout(timeout)  # timeout in secondi
+    try:
+        header = sock.recv(2)
+        if not header:
+            return None
+
+        fin_opcode = header[0]
+        masked_len = header[1]
+        length = masked_len & 0x7F
+
+        if length == 126:
+            ext = sock.recv(2)
+            length = struct.unpack(">H", ext)[0]
+        elif length == 127:
+            ext = sock.recv(8)
+            length = struct.unpack(">Q", ext)[0]
+
+        payload = sock.recv(length)
+
+        # Decodifica e restituisce
+        try:
+            text = payload.decode()
+            return json.loads(text)
+        except:
+            return payload
+
+    except Exception as e:
+        # Nessun messaggio o errore di timeout
+        if "ETIMEDOUT" in str(e) or "timeout" in str(e):
+            return None
+        else:
+            print("Errore in ws_recv:", e)
+            return None
+        
+# Funzione irrigazione
+def irrigation(pump, name, mode, date, token, api, sensor, sensorLum, sensorOut, humI = None, humMax = None, interval = None, duration = None):
+    # Dichiarazione tempo irrigazione
+    irrigationTime = 0
+    
+    # Creazione timer
+    tim = Timer(1)
+    
+    # Controllo dati
+    if duration:
+        # Definizione tempo irrigazione
+        irrigationTime = duration
+    elif humI and humMax and interval:
+        # Definizione tempo irrigazione
+        irrigationTime = round(((humMax - humI) * interval))
+    
+    # Calcolo humI1
+    humI1 = measure(sensor, 50) / 4095 * 100
+    
+    if irrigationTime > 0:
+        pump.on()
+        print(f"Irrigazione per {irrigationTime}s")
+        # tim.init(mode=Timer.ONE_SHOT, period=irrigationTime * 1000, callback=lambda t: pumpOff())
+        sleep(irrigationTime)
+        pumpOff()
+    
+    def pumpOff ():
+        pump.off()
+        
+        # Dichiarazione humI2
+        humI2 = 0
+        
+        while humI2 <= 0:
+            # Calcolo humI2
+            humI2 = measure(sensor, 50) / 4095 * 100
+            lum = measure(sensorLum, 50) / 4095 * 100
+
+        # Calcolo humE e temp
+        try:
+            sensorOut.measure()
+            temp = sensorOut.temperature()
+            humE = sensorOut.humidity()
+        except Exception as e:
+            print("Errore DHT:", e)
+            temp = None
+            humE = None
+            
+        # Dichiarazione payload e headers
+        payload = {}
+        headers = {}
+
+        # Inizializzazione url richiesta
+        reqUrl = ""
+            
+        # Controllo variazione umidità
+        if humI2 < (humMax * 80/100):
+            # Dichiarazione dati
+            payload = {"title":"ERRORE IRRIGAZIONE!", "description": f"Irrigazione di {irrigationTime}s del dispositivo {name} non effettuata correttamente, controllare tanica d'acqua!", "type": "error"}
+            headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
+
+            # Dichiarazione url richiesta
+            reqUrl = "notifications?authType=device"
+        else:
+            # Dichiarazione dati
+            payload = {"irrigatedAt": date, "interval": irrigationTime, "type": mode, "humIBefore": humI1, "humIAfter": humI2, "humE": humE, "lum": lum, "temp": temp}
+            headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
+
+            # Dichiarazione url richiesta
+            reqUrl = "irrigations?authType=device"
+        
+        # Gestione errori
+        try:
+            # Effettuazione richiesta
+            response = urequests.post(
+                f"{api}/{reqUrl}",
+                data=json.dumps(payload),
+                headers=headers
+            )
+            
+            # Controllo richiesta
+            if not response.text or response.status_code != 200:
+                raise Exception("Errore nella richiesta!")
+            
+            # Chiusura richiesta
+            response.close()
+            
+            # Ritorno dati
+            return None
+        except Exception as e:
+            print(e)
+            return None
+
+# Funzione calcolo misurazioni
+def measure(sensor, n=10):
+    total = 0
+    for _ in range(n):
+        total += sensor.read()
+    return total / n
+
+# Funzione invio misurazioni
+def sendMeasurement (api, token, humI, humE, temp, lum, date): 
+    # Dichiarazione dati
+    payload = {"measuredAt": date, "humI": humI, "humE": humE, "temp":temp, "lum":lum}
+    headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}"}
+    
+    # Gestione errori
+    try:
+        # Effettuazione richiesta
+        response = urequests.post(
+            f"{api}/measurements?authType=device",
+            data=json.dumps(payload),
+            headers=headers
+        )
+        
+        # Controllo richiesta
+        if not response.text or response.status_code != 200:
+            raise Exception("Errore nella richiesta!")
+        
+        # Chiusura richiesta
+        response.close()
+        
+        # Ritorno dati
+        return None
+    except Exception as e:
+        print(e)
+        return None
+
+# Funziona scrittura misurazioni
+def printMeasurement (humI, humE, temp, lum):
+    print(f"Umidità Interna: {round(humI)}%")
+    print(f"Umidità Esterna: {humE}%")
+    print(f"Temperatura: {temp}°C")
+    print(f"Luminosità: {round(lum)}%")
