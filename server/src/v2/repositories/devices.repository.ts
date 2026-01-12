@@ -117,6 +117,17 @@ class DevicesRepository {
         return device;
     }
 
+    // Funzione modifica dispositivo
+    async updateManyByUser(userId: string, payload: UpdateQuery<DevicesType>) {
+        // Modifica dispositivi database
+        await DevicesModel.updateMany({ userId }, payload, {
+            runValidators: true,
+        });
+
+        // Ritorno nullo
+        return null;
+    }
+
     // Funzione elimina dispositivo
     async deleteOne(id: string) {
         // Eliminazione dispositivo database

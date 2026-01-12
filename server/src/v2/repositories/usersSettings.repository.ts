@@ -46,6 +46,17 @@ class UserSettingsRepository {
         // Ritorno impostazioni utente
         return userSettings;
     }
+
+    // Funzione elimina impostazioni utente
+    async deleteOne(userId: string) {
+        // Modifica impostazioni utente database
+        const userSettings = await UserSettingsModel.findOneAndDelete({
+            userId,
+        });
+
+        // Ritorno impostazioni utente
+        return userSettings;
+    }
 }
 
 // Esportazione repository

@@ -62,6 +62,15 @@ class IrrigationsRepository {
         // Ritorno irrigazione
         return irrigation;
     }
+
+    // Funzione eliminazione misurazioni
+    async deleteManyByDevice(deviceId: string) {
+        // Modifica dispositivi database
+        await IrrigationsModel.deleteMany({ deviceId });
+
+        // Ritorno nullo
+        return null;
+    }
 }
 
 // Esportazione repository

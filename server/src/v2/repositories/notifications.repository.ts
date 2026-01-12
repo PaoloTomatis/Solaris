@@ -62,6 +62,15 @@ class NotificationsRepository {
         // Ritorno notifica
         return notification;
     }
+
+    // Funzione eliminazione misurazioni
+    async deleteManyByDevice(deviceId: string) {
+        // Modifica dispositivi database
+        await NotificationsModel.deleteMany({ deviceId });
+
+        // Ritorno nullo
+        return null;
+    }
 }
 
 // Esportazione repository

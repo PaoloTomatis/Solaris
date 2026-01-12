@@ -48,6 +48,17 @@ class DeviceSettingsRepository {
         // Ritorno impostazioni dispositivo
         return deviceSettings;
     }
+
+    // Funzione elimina impostazioni dispositivo
+    async deleteOne(deviceId: string) {
+        // Modifica impostazioni dispositivo database
+        const deviceSettings = await DeviceSettingsModel.findOneAndDelete({
+            deviceId,
+        });
+
+        // Ritorno impostazioni dispositivo
+        return deviceSettings;
+    }
 }
 
 // Esportazione repository

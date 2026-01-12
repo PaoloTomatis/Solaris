@@ -59,6 +59,15 @@ class MeasurementsRepository {
         // Ritorno misurazione
         return measurement;
     }
+
+    // Funzione eliminazione misurazioni
+    async deleteManyByDevice(deviceId: string) {
+        // Modifica dispositivi database
+        await MeasurementsModel.deleteMany({ deviceId });
+
+        // Ritorno nullo
+        return null;
+    }
 }
 
 // Esportazione repository
