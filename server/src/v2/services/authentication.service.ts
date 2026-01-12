@@ -354,9 +354,8 @@ async function logoutService(
             type: 'active',
         });
 
-        //TODO Errore custom
         // Controllo sessione
-        if (!session) throw new Error('Invalid authentication');
+        if (!session) return null;
 
         // Aggiornamento sessione database
         await sessionsRepository.updateOne('revoked', session._id);
