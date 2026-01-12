@@ -1,5 +1,7 @@
 // Importazione moduli
 import { model, Schema, type ObjectId } from 'mongoose';
+import usersSettingsRepository from '../repositories/usersSettings.repository.js';
+import devicesRepository from '../repositories/devices.repository.js';
 
 // Tipo utenti
 interface UsersType {
@@ -22,6 +24,32 @@ const UsersSchema = new Schema(
     },
     { timestamps: true }
 );
+
+// Middleware creazione utente
+UsersSchema.post('save', async (doc, next) => {
+    // Creazione impostazioni utente database
+    await usersSettingsRepository.createOne({ userId: doc._id.toString() });
+
+    // Prossimo middleware
+    next();
+});
+
+// Middleware eliminazione utente
+UsersSchema.post('findOneAndDelete', async (doc, next) => {
+    // Controllo doc
+    if (!doc) next();
+
+    // Eliminazione impostazioni utente database
+    await usersSettingsRepository.deleteOne(doc._id.toString() as string);
+
+    // Modifica dispositivi database
+    await devicesRepository.updateManyByUser(doc._id.toString() as string, {
+        userId: null,
+    });
+
+    // Prossimo middleware
+    next();
+});
 
 // Esportazione modello utenti
 export default model<UsersType>('Users', UsersSchema);
