@@ -54,8 +54,12 @@ async function getMeSettingsService(device?: DeviceType) {
     // Controllo dispositivo
     if (!device) throw new Error('Invalid authentication');
 
+    //TODO Errore custom
+    // Controllo id utente
+    if (!device.userId) throw new Error('The device must be owned by a user');
+
     // Richiesta utente database
-    const user = await usersRepository.findOneById(device.userId || '');
+    const user = await usersRepository.findOneById(device.userId);
 
     // Controllo utente
     if (!user) throw new Error('The device must be owned by a user');
