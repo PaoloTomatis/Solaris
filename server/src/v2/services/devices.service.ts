@@ -83,7 +83,10 @@ async function postDevicesService(
     // Dichiarazione key
     const key = body.key ?? v4();
     // Dichiarazione psw
-    const psw = body.psw ?? (await hash(pswGenerator(15), 10));
+    let psw = body.psw ?? pswGenerator(15, true);
+
+    // Conversione psw
+    psw = await hash(psw, 10);
 
     // Richiesta dispositivo
     const device = await devicesRepository.createOne({ ...body, psw, key });

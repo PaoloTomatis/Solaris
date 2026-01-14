@@ -22,7 +22,7 @@ interface DevicesType {
 // Schema dispositivi
 const DevicesSchema = new Schema(
     {
-        userId: { type: Schema.Types.ObjectId, ref: 'Devices', required: true },
+        userId: { type: Schema.Types.ObjectId, ref: 'Users' },
         key: { type: String, required: true, unique: true },
         name: { type: String, default: 'My Device' },
         psw: { type: String, required: true },

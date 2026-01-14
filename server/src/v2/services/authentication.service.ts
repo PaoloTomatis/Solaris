@@ -122,16 +122,21 @@ async function devicesLoginService(
     );
 
     // Conversione dispositivo minimale
-    const minimalParsedDevice = dataParser(device, [
-        'key',
-        'name',
-        'psw',
-        'prototypeModel',
-        'schemaVersion',
-        'activatedAt',
-        'updatedAt',
-        'createdAt',
-    ]);
+    const minimalParsedDevice = dataParser(
+        device.toObject(),
+        [
+            'key',
+            'name',
+            'psw',
+            'prototypeModel',
+            'schemaVersion',
+            'activatedAt',
+            'updatedAt',
+            'createdAt',
+            '__v',
+        ],
+        true
+    );
 
     // Richiesta sessione database
     const sessions = await sessionsRepository.findManyByIp(
