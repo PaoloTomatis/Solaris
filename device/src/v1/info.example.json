@@ -1,6 +1,7 @@
 {
     "id": 1,
     "key": "1234567890abcdefghilmnopqrstuvz",
+    "psw": "123prova!",
     "prototype": "Solaris Vega V1",
     "mode": "config"
 }
