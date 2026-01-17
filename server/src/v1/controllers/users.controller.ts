@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import resHandler from '../../v1/utils/responseHandler.js';
 import UserModel from '../models/User.model.js';
 import bcrypt from 'bcrypt';
-import type { UserType } from '../../global/types/types.js';
+import type { UserType } from '../types/types.js';
 
 // Gestore get user
 async function getUser(req: Request, res: Response): Promise<Response> {

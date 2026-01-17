@@ -1,6 +1,6 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
-import type { UserType } from '../../global/types/types.js';
+import type { UserType } from '../types/types.js';
 import type { DataType } from '../models/Data.model.js';
 import resHandler from '../../v1/utils/responseHandler.js';
 import DeviceModel from '../models/Device.model.js';
