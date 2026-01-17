@@ -6,7 +6,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import Notifications from '../components/Notifications.comp';
+import Notifications from '../../components/Notifications.comp';
 
 // Tipo tipi notifications
 type NotificationsType = 'info' | 'error' | 'warning' | 'success';
@@ -49,7 +49,7 @@ function NotificationsProvider({ children }: { children: ReactNode }) {
     function notify(
         title: string,
         desc?: string,
-        type?: 'info' | 'error' | 'warning' | 'success'
+        type?: 'info' | 'error' | 'warning' | 'success',
     ) {
         setNotifications({ title, desc, type });
         setShow(true);
@@ -78,7 +78,7 @@ function useNotifications() {
     // Controllo contesto
     if (!context) {
         throw new Error(
-            'useNotifications deve essere usato in un NotificationsProvider'
+            'useNotifications deve essere usato in un NotificationsProvider',
         );
     }
     return context;

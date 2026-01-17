@@ -6,7 +6,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import Popup from '../components/Popup.comp';
+import Popup from '../../components/Popup.comp';
 
 // Tipo tipi popup
 type PopupType = 'info' | 'error' | 'warning' | 'success';
@@ -27,7 +27,7 @@ const PopupContext = createContext<
           children: ReactNode,
           desc?: string,
           type?: PopupType,
-          onClick?: () => void | Promise<void>
+          onClick?: () => void | Promise<void>,
       ) => void)
     | null
 >(null);
@@ -52,7 +52,7 @@ function PopupProvider({ children }: { children: ReactNode }) {
         children: ReactNode,
         desc?: string,
         type?: 'info' | 'error' | 'warning' | 'success',
-        onClick?: () => void | Promise<void>
+        onClick?: () => void | Promise<void>,
     ) {
         setPopup({ title, desc, type, children, onClick });
         setShow(true);

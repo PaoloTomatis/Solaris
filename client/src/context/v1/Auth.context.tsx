@@ -10,7 +10,7 @@ import type {
     User as UserType,
     UserSettings as UserSettingsType,
     APIResponse,
-} from '../utils/type.utils';
+} from '../../utils/v1/type.utils';
 import axios from 'axios';
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
@@ -26,24 +26,24 @@ interface AuthContextType {
         email: string,
         psw: string,
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
     register: (
         email: string,
         psw: string,
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
     logout: (
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
     deleteAccount: (
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
     refreshToken: (
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
     loading: boolean;
 }
@@ -148,7 +148,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
         // Ricavazione impostazioni
         const loadedSettings: UserSettingsType | undefined = JSON.parse(
-            localStorage.getItem('settings') || '{}'
+            localStorage.getItem('settings') || '{}',
         );
 
         // Check token
@@ -178,7 +178,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         // Impostazione modalità stile
         document.documentElement.classList.toggle(
             'dark',
-            settings?.styleMode == 'dark'
+            settings?.styleMode == 'dark',
         );
         // Controllo impostazioni
         if (settings) {
@@ -195,7 +195,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         email: string,
         psw: string,
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) {
         // Gestione errori
         try {
@@ -204,7 +204,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // Richiesta login
             const res = await axios.post<Login | undefined>(
                 `${import.meta.env.VITE_AUTH_URL}/login?authType=user`,
-                { email, psw, type: 'user' }
+                { email, psw, type: 'user' },
             );
 
             // Controllo dati
@@ -221,13 +221,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
                     headers: {
                         Authorization: `Bearer ${res.data.data.accessToken}`,
                     },
-                }
+                },
             );
 
             // Controllo dati
             if (!res2.data || !res2.data?.success)
                 throw new Error(
-                    res2.data?.message || 'Errore nella richiesta!'
+                    res2.data?.message || 'Errore nella richiesta!',
                 );
 
             // Controllo utente
@@ -237,7 +237,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem('accessToken', res.data.data.accessToken);
                 localStorage.setItem(
                     'settings',
-                    JSON.stringify(res2.data.data || '{}')
+                    JSON.stringify(res2.data.data || '{}'),
                 );
                 setSettings(res2.data.data);
                 // Impostazione utente
@@ -269,7 +269,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         email: string,
         psw: string,
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) {
         // Gestione errori
         try {
@@ -282,7 +282,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
                     email,
                     psw,
                     type: 'user',
-                }
+                },
             );
 
             // Controllo dati
@@ -312,7 +312,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     // Funzione logout
     async function logout(
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) {
         // Gestione errori
         try {
@@ -320,7 +320,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             // Richiesta logout
             const res = await axios.get<Register | null>(
-                `${import.meta.env.VITE_AUTH_URL}/logout`
+                `${import.meta.env.VITE_AUTH_URL}/logout`,
             );
 
             // Controllo dati
@@ -358,7 +358,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     // Funzione eliminazione account
     async function deleteAccount(
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) {
         // Gestione errori
         try {
@@ -367,7 +367,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
             // Richiesta logout
             const res = await axios.delete<Register | null>(
                 `${import.meta.env.VITE_API_URL}/user?authType=user`,
-                { headers: { Authorization: `Bearer ${accessToken}` } }
+                { headers: { Authorization: `Bearer ${accessToken}` } },
             );
 
             // Controllo dati
@@ -404,14 +404,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     // Funzione rinnovo token
     async function refreshToken(
-        setError: React.Dispatch<React.SetStateAction<string>>
+        setError: React.Dispatch<React.SetStateAction<string>>,
     ) {
         // Gestione errori
         try {
             // Richiesta logout
             const res = await axios.get<Refresh | null>(
                 `${import.meta.env.VITE_AUTH_URL}/refresh`,
-                { headers: { Authorization: `Bearer ${accessToken}` } }
+                { headers: { Authorization: `Bearer ${accessToken}` } },
             );
 
             // Controllo dati
