@@ -1,5 +1,6 @@
 // Importazione moduli
 import type { ObjectId } from 'mongoose';
+import type { WebSocket } from 'ws';
 
 // Interfaccia utente
 interface UserType {
