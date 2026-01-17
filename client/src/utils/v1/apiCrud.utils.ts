@@ -8,7 +8,7 @@ async function getData<T>(
     accessToken: string,
     link: string,
     queries?: string,
-    single = false
+    single = false,
 ) {
     // Tipo output
     interface FullAPIResponse extends APIResponse {
@@ -22,7 +22,7 @@ async function getData<T>(
             `${import.meta.env.VITE_API_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
+            { headers: { Authorization: `Bearer ${accessToken}` } },
         );
 
         // Controllo dati
@@ -64,7 +64,7 @@ async function patchData<T>(
     accessToken: string,
     link: string,
     body?: any,
-    params?: string
+    params?: string,
 ) {
     // Tipo output
     interface FullAPIResponse extends APIResponse {
@@ -79,7 +79,7 @@ async function patchData<T>(
                 params ? `/${params}` : ''
             }?authType=user`,
             body,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
+            { headers: { Authorization: `Bearer ${accessToken}` } },
         );
 
         // Controllo dati
@@ -110,7 +110,7 @@ async function patchData<T>(
 async function deleteData<T>(
     accessToken: string,
     link: string,
-    queries?: string
+    queries?: string,
 ) {
     // Gestione errori
     try {
@@ -124,7 +124,7 @@ async function deleteData<T>(
             `${import.meta.env.VITE_API_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
+            { headers: { Authorization: `Bearer ${accessToken}` } },
         );
 
         // Controllo dati
