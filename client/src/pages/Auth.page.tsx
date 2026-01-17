@@ -22,15 +22,11 @@ function Auth() {
     // Navigatore
     const navigator = useNavigate();
     // Stato email
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState({ text: '', error: '' });
     // Stato password
-    const [password, setPassword] = useState('');
+    const [password, setPassword] = useState({ text: '', error: '' });
     // Stato caricamento
     const [loading, setLoading] = useState(false);
-    // Stato errore email
-    const [emailError, setEmailError] = useState('');
-    // Stato errore password
-    const [passwordError, setPasswordError] = useState('');
     // Stato errore
     const [error, setError] = useState('');
     // Tipo autenticazione
@@ -69,45 +65,51 @@ function Auth() {
                         {/* Input email */}
                         <Input
                             placeholder="Inserisci l'Email"
-                            value={email}
-                            setValue={setEmail}
-                            error={emailError}
-                            setError={setEmailError}
+                            value={email.text}
+                            setValue={(text) => setEmail({ ...email, text })}
+                            error={email.error}
+                            setError={(error) => setEmail({ ...email, error })}
                         />
                         {/* Input password */}
                         <Input
                             placeholder="Inserisci la Password"
-                            value={password}
-                            setValue={setPassword}
+                            value={password.text}
+                            setValue={(text) =>
+                                setPassword({ ...password, text })
+                            }
                             type="password"
-                            error={passwordError}
-                            setError={setPasswordError}
+                            error={password.error}
+                            setError={(error) =>
+                                setPassword({ ...password, error })
+                            }
                         />
                         {/* Pulsante invio */}
                         <Button
                             onClick={async () => {
                                 if (
                                     !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(
-                                        email
+                                        email.text
                                     )
                                 ) {
-                                    setEmailError(
-                                        "L'email deve essere formata nome@domin.io"
-                                    );
+                                    setEmail({
+                                        ...email,
+                                        error: "L'email deve essere formata nome@domin.io",
+                                    });
                                 }
 
                                 if (
                                     !/^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,255}$/.test(
-                                        password
+                                        password.text
                                     )
                                 ) {
-                                    setPasswordError(
-                                        'La password deve contenere 8 caratteri di cui uno speciale e un numero'
-                                    );
+                                    setPassword({
+                                        ...password,
+                                        error: 'La password deve contenere 8 caratteri di cui uno speciale e un numero',
+                                    });
                                 } else {
                                     await register(
-                                        email,
-                                        password,
+                                        email.text,
+                                        password.text,
                                         setLoading,
                                         setError
                                     );
@@ -120,8 +122,8 @@ function Auth() {
                                                 : ''
                                         }`
                                     );
-                                    setEmail('');
-                                    setPassword('');
+                                    setEmail({ ...email, text: '' });
+                                    setPassword({ ...password, text: '' });
                                 }
                             }}
                             className="mt-[10px] bg-secondary dark:bg-primary"
@@ -157,32 +159,36 @@ function Auth() {
                         {/* Input email */}
                         <Input
                             placeholder="Inserisci l'Email"
-                            value={email}
-                            setValue={setEmail}
-                            error={emailError}
-                            setError={setEmailError}
+                            value={email.text}
+                            setValue={(text) => setEmail({ ...email, text })}
+                            error={email.error}
+                            setError={(error) => setEmail({ ...email, error })}
                         />
                         {/* Input password */}
                         <Input
                             placeholder="Inserisci la Password"
-                            value={password}
-                            setValue={setPassword}
+                            value={password.text}
+                            setValue={(text) =>
+                                setPassword({ ...password, text })
+                            }
                             type="password"
-                            error={passwordError}
-                            setError={setPasswordError}
+                            error={password.error}
+                            setError={(error) =>
+                                setPassword({ ...password, error })
+                            }
                         />
                         {/* Pulsante invio */}
                         <Button
                             onClick={async () => {
                                 await login(
-                                    email,
-                                    password,
+                                    email.text,
+                                    password.text,
                                     setLoading,
                                     setError
                                 );
                                 navigator(page || '/account');
-                                setEmail('');
-                                setPassword('');
+                                setEmail({ ...email, text: '' });
+                                setPassword({ ...password, text: '' });
                             }}
                             className="mt-[10px] bg-secondary dark:bg-primary"
                         >
