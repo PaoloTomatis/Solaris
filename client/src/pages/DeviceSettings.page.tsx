@@ -1,10 +1,10 @@
 // Importazione moduli
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../context/Auth.context';
-import { getData, patchData, deleteData } from '../utils/apiCrud.utils';
-import { usePopup } from '../context/Popup.context';
-import { useNotifications } from '../context/Notifications.context';
+import { useAuth } from '../context/v1/Auth.context';
+import { getData, patchData, deleteData } from '../utils/v1/apiCrud.utils';
+import { usePopup } from '../context/global/Popup.context';
+import { useNotifications } from '../context/global/Notifications.context';
 import Page from '../components/Page.comp';
 import TopBar from '../components/TopBar.comp';
 import BottomBar from '../components/BottomBar.comp';
@@ -12,8 +12,8 @@ import Info from '../components/Info.comp';
 import Separator from '../components/Separator.comp';
 import InputCont from '../components/InputCont.comp';
 import Loading from '../components/Loading.comp';
-import type { Device } from '../utils/type.utils';
-import type { DeviceSettings as DeviceSettingsType } from '../utils/type.utils';
+import type { Device } from '../utils/v1/type.utils';
+import type { DeviceSettings as DeviceSettingsType } from '../utils/v1/type.utils';
 // Importazione immagini
 // import EditIcon from '../assets/icons/edit.svg?react';
 import LogoIcon from '../assets/images/logo.svg?react';
@@ -69,14 +69,14 @@ function DeviceSettings() {
                     await getData(
                         setOriginalSettings,
                         accessToken,
-                        'device_settings'
+                        'device_settings',
                     );
                     await getData(
                         setDevice,
                         accessToken,
                         'devices',
                         `id=${deviceId}`,
-                        true
+                        true,
                     );
                 }
             } catch (error: any) {
@@ -201,7 +201,7 @@ function DeviceSettings() {
                             value={settings?.humMin}
                             setValue={(humMin) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, humMin } : prev
+                                    prev ? { ...prev, humMin } : prev,
                                 )
                             }
                         >
@@ -213,7 +213,7 @@ function DeviceSettings() {
                             value={settings?.humMax}
                             setValue={(humMax) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, humMax } : prev
+                                    prev ? { ...prev, humMax } : prev,
                                 )
                             }
                         >
@@ -225,7 +225,7 @@ function DeviceSettings() {
                             value={settings?.interval}
                             setValue={(interval) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, interval } : prev
+                                    prev ? { ...prev, interval } : prev,
                                 )
                             }
                         >
@@ -254,7 +254,7 @@ function DeviceSettings() {
                                         interval:
                                             originalSettings?.interval || 0,
                                     });
-                                }
+                                },
                             );
                         }
                     }}
@@ -279,7 +279,7 @@ function DeviceSettings() {
                                         await deleteData(
                                             accessToken,
                                             'data',
-                                            `deviceId=${deviceId}`
+                                            `deviceId=${deviceId}`,
                                         );
                                         // Modifica dispositivo
                                         await patchData(
@@ -288,7 +288,7 @@ function DeviceSettings() {
                                             {
                                                 userId: null,
                                             },
-                                            deviceId
+                                            deviceId,
                                         );
                                         // Reindirizzamento
                                         navigator('/devices');
@@ -297,11 +297,11 @@ function DeviceSettings() {
                                             'ERRORE',
                                             error?.message ||
                                                 'Errore interno del server',
-                                            'error'
+                                            'error',
                                         );
                                     }
                                 }
-                            }
+                            },
                         );
                     }}
                     name="Scollega Device"
@@ -325,7 +325,7 @@ function DeviceSettings() {
                                         await deleteData(
                                             accessToken,
                                             'data',
-                                            `deviceId=${deviceId}`
+                                            `deviceId=${deviceId}`,
                                         );
                                     }
                                 } catch (error: any) {
@@ -333,10 +333,10 @@ function DeviceSettings() {
                                         'ERRORE',
                                         error?.message ||
                                             'Errore interno del server',
-                                        'error'
+                                        'error',
                                     );
                                 }
-                            }
+                            },
                         );
                     }}
                     name="Elimina Dati"
@@ -369,7 +369,7 @@ function DeviceSettings() {
                                                 interval:
                                                     settings?.interval || 0,
                                             },
-                                            deviceId
+                                            deviceId,
                                         );
                                         navigator(`/dashboard/${deviceId}`);
                                     } catch (error: any) {
@@ -377,11 +377,11 @@ function DeviceSettings() {
                                             'ERRORE',
                                             error?.message ||
                                                 'Errore interno del server',
-                                            'error'
+                                            'error',
                                         );
                                     }
                                 }
-                            }
+                            },
                         );
                     }}
                     name="Salva"

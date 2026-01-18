@@ -4,14 +4,14 @@ import { useParams } from 'react-router-dom';
 import BottomBar from '../components/BottomBar.comp';
 import TopBar from '../components/TopBar.comp';
 import Page from '../components/Page.comp';
-import logTitle from '../utils/logTitle.utils';
+import logTitle from '../utils/global/logTitle.utils';
 import LogComp from '../components/Log.comp';
 import Separator from '../components/Separator.comp';
 import Loading from '../components/Loading.comp';
-import type { Data as LogType } from '../utils/type.utils';
-import { getData } from '../utils/apiCrud.utils';
-import { useAuth } from '../context/Auth.context';
-import { useNotifications } from '../context/Notifications.context';
+import type { Data as LogType } from '../utils/v1/type.utils';
+import { getData } from '../utils/v1/apiCrud.utils';
+import { useAuth } from '../context/v1/Auth.context';
+import { useNotifications } from '../context/global/Notifications.context';
 
 // Pagina log
 function Logs() {

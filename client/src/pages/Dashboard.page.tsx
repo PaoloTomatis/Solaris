@@ -7,15 +7,15 @@ import Data from '../components/Data.comp';
 import Log from '../components/Log.comp';
 import Separator from '../components/Separator.comp';
 import Info from '../components/Info.comp';
-import logTitle from '../utils/logTitle.utils';
+import logTitle from '../utils/global/logTitle.utils';
 import Loading from '../components/Loading.comp';
 import type {
     Device as DeviceType,
     Data as LogType,
-} from '../utils/type.utils';
-import { useAuth } from '../context/Auth.context';
-import { getData } from '../utils/apiCrud.utils';
-import { useNotifications } from '../context/Notifications.context';
+} from '../utils/v1/type.utils';
+import { useAuth } from '../context/v1/Auth.context';
+import { getData } from '../utils/v1/apiCrud.utils';
+import { useNotifications } from '../context/global/Notifications.context';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -78,25 +78,25 @@ function Dashboard() {
                         setLogs,
                         accessToken,
                         'data',
-                        `limit=3&deviceId=${deviceId}`
+                        `limit=3&deviceId=${deviceId}`,
                     );
                     await getData(
                         setDevice,
                         accessToken,
                         'devices',
                         `id=${deviceId}`,
-                        true
+                        true,
                     );
                     await getData(
                         setRealTimeData,
                         accessToken,
                         'data',
                         `type=data_auto&deviceId=${deviceId}&limit=1`,
-                        true
+                        true,
                     );
 
                     setRealTimeData((prev) =>
-                        prev ? { ...prev, date: new Date(prev.date) } : null
+                        prev ? { ...prev, date: new Date(prev.date) } : null,
                     );
                 }
             } catch (error: any) {
@@ -108,7 +108,7 @@ function Dashboard() {
 
         // Apertura WebSocket
         const socket = new WebSocket(
-            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`
+            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`,
         );
 
         // Controllo messaggi

@@ -1,14 +1,14 @@
 // Importazione moduli
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getData } from '../utils/apiCrud.utils';
-import { useAuth } from '../context/Auth.context';
-import { useNotifications } from '../context/Notifications.context';
+import { getData } from '../utils/v1/apiCrud.utils';
+import { useAuth } from '../context/v1/Auth.context';
+import { useNotifications } from '../context/global/Notifications.context';
 import Page from '../components/Page.comp';
 import Device from '../components/Device.comp';
 import BottomBar from '../components/BottomBar.comp';
 import Loading from '../components/Loading.comp';
-import type { Device as DeviceType } from '../utils/type.utils';
+import type { Device as DeviceType } from '../utils/v1/type.utils';
 // Importazione immagini
 import AddIcon from '../assets/icons/add.svg?react';
 
@@ -48,7 +48,7 @@ function Devices() {
 
         // Apertura WebSocket
         const socket = new WebSocket(
-            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`
+            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`,
         );
 
         // Controllo messaggi
@@ -64,9 +64,9 @@ function Devices() {
                         ? prevDevices.map((prevDevice) =>
                               prevDevice.id == eventData?.deviceId
                                   ? { ...prevDevice, status: true }
-                                  : prevDevice
+                                  : prevDevice,
                           )
-                        : null
+                        : null,
                 );
             }
         };

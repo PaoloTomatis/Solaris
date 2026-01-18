@@ -5,8 +5,8 @@ import Info from '../components/Info.comp';
 import Page from '../components/Page.comp';
 import Separator from '../components/Separator.comp';
 import Loading from '../components/Loading.comp';
-import { useAuth } from '../context/Auth.context';
-import { useNotifications } from '../context/Notifications.context';
+import { useAuth } from '../context/v1/Auth.context';
+import { useNotifications } from '../context/global/Notifications.context';
 // Importazione icone
 import SettingsIcon from '../assets/icons/settings.svg?react';
 import CreditsIcon from '../assets/icons/credits.svg?react';

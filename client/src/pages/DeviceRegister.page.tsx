@@ -1,9 +1,9 @@
 // Importazione moduli
 import { useState, useEffect } from 'react';
-import { patchData } from '../utils/apiCrud.utils';
-import { useAuth } from '../context/Auth.context';
+import { patchData } from '../utils/v1/apiCrud.utils';
+import { useAuth } from '../context/v1/Auth.context';
 import { useNavigate } from 'react-router-dom';
-import { useNotifications } from '../context/Notifications.context';
+import { useNotifications } from '../context/global/Notifications.context';
 import Page from '../components/Page.comp';
 import Input from '../components/Input.comp';
 import Button from '../components/Button.comp';
@@ -82,7 +82,7 @@ function DeviceRegister() {
                                     `activate_device/${key}`,
                                     {
                                         name,
-                                    }
+                                    },
                                 );
 
                                 navigator('/devices');

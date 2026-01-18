@@ -1,8 +1,8 @@
 // Importazione moduli
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../context/Auth.context';
-import { useNotifications } from '../context/Notifications.context';
+import { useAuth } from '../context/v1/Auth.context';
+import { useNotifications } from '../context/global/Notifications.context';
 import BottomBar from '../components/BottomBar.comp';
 import TopBar from '../components/TopBar.comp';
 import Page from '../components/Page.comp';
@@ -40,7 +40,7 @@ function Controls() {
     useEffect(() => {
         // Apertura connessione
         socketRef.current = new WebSocket(
-            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`
+            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`,
         );
 
         // Controllo errori
@@ -58,7 +58,7 @@ function Controls() {
                 notify(
                     'INVIO COMANDO',
                     'Comando di irrigazione inviato correttamente!',
-                    'success'
+                    'success',
                 );
                 // Impostazione tempo irrigazione e caricamento
                 setLoading(false);
@@ -116,7 +116,7 @@ function Controls() {
                                         completed: true,
                                         deviceId,
                                     },
-                                })
+                                }),
                             );
                         }
                     } catch (error: any) {

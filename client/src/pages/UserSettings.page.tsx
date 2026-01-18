@@ -1,11 +1,11 @@
 // Importazione moduli
 import { useEffect, useState } from 'react';
-import { useAuth } from '../context/Auth.context';
-import { usePopup } from '../context/Popup.context';
-import { useNotifications } from '../context/Notifications.context';
+import { useAuth } from '../context/v1/Auth.context';
+import { usePopup } from '../context/global/Popup.context';
+import { useNotifications } from '../context/global/Notifications.context';
 import { useNavigate } from 'react-router-dom';
-import type { UserSettings as UserSettingsType } from '../utils/type.utils';
-import { patchData } from '../utils/apiCrud.utils';
+import type { UserSettings as UserSettingsType } from '../utils/v1/type.utils';
+import { patchData } from '../utils/v1/apiCrud.utils';
 import Page from '../components/Page.comp';
 import TopBar from '../components/TopBar.comp';
 import BottomBar from '../components/BottomBar.comp';
@@ -103,7 +103,7 @@ function UserSettings() {
                     value={settings?.styleMode}
                     setValue={(styleMode) =>
                         setSettings((prev) =>
-                            prev ? { ...prev, styleMode } : prev
+                            prev ? { ...prev, styleMode } : prev,
                         )
                     }
                 >
@@ -119,7 +119,7 @@ function UserSettings() {
                     value={settings?.units}
                     setValue={(units) =>
                         setSettings((prev) =>
-                            prev ? { ...prev, units } : prev
+                            prev ? { ...prev, units } : prev,
                         )
                     }
                 >
@@ -138,7 +138,7 @@ function UserSettings() {
                                 'error',
                                 () => {
                                     setSettings(originalSettings);
-                                }
+                                },
                             );
                         }
                     }}
@@ -169,18 +169,18 @@ function UserSettings() {
                                             {
                                                 styleMode: settings?.styleMode,
                                                 units: settings?.units,
-                                            }
+                                            },
                                         );
                                         navigator('/account');
                                         setOriginalSettings(settings);
                                     } catch (error: any) {
                                         setError(
                                             error?.message ||
-                                                'Errore interno del server'
+                                                'Errore interno del server',
                                         );
                                     }
                                 }
-                            }
+                            },
                         );
                     }}
                     name="Salva"

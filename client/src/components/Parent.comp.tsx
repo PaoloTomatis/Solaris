@@ -2,8 +2,8 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../context/Auth.context';
-import { NotificationsProvider } from '../context/Notifications.context';
-import { PopupProvider } from '../context/Popup.context';
+import { NotificationsProvider } from '../context/global/Notifications.context';
+import { PopupProvider } from '../context/global/Popup.context';
 
 // Componente genitore
 const Parent = () => {
@@ -33,7 +33,7 @@ const Parent = () => {
         return (
             <Navigate
                 to={`/warning?page=${encodeURIComponent(
-                    location.pathname + location.search
+                    location.pathname + location.search,
                 )}`}
                 replace
             />

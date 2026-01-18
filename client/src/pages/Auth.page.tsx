@@ -1,13 +1,13 @@
 // Importazione moduli
 import { useState, useEffect } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/Auth.context';
+import { useAuth } from '../context/v1/Auth.context';
 import Input from '../components/Input.comp';
 import Button from '../components/Button.comp';
 import BottomBar from '../components/BottomBar.comp';
 import Page from '../components/Page.comp';
 import Loading from '../components/Loading.comp';
-import { useNotifications } from '../context/Notifications.context';
+import { useNotifications } from '../context/global/Notifications.context';
 
 // Pagina autenticazione
 function Auth() {
@@ -88,7 +88,7 @@ function Auth() {
                             onClick={async () => {
                                 if (
                                     !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(
-                                        email.text
+                                        email.text,
                                     )
                                 ) {
                                     setEmail({
@@ -99,7 +99,7 @@ function Auth() {
 
                                 if (
                                     !/^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,255}$/.test(
-                                        password.text
+                                        password.text,
                                     )
                                 ) {
                                     setPassword({
@@ -111,16 +111,16 @@ function Auth() {
                                         email.text,
                                         password.text,
                                         setLoading,
-                                        setError
+                                        setError,
                                     );
                                     navigator(
                                         `/auth/login${
                                             page
                                                 ? `?page=${encodeURIComponent(
-                                                      page
+                                                      page,
                                                   )}`
                                                 : ''
-                                        }`
+                                        }`,
                                     );
                                     setEmail({ ...email, text: '' });
                                     setPassword({ ...password, text: '' });
@@ -184,7 +184,7 @@ function Auth() {
                                     email.text,
                                     password.text,
                                     setLoading,
-                                    setError
+                                    setError,
                                 );
                                 navigator(page || '/account');
                                 setEmail({ ...email, text: '' });
