@@ -1,7 +1,7 @@
 // Importazione moduli
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { AuthProvider } from '../context/Auth.context';
+import { AuthProvider } from '../context/v1/Auth.context';
 import { NotificationsProvider } from '../context/global/Notifications.context';
 import { PopupProvider } from '../context/global/Popup.context';
 

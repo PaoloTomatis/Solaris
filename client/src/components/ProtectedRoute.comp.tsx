@@ -1,7 +1,7 @@
 // Importazione moduli
 import { type ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/Auth.context';
+import { useAuth } from '../context/v1/Auth.context';
 import Loading from './Loading.comp';
 
 // Componente dati
@@ -18,8 +18,8 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
         if (!loading && !accessToken) {
             navigator(
                 `/auth?page=${encodeURIComponent(
-                    location.pathname + location.search
-                )}`
+                    location.pathname + location.search,
+                )}`,
             );
         }
     }, [loading]);
