@@ -1,8 +1,13 @@
 // Importazione moduli
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../context/v1/Auth.context';
-import { getData, patchData, deleteData } from '../../utils/v1/apiCrud.utils';
+import { useAuth } from '../../context/v2/Auth.context';
+import {
+    getData,
+    getOneData,
+    patchData,
+    deleteData,
+} from '../../utils/v2/apiCrud.utils';
 import { usePopup } from '../../context/global/Popup.context';
 import { useNotifications } from '../../context/global/Notifications.context';
 import Page from '../../components/global/Page.comp';
@@ -12,8 +17,10 @@ import Info from '../../components/global/Info.comp';
 import Separator from '../../components/global/Separator.comp';
 import InputCont from '../../components/global/InputCont.comp';
 import Loading from '../../components/global/Loading.comp';
-import type { Device } from '../../utils/v1/type.utils';
-import type { DeviceSettings as DeviceSettingsType } from '../../utils/v1/type.utils';
+import type {
+    DeviceSettings as DeviceSettingsType,
+    Device as DeviceType,
+} from '../../utils/v2/type.utils';
 // Importazione immagini
 // import EditIcon from '../assets/icons/edit.svg?react';
 import LogoIcon from '../assets/images/logo.svg?react';
@@ -40,23 +47,18 @@ function DeviceSettings() {
     // Stato impostazioni originali
     const [originalSettings, setOriginalSettings] =
         useState<DeviceSettingsType | null>(null);
-    // Stato dispositivo
-    const [device, setDevice] = useState<Device | null>(null);
     // Stato colore icona
     const [iconColor, setIconColor] = useState('#00d68b');
     // Stato salvataggio
     const [saved, setSaved] = useState(true);
+    // Stato dispositivo
+    const [device, setDevice] = useState<DeviceType | null>(null);
     // Stato errore
     const [error, setError] = useState('');
     // Stato caricamento
     const [loading, setLoading] = useState(true);
     // Stato impostazioni
-    const [settings, setSettings] = useState<{
-        mode: 'auto' | 'config' | 'safe';
-        humMin: number;
-        humMax: number;
-        interval: number;
-    } | null>(null);
+    const [settings, setSettings] = useState<DeviceSettingsType | null>(null);
 
     // Caricamento pagina
     useEffect(() => {
@@ -67,16 +69,14 @@ function DeviceSettings() {
                 // Controllo token
                 if (accessToken) {
                     await getData(
+                        accessToken,
+                        `device-settings/${deviceId}`,
                         setOriginalSettings,
-                        accessToken,
-                        'device_settings',
                     );
-                    await getData(
-                        setDevice,
+                    await getOneData(
                         accessToken,
-                        'devices',
-                        `id=${deviceId}`,
-                        true,
+                        `devices/${deviceId}`,
+                        setDevice,
                     );
                 }
             } catch (error: any) {
@@ -100,26 +100,13 @@ function DeviceSettings() {
     }, [device]);
 
     useEffect(() => {
-        setSettings({
-            mode: device?.mode || 'safe',
-            humMin: originalSettings?.humMin || 0,
-            humMax: originalSettings?.humMax || 0,
-            interval: originalSettings?.interval || 0,
-        });
-    }, [device, originalSettings]);
+        setSettings(originalSettings);
+    }, [originalSettings]);
 
     // Controllo salvataggio
     useEffect(() => {
         // Controllo impostazioni
-        if (
-            JSON.stringify(settings) !=
-            JSON.stringify({
-                mode: device?.mode,
-                humMin: originalSettings?.humMin || 0,
-                humMax: originalSettings?.humMax || 0,
-                interval: originalSettings?.interval || 0,
-            })
-        ) {
+        if (JSON.stringify(settings) != JSON.stringify(originalSettings)) {
             // Impostazione salvataggio
             setSaved(false);
         } else {
@@ -198,10 +185,10 @@ function DeviceSettings() {
                         {/* Impostazione humMin */}
                         <InputCont
                             type="number"
-                            value={settings?.humMin}
-                            setValue={(humMin) =>
+                            value={settings?.humIMin}
+                            setValue={(humIMin) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, humMin } : prev,
+                                    prev ? { ...prev, humIMin } : prev,
                                 )
                             }
                         >
@@ -210,10 +197,10 @@ function DeviceSettings() {
                         {/* Impostazione humMax */}
                         <InputCont
                             type="number"
-                            value={settings?.humMax}
-                            setValue={(humMax) =>
+                            value={settings?.humIMax}
+                            setValue={(humIMax) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, humMax } : prev,
+                                    prev ? { ...prev, humIMax } : prev,
                                 )
                             }
                         >
@@ -222,10 +209,10 @@ function DeviceSettings() {
                         {/* Impostazione irrigationTime */}
                         <InputCont
                             type="number"
-                            value={settings?.interval}
-                            setValue={(interval) =>
+                            value={settings?.kInterval}
+                            setValue={(kInterval) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, interval } : prev,
+                                    prev ? { ...prev, kInterval } : prev,
                                 )
                             }
                         >
@@ -247,13 +234,7 @@ function DeviceSettings() {
                                 "Procedendo avverrà il reset delle modifiche, per cui tutte le modifiche non salvate andranno perse. L'azione è irreversibile",
                                 'error',
                                 () => {
-                                    setSettings({
-                                        mode: device?.mode || 'safe',
-                                        humMin: originalSettings?.humMin || 0,
-                                        humMax: originalSettings?.humMax || 0,
-                                        interval:
-                                            originalSettings?.interval || 0,
-                                    });
+                                    setSettings(originalSettings);
                                 },
                             );
                         }
@@ -275,20 +256,14 @@ function DeviceSettings() {
                                 if (accessToken) {
                                     // Gestione errori
                                     try {
-                                        // Eliminazione dati
-                                        await deleteData(
-                                            accessToken,
-                                            'data',
-                                            `deviceId=${deviceId}`,
-                                        );
+                                        //TODO Eliminazione dati
                                         // Modifica dispositivo
                                         await patchData(
                                             accessToken,
-                                            'device',
+                                            `devices/${deviceId}`,
                                             {
                                                 userId: null,
                                             },
-                                            deviceId,
                                         );
                                         // Reindirizzamento
                                         navigator('/devices');
@@ -361,15 +336,8 @@ function DeviceSettings() {
                                         // Modifica dispositivo
                                         await patchData(
                                             accessToken,
-                                            'update_mode',
-                                            {
-                                                mode: settings?.mode || 'safe',
-                                                humMin: settings?.humMin || 0,
-                                                humMax: settings?.humMax || 0,
-                                                interval:
-                                                    settings?.interval || 0,
-                                            },
-                                            deviceId,
+                                            `devices-settings/${deviceId}`,
+                                            settings,
                                         );
                                         navigator(`/dashboard/${deviceId}`);
                                     } catch (error: any) {

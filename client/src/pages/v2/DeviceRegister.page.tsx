@@ -1,7 +1,7 @@
 // Importazione moduli
 import { useState, useEffect } from 'react';
-import { patchData } from '../../utils/v1/apiCrud.utils';
-import { useAuth } from '../../context/v1/Auth.context';
+import { patchData } from '../../utils/v2/apiCrud.utils';
+import { useAuth } from '../../context/v2/Auth.context';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../context/global/Notifications.context';
 import Page from '../../components/global/Page.comp';

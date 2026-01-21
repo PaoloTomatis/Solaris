@@ -1,11 +1,11 @@
 // Importazione moduli
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../context/v1/Auth.context';
+import { useAuth } from '../../context/v2/Auth.context';
 import { usePopup } from '../../context/global/Popup.context';
 import { useNotifications } from '../../context/global/Notifications.context';
 import { useNavigate } from 'react-router-dom';
-import type { UserSettings as UserSettingsType } from '../../utils/v1/type.utils';
-import { patchData } from '../../utils/v1/apiCrud.utils';
+import type { UserSettings as UserSettingsType } from '../../utils/v2/type.utils';
+import { patchData } from '../../utils/v2/apiCrud.utils';
 import Page from '../../components/global/Page.comp';
 import TopBar from '../../components/global/TopBar.comp';
 import BottomBar from '../../components/global/BottomBar.comp';
@@ -47,16 +47,7 @@ function UserSettings() {
     // Controllo salvataggio
     useEffect(() => {
         // Controllo impostazioni
-        if (
-            JSON.stringify({
-                styleMode: settings?.styleMode,
-                units: settings?.units,
-            }) !=
-            JSON.stringify({
-                styleMode: originalSettings?.styleMode,
-                units: originalSettings?.units,
-            })
-        ) {
+        if (JSON.stringify(settings) != JSON.stringify(originalSettings)) {
             // Impostazione salvataggio
             setSaved(false);
         } else {

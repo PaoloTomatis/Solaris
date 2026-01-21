@@ -1,14 +1,14 @@
 // Importazione moduli
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getData } from '../../utils/v1/apiCrud.utils';
-import { useAuth } from '../../context/v1/Auth.context';
+import { getData } from '../../utils/v2/apiCrud.utils';
+import { useAuth } from '../../context/v2/Auth.context';
 import { useNotifications } from '../../context/global/Notifications.context';
 import Page from '../../components/global/Page.comp';
 import Device from '../../components/global/Device.comp';
 import BottomBar from '../../components/global/BottomBar.comp';
 import Loading from '../../components/global/Loading.comp';
-import type { Device as DeviceType } from '../../utils/v1/type.utils';
+import type { Device as DeviceType } from '../../utils/v2/type.utils';
 // Importazione immagini
 import AddIcon from '../assets/icons/add.svg?react';
 
@@ -37,7 +37,7 @@ function Devices() {
             try {
                 // Controllo token e utente
                 if (accessToken) {
-                    await getData(setDevices, accessToken, 'devices');
+                    await getData(accessToken, 'devices', setDevices);
                 }
             } catch (error: any) {
                 setError(error.message);
