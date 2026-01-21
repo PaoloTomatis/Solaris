@@ -6,7 +6,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import Popup from '../../components/Popup.comp';
+import Popup from '../../components/global/Popup.comp';
 
 // Tipo tipi popup
 type PopupType = 'info' | 'error' | 'warning' | 'success';

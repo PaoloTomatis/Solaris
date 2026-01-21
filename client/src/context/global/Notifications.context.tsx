@@ -6,7 +6,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import Notifications from '../../components/Notifications.comp';
+import Notifications from '../../components/global/Notifications.comp';
 
 // Tipo tipi notifications
 type NotificationsType = 'info' | 'error' | 'warning' | 'success';

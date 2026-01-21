@@ -1,8 +1,8 @@
 // Importazione moduli
 import { type ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/v1/Auth.context';
-import Loading from './Loading.comp';
+import { useAuth } from '../../context/v1/Auth.context';
+import Loading from '../global/Loading.comp';
 
 // Componente dati
 function ProtectedRoute({ children }: { children: ReactNode }) {
