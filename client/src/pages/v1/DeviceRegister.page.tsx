@@ -1,15 +1,15 @@
 // Importazione moduli
 import { useState, useEffect } from 'react';
-import { patchData } from '../utils/v1/apiCrud.utils';
-import { useAuth } from '../context/v1/Auth.context';
+import { patchData } from '../../utils/v1/apiCrud.utils';
+import { useAuth } from '../../context/v1/Auth.context';
 import { useNavigate } from 'react-router-dom';
-import { useNotifications } from '../context/global/Notifications.context';
-import Page from '../components/Page.comp';
-import Input from '../components/Input.comp';
-import Button from '../components/Button.comp';
-import TopBar from '../components/TopBar.comp';
-import BottomBar from '../components/BottomBar.comp';
-import Loading from '../components/Loading.comp';
+import { useNotifications } from '../../context/global/Notifications.context';
+import Page from '../../components/global/Page.comp';
+import Input from '../../components/global/Input.comp';
+import Button from '../../components/global/Button.comp';
+import TopBar from '../../components/global/TopBar.comp';
+import BottomBar from '../../components/global/BottomBar.comp';
+import Loading from '../../components/global/Loading.comp';
 
 // Pagina registrazione dispositivi
 function DeviceRegister() {

@@ -1,14 +1,14 @@
 // Importazione moduli
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../context/v1/Auth.context';
-import { useNotifications } from '../context/global/Notifications.context';
-import BottomBar from '../components/BottomBar.comp';
-import TopBar from '../components/TopBar.comp';
-import Page from '../components/Page.comp';
-import Button from '../components/Button.comp';
-import InputCont from '../components/InputCont.comp';
-import Loading from '../components/Loading.comp';
+import { useAuth } from '../../context/v2/Auth.context';
+import { useNotifications } from '../../context/global/Notifications.context';
+import BottomBar from '../../components/global/BottomBar.comp';
+import TopBar from '../../components/global/TopBar.comp';
+import Page from '../../components/global/Page.comp';
+import Button from '../../components/global/Button.comp';
+import InputCont from '../../components/global/InputCont.comp';
+import Loading from '../../components/global/Loading.comp';
 // Importazione immagini
 import InfoIcon from '../assets/icons/info.svg?react';
 
@@ -110,7 +110,7 @@ function Controls() {
                             // Invio evento
                             socketRef.current.send(
                                 JSON.stringify({
-                                    event: 'v1/irrigation',
+                                    event: 'v2/irrigation',
                                     data: {
                                         duration: irrigationTime,
                                         completed: true,

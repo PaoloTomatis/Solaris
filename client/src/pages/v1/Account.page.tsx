@@ -1,12 +1,12 @@
 // Importazione moduli
 import { useState, useEffect } from 'react';
-import BottomBar from '../components/BottomBar.comp';
-import Info from '../components/Info.comp';
-import Page from '../components/Page.comp';
-import Separator from '../components/Separator.comp';
-import Loading from '../components/Loading.comp';
-import { useAuth } from '../context/v1/Auth.context';
-import { useNotifications } from '../context/global/Notifications.context';
+import BottomBar from '../../components/global/BottomBar.comp';
+import Info from '../../components/global/Info.comp';
+import Page from '../../components/global/Page.comp';
+import Separator from '../../components/global/Separator.comp';
+import Loading from '../../components/global/Loading.comp';
+import { useAuth } from '../../context/v1/Auth.context';
+import { useNotifications } from '../../context/global/Notifications.context';
 // Importazione icone
 import SettingsIcon from '../assets/icons/settings.svg?react';
 import CreditsIcon from '../assets/icons/credits.svg?react';

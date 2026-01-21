@@ -1,7 +1,7 @@
 // Importazione moduli
-import BottomBar from '../components/BottomBar.comp';
-import Button from '../components/Button.comp';
-import Page from '../components/Page.comp';
+import BottomBar from '../../components/global/BottomBar.comp';
+import Button from '../../components/global/Button.comp';
+import Page from '../../components/global/Page.comp';
 // Importazione immagini
 import cactusImg from '../assets/images/cactus.png';
 

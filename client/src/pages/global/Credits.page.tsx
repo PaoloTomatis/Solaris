@@ -1,9 +1,9 @@
 // Importazione moduli
 import React from 'react';
-import TopBar from '../components/TopBar.comp';
-import Page from '../components/Page.comp';
-import Credit from '../components/Credit.comp';
-import Separator from '../components/Separator.comp';
+import TopBar from '../../components/global/TopBar.comp';
+import Page from '../../components/global/Page.comp';
+import Credit from '../../components/global/Credit.comp';
+import Separator from '../../components/global/Separator.comp';
 // Importazione immagini
 import AccountIcon from '../assets/icons/account.svg?react';
 import AddIcon from '../assets/icons/add.svg?react';

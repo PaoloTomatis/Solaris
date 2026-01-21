@@ -1,6 +1,6 @@
 // Importazione moduli
-import Page from '../components/Page.comp';
-import BottomBar from '../components/BottomBar.comp';
+import Page from '../../components/global/Page.comp';
+import BottomBar from '../../components/global/BottomBar.comp';
 
 // Pagina home
 function Home() {

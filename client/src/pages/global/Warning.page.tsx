@@ -1,7 +1,7 @@
 // Importazione moduli
 import { useLocation, useNavigate } from 'react-router-dom';
-import Page from '../components/Page.comp';
-import Button from '../components/Button.comp';
+import Page from '../../components/global/Page.comp';
+import Button from '../../components/global/Button.comp';
 
 // Pagina avviso
 function Warning() {

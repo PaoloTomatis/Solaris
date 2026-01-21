@@ -1,18 +1,18 @@
 // Importazione moduli
 import { useEffect, useState } from 'react';
-import { useAuth } from '../context/v1/Auth.context';
-import { usePopup } from '../context/global/Popup.context';
-import { useNotifications } from '../context/global/Notifications.context';
+import { useAuth } from '../../context/v1/Auth.context';
+import { usePopup } from '../../context/global/Popup.context';
+import { useNotifications } from '../../context/global/Notifications.context';
 import { useNavigate } from 'react-router-dom';
-import type { UserSettings as UserSettingsType } from '../utils/v1/type.utils';
-import { patchData } from '../utils/v1/apiCrud.utils';
-import Page from '../components/Page.comp';
-import TopBar from '../components/TopBar.comp';
-import BottomBar from '../components/BottomBar.comp';
-import Info from '../components/Info.comp';
-import InputCont from '../components/InputCont.comp';
-import Separator from '../components/Separator.comp';
-import Loading from '../components/Loading.comp';
+import type { UserSettings as UserSettingsType } from '../../utils/v1/type.utils';
+import { patchData } from '../../utils/v1/apiCrud.utils';
+import Page from '../../components/global/Page.comp';
+import TopBar from '../../components/global/TopBar.comp';
+import BottomBar from '../../components/global/BottomBar.comp';
+import Info from '../../components/global/Info.comp';
+import InputCont from '../../components/global/InputCont.comp';
+import Separator from '../../components/global/Separator.comp';
+import Loading from '../../components/global/Loading.comp';
 // Importazione immagini
 import ResetIcon from '../assets/icons/reset.svg?react';
 import SaveIcon from '../assets/icons/save.svg?react';

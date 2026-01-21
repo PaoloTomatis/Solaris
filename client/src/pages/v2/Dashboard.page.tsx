@@ -1,21 +1,21 @@
 // Importazione moduli
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import Page from '../components/Page.comp';
-import BottomBar from '../components/BottomBar.comp';
-import Data from '../components/Data.comp';
-import Log from '../components/Log.comp';
-import Separator from '../components/Separator.comp';
-import Info from '../components/Info.comp';
-import logTitle from '../utils/global/logTitle.utils';
-import Loading from '../components/Loading.comp';
+import Page from '../../components/global/Page.comp';
+import BottomBar from '../../components/global/BottomBar.comp';
+import Data from '../../components/global/Data.comp';
+import Log from '../../components/v1/Log.comp';
+import Separator from '../../components/global/Separator.comp';
+import Info from '../../components/global/Info.comp';
+import logTitle from '../../utils/global/logTitle.utils';
+import Loading from '../../components/global/Loading.comp';
 import type {
+    Notifications as NotificationsType,
     Device as DeviceType,
-    Data as LogType,
-} from '../utils/v1/type.utils';
-import { useAuth } from '../context/v1/Auth.context';
-import { getData } from '../utils/v1/apiCrud.utils';
-import { useNotifications } from '../context/global/Notifications.context';
+} from '../../utils/v2/type.utils';
+import { useAuth } from '../../context/v2/Auth.context';
+import { getData, getOneData } from '../../utils/v2/apiCrud.utils';
+import { useNotifications } from '../../context/global/Notifications.context';
 // Importazione immagini
 import LogoIcon from '../assets/images/logo.svg?react';
 import SignalIcon from '../assets/icons/network-status.svg?react';
@@ -43,7 +43,7 @@ function Dashboard() {
     // Stato dispositivo
     const [device, setDevice] = useState<DeviceType | null>(null);
     // Stato logs
-    const [logs, setLogs] = useState<LogType[] | null>(null);
+    const [logs, setLogs] = useState<NotificationsType[] | null>(null);
     // Autenticazione
     const { accessToken } = useAuth();
     // Stato dati in tempo reale
@@ -75,24 +75,22 @@ function Dashboard() {
                 // Controllo token
                 if (accessToken) {
                     await getData(
-                        setLogs,
                         accessToken,
-                        'data',
+                        'notifications',
+                        setLogs,
                         `limit=3&deviceId=${deviceId}`,
                     );
-                    await getData(
-                        setDevice,
+                    await getOneData(
                         accessToken,
                         'devices',
+                        setDevice,
                         `id=${deviceId}`,
-                        true,
                     );
-                    await getData(
-                        setRealTimeData,
+                    await getOneData(
                         accessToken,
-                        'data',
-                        `type=data_auto&deviceId=${deviceId}&limit=1`,
-                        true,
+                        'measurements',
+                        setRealTimeData,
+                        `deviceId=${deviceId}&limit=1`,
                     );
 
                     setRealTimeData((prev) =>
@@ -295,10 +293,9 @@ function Dashboard() {
                         logs.map((log) => (
                             <Log
                                 tit={logTitle(log.type)}
-                                desc={log.desc}
+                                desc={log.description}
                                 type={log.type}
-                                date={new Date(log.date)}
-                                read={log.read}
+                                date={new Date(log.createdAt)}
                                 key={log.id}
                             />
                         ))

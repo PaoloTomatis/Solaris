@@ -1,8 +1,8 @@
 // Importazione moduli
 import { useParams } from 'react-router-dom';
-import Page from '../components/Page.comp';
-import TopBar from '../components/TopBar.comp';
-import BottomBar from '../components/BottomBar.comp';
+import Page from '../../components/global/Page.comp';
+import TopBar from '../../components/global/TopBar.comp';
+import BottomBar from '../../components/global/BottomBar.comp';
 
 // Pagina statistiche
 function Stats() {
