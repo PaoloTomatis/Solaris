@@ -81,6 +81,12 @@ interface DeviceSettings {
     createdAt: Date;
 }
 
+// Interfaccia login
+interface Login {
+    accessToken: string;
+    user: User;
+}
+
 // Tipo output api successo
 interface APIResponseSuccess<T> {
     data: T;
@@ -100,6 +106,7 @@ export type {
     Notifications,
     DeviceSettings,
     UserSettings,
+    Login,
     APIResponseSuccess,
     APIResponseError,
 };

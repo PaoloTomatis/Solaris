@@ -9,14 +9,29 @@ function isSuccess<T>(
     return (res as APIResponseSuccess<T>).data !== undefined;
 }
 
-// Funzione ricevere dati
+// Firma funzione
 async function getData<T>(
-    setValue: React.Dispatch<React.SetStateAction<any>>,
     accessToken: string,
     link: string,
-    queries?: string,
-    single = false,
-) {
+    setValue?: null,
+    queries?: string | null,
+): Promise<T[] | null>;
+
+// Firma funzione
+async function getData<T>(
+    accessToken: string,
+    link: string,
+    setValue: React.Dispatch<React.SetStateAction<any>>,
+    queries?: string | null,
+): Promise<void>;
+
+// Funzione ricevere dati
+async function getData<T>(
+    accessToken: string,
+    link: string,
+    setValue?: React.Dispatch<React.SetStateAction<any>> | null,
+    queries?: string | null,
+): Promise<T[] | null | void> {
     // Gestione errori
     try {
         // Richiesta
@@ -35,13 +50,129 @@ async function getData<T>(
             throw new Error(apiData.message || 'Errore nella richiesta!');
 
         // Controllo lunghezza data
-        if (single && Array.isArray(apiData.data) && apiData.data.length > 0) {
+        if (!Array.isArray(apiData.data) || apiData.data.length <= 0)
+            return null;
+
+        // Controllo impostazione valore
+        if (setValue) {
             // Impostazione valore
             setValue(apiData.data[0]);
         } else {
+            // Ritorno valore
+            return apiData.data[0];
+        }
+    } catch (error: unknown) {
+        let errorMsg = 'Errore sconosciuto!';
+
+        if (axios.isAxiosError(error)) {
+            // Errore axios
+            errorMsg =
+                (error as any).response?.data?.message ||
+                (error as any).message;
+        } else if (error instanceof Error) {
+            // Errore richiesta
+            errorMsg = error.message;
+        }
+
+        // Impostazione errore
+        throw new Error(errorMsg);
+    }
+}
+
+// Firma funzione
+async function getOneData<T>(
+    accessToken: string,
+    link: string,
+    setValue?: null,
+    queries?: string | null,
+): Promise<T | null>;
+
+// Firma funzione
+async function getOneData<T>(
+    accessToken: string,
+    link: string,
+    setValue: React.Dispatch<React.SetStateAction<any>>,
+    queries?: string | null,
+): Promise<void>;
+
+// Funzione ricevere dato
+async function getOneData<T>(
+    accessToken: string,
+    link: string,
+    setValue?: React.Dispatch<React.SetStateAction<any>> | null,
+    queries?: string | null,
+): Promise<T | null | void> {
+    // Gestione errori
+    try {
+        // Richiesta
+        const res = await axios.get<APIResponseSuccess<T> | APIResponseError>(
+            `${import.meta.env.VITE_API_URL}/${link}?authType=user${
+                queries ? `&${queries}` : ''
+            }`,
+            { headers: { Authorization: `Bearer ${accessToken}` } },
+        );
+
+        // Dichiarazione dati api
+        const apiData = res.data;
+
+        // Controllo dati
+        if (!isSuccess(apiData))
+            throw new Error(apiData.message || 'Errore nella richiesta!');
+
+        // Controllo impostazione valore
+        if (setValue) {
             // Impostazione valore
             setValue(apiData.data);
+        } else {
+            // Ritorno valore
+            return apiData.data;
         }
+    } catch (error: unknown) {
+        let errorMsg = 'Errore sconosciuto!';
+
+        if (axios.isAxiosError(error)) {
+            // Errore axios
+            errorMsg =
+                (error as any).response?.data?.message ||
+                (error as any).message;
+        } else if (error instanceof Error) {
+            // Errore richiesta
+            errorMsg = error.message;
+        }
+
+        // Impostazione errore
+        throw new Error(errorMsg);
+    }
+}
+
+// Funzione creazione dati
+async function postData<T>(
+    link: string,
+    type: 'api' | 'auth',
+    accessToken?: string | null,
+    body?: any,
+    params?: string,
+) {
+    // Gestione errori
+    try {
+        // Richiesta
+        const res = await axios.post<APIResponseSuccess<T> | APIResponseError>(
+            `${type == 'api' ? import.meta.env.VITE_API_URL : import.meta.env.VITE_AUTH_URL}/${link}${
+                params ? `/${params}` : ''
+            }?authType=user`,
+            body,
+            { headers: { Authorization: `Bearer ${accessToken}` } },
+        );
+
+        // Dichiarazione dati api
+        const apiData = res.data;
+
+        // Controllo dati
+        if (!isSuccess(apiData))
+            throw new Error(apiData.message || 'Errore nella richiesta!');
+
+        // Ritorno valori
+        return apiData.data;
     } catch (error: unknown) {
         let errorMsg = 'Errore sconosciuto!';
 
@@ -151,4 +282,4 @@ async function deleteData<T>(
 }
 
 // Esportazione funzione
-export { getData, patchData, deleteData };
+export { getData, getOneData, postData, patchData, deleteData };
