@@ -45,6 +45,13 @@
         - Note --> l'utente deve essere un amministratore
         - Autenticazione --> ✔️
 
+    - **_PATCH_ /devices/activate/:key**:
+        - Autore --> user
+        - Params --> `/:key`
+        - Output --> `{ id, userId, name, prototypeModel, activatedAt, updatedAt, createdAt }`
+        - Note --> il dispositivo non deve essere posseduto da alcun utente
+        - Autenticazione --> ✔️
+
     - **_PATCH_ /devices/:deviceId**:
         - Autore --> user
         - Params --> `/:id`
