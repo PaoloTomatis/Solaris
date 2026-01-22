@@ -1,7 +1,7 @@
 // Importazione moduli
 import React from 'react';
 // Importazione immagini
-import CloseIcon from '../assets/icons/close.svg?react';
+import CloseIcon from '../../assets/icons/close.svg?react';
 
 // Componente notifiche
 function Notifications({
@@ -24,10 +24,10 @@ function Notifications({
                         type == 'error'
                             ? 'bg-error'
                             : type == 'warning'
-                            ? 'bg-warning'
-                            : type == 'success'
-                            ? 'bg-success'
-                            : 'bg-info'
+                              ? 'bg-warning'
+                              : type == 'success'
+                                ? 'bg-success'
+                                : 'bg-info'
                     }`}
                 ></div>
                 <div className="flex flex-col items-start justify-around pl-4">
@@ -36,10 +36,10 @@ function Notifications({
                             type == 'error'
                                 ? 'text-error'
                                 : type == 'warning'
-                                ? 'text-warning'
-                                : type == 'success'
-                                ? 'text-success'
-                                : 'text-info'
+                                  ? 'text-warning'
+                                  : type == 'success'
+                                    ? 'text-success'
+                                    : 'text-info'
                         }`}
                     >
                         {tit}

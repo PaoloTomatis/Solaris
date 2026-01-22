@@ -3,7 +3,7 @@ import BottomBar from '../../components/global/BottomBar.comp';
 import Button from '../../components/global/Button.comp';
 import Page from '../../components/global/Page.comp';
 // Importazione immagini
-import cactusImg from '../assets/images/cactus.png';
+import cactusImg from '../../assets/images/cactus.png';
 
 // Pagina 404
 function Page404() {

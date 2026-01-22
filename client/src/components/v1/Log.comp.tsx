@@ -1,6 +1,6 @@
 // Importazione immagini
-import InfoIcon from '../assets/icons/info.svg?react';
-import WarningIcon from '../assets/icons/warning.svg?react';
+import InfoIcon from '../../assets/icons/info.svg?react';
+import WarningIcon from '../../assets/icons/warning.svg?react';
 
 // Componente log
 function Log({

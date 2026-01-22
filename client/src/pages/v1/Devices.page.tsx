@@ -10,7 +10,7 @@ import BottomBar from '../../components/global/BottomBar.comp';
 import Loading from '../../components/global/Loading.comp';
 import type { Device as DeviceType } from '../../utils/v1/type.utils';
 // Importazione immagini
-import AddIcon from '../assets/icons/add.svg?react';
+import AddIcon from '../../assets/icons/add.svg?react';
 
 // Pagina dispositivi
 function Devices() {

@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 // Importazione immagini
-import ArrowIcon from '../assets/icons/arrow.svg?react';
+import ArrowIcon from '../../assets/icons/arrow.svg?react';
 
 // Componente barra navigazione superiore
 function TopBar({ children, url }: { children: ReactNode; url: string }) {

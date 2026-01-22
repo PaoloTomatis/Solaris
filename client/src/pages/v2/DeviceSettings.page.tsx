@@ -23,11 +23,11 @@ import type {
 } from '../../utils/v2/type.utils';
 // Importazione immagini
 // import EditIcon from '../assets/icons/edit.svg?react';
-import LogoIcon from '../assets/images/logo.svg?react';
-import ResetIcon from '../assets/icons/reset.svg?react';
-import LogoutIcon from '../assets/icons/logout.svg?react';
-import DeleteIcon from '../assets/icons/delete.svg?react';
-import SaveIcon from '../assets/icons/save.svg?react';
+import LogoIcon from '../../assets/images/logo.svg?react';
+import ResetIcon from '../../assets/icons/reset.svg?react';
+import LogoutIcon from '../../assets/icons/logout.svg?react';
+import DeleteIcon from '../../assets/icons/delete.svg?react';
+import SaveIcon from '../../assets/icons/save.svg?react';
 
 // Pagina impostazione dispositivo
 function DeviceSettings() {

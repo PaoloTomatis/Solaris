@@ -1,7 +1,7 @@
 // Importazione moduli
 import React from 'react';
 // Importazione immagini
-import LinkIcon from '../assets/icons/link.svg?react';
+import LinkIcon from '../../assets/icons/link.svg?react';
 
 // Componente crediti
 function Credit({

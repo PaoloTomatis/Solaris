@@ -2,7 +2,7 @@
 import Page from './Page.comp';
 import BottomBar from './BottomBar.comp';
 // Importazione immagini
-import CloseIcon from '../assets/icons/close.svg?react';
+import CloseIcon from '../../assets/icons/close.svg?react';
 
 // Componente dati
 function Error({

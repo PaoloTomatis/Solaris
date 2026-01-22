@@ -75,7 +75,6 @@ function DeviceRegister() {
                             // Impostazione caricamento
                             setLoading(true);
 
-                            //TODO Attivazione device
                             // Controllo utente
                             if (user) {
                                 // Attivazione dispositivo

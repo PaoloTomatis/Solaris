@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 // Importazione immagini
-import ArrowIcon from '../assets/icons/arrow.svg?react';
+import ArrowIcon from '../../assets/icons/arrow.svg?react';
 
 // Componente info
 function Info({
@@ -36,10 +36,10 @@ function Info({
                             type == 'error'
                                 ? 'text-error'
                                 : type == 'info'
-                                ? 'text-info'
-                                : type == 'disabled'
-                                ? 'text-gray-500 dark:text-gray-600'
-                                : 'text-primary-text'
+                                  ? 'text-info'
+                                  : type == 'disabled'
+                                    ? 'text-gray-500 dark:text-gray-600'
+                                    : 'text-primary-text'
                         }`}
                     />
                     <h3
@@ -47,10 +47,10 @@ function Info({
                             type == 'error'
                                 ? 'text-error'
                                 : type == 'info'
-                                ? 'text-info'
-                                : type == 'disabled'
-                                ? 'text-gray-500 dark:text-gray-600'
-                                : 'text-primary-text'
+                                  ? 'text-info'
+                                  : type == 'disabled'
+                                    ? 'text-gray-500 dark:text-gray-600'
+                                    : 'text-primary-text'
                         }`}
                     >
                         {name}
@@ -73,10 +73,10 @@ function Info({
                                 type == 'error'
                                     ? 'text-error'
                                     : type == 'info'
-                                    ? 'text-info'
-                                    : type == 'disabled'
-                                    ? 'text-gray-500 dark:text-gray-600'
-                                    : 'text-primary-text'
+                                      ? 'text-info'
+                                      : type == 'disabled'
+                                        ? 'text-gray-500 dark:text-gray-600'
+                                        : 'text-primary-text'
                             }`}
                         />
                     </div>
@@ -98,10 +98,10 @@ function Info({
                         type == 'error'
                             ? 'text-error'
                             : type == 'info'
-                            ? 'text-info'
-                            : type == 'disabled'
-                            ? 'text-gray-500 dark:text-gray-600'
-                            : 'text-primary-text'
+                              ? 'text-info'
+                              : type == 'disabled'
+                                ? 'text-gray-500 dark:text-gray-600'
+                                : 'text-primary-text'
                     }`}
                 />
                 <h3
@@ -109,10 +109,10 @@ function Info({
                         type == 'error'
                             ? 'text-error'
                             : type == 'info'
-                            ? 'text-info'
-                            : type == 'disabled'
-                            ? 'text-gray-500 dark:text-gray-600'
-                            : 'text-primary-text'
+                              ? 'text-info'
+                              : type == 'disabled'
+                                ? 'text-gray-500 dark:text-gray-600'
+                                : 'text-primary-text'
                     }`}
                 >
                     {name}
@@ -135,10 +135,10 @@ function Info({
                             type == 'error'
                                 ? 'text-error'
                                 : type == 'info'
-                                ? 'text-info'
-                                : type == 'disabled'
-                                ? 'text-gray-500 dark:text-gray-600'
-                                : 'text-primary-text'
+                                  ? 'text-info'
+                                  : type == 'disabled'
+                                    ? 'text-gray-500 dark:text-gray-600'
+                                    : 'text-primary-text'
                         }`}
                     />
                 </div>

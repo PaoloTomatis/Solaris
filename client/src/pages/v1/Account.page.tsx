@@ -8,12 +8,12 @@ import Loading from '../../components/global/Loading.comp';
 import { useAuth } from '../../context/v1/Auth.context';
 import { useNotifications } from '../../context/global/Notifications.context';
 // Importazione icone
-import SettingsIcon from '../assets/icons/settings.svg?react';
-import CreditsIcon from '../assets/icons/credits.svg?react';
-import DeviceIcon from '../assets/icons/dashboard.svg?react';
-import PolicyIcon from '../assets/icons/policy.svg?react';
-import LogoutIcon from '../assets/icons/logout.svg?react';
-import DeleteIcon from '../assets/icons/delete.svg?react';
+import SettingsIcon from '../../assets/icons/settings.svg?react';
+import CreditsIcon from '../../assets/icons/credits.svg?react';
+import DeviceIcon from '../../assets/icons/dashboard.svg?react';
+import PolicyIcon from '../../assets/icons/policy.svg?react';
+import LogoutIcon from '../../assets/icons/logout.svg?react';
+import DeleteIcon from '../../assets/icons/delete.svg?react';
 
 // Pagina account
 function Account() {

@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // Importazione immagini
-import LogoIcon from '../assets/images/logo.svg?react';
-import SignalIcon from '../assets/icons/network-status.svg?react';
-import ArrowIcon from '../assets/icons/arrow.svg?react';
+import LogoIcon from '../../assets/images/logo.svg?react';
+import SignalIcon from '../../assets/icons/network-status.svg?react';
+import ArrowIcon from '../../assets/icons/arrow.svg?react';
 
 // Componente dispositivo
 function Device({

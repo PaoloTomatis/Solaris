@@ -10,7 +10,7 @@ import Button from '../../components/global/Button.comp';
 import InputCont from '../../components/global/InputCont.comp';
 import Loading from '../../components/global/Loading.comp';
 // Importazione immagini
-import InfoIcon from '../assets/icons/info.svg?react';
+import InfoIcon from '../../assets/icons/info.svg?react';
 
 // Pagina controlli
 function Controls() {

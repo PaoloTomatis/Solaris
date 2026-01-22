@@ -2,9 +2,9 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 // Importazione immagini
-import UserIcon from '../assets/icons/account.svg?react';
-import AddIcon from '../assets/icons/add.svg?react';
-import DashboardIcon from '../assets/icons/dashboard.svg?react';
+import UserIcon from '../../assets/icons/account.svg?react';
+import AddIcon from '../../assets/icons/add.svg?react';
+import DashboardIcon from '../../assets/icons/dashboard.svg?react';
 
 // Componente barra navigazione
 function BottomBar() {

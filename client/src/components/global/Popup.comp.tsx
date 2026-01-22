@@ -2,7 +2,7 @@
 import React from 'react';
 import Button from './Button.comp';
 // Importazione immagini
-import CloseIcon from '../assets/icons/close.svg?react';
+import CloseIcon from '../../assets/icons/close.svg?react';
 
 // Componente notifiche
 function Popup({
@@ -31,10 +31,10 @@ function Popup({
                         type == 'error'
                             ? 'text-error'
                             : type == 'warning'
-                            ? 'text-warning'
-                            : type == 'success'
-                            ? 'text-success'
-                            : 'text-info'
+                              ? 'text-warning'
+                              : type == 'success'
+                                ? 'text-success'
+                                : 'text-info'
                     }`}
                 >
                     {tit}

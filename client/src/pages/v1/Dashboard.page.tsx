@@ -17,17 +17,17 @@ import { useAuth } from '../../context/v1/Auth.context';
 import { getData } from '../../utils/v1/apiCrud.utils';
 import { useNotifications } from '../../context/global/Notifications.context';
 // Importazione immagini
-import LogoIcon from '../assets/images/logo.svg?react';
-import SignalIcon from '../assets/icons/network-status.svg?react';
-import ArrowIcon from '../assets/icons/arrow.svg?react';
-import TemperatureIcon from '../assets/icons/temperature.svg?react';
-import LuminosityIcon from '../assets/icons/luminosity.svg?react';
-import HumidityIcon from '../assets/icons/humidity.svg?react';
-import LogIcon from '../assets/icons/log.svg?react';
-import SettingsIcon from '../assets/icons/settings.svg?react';
-import StatsIcon from '../assets/icons/statistics.svg?react';
-import ControlsIcon from '../assets/icons/joystick.svg?react';
-import DashboardIcon from '../assets/icons/dashboard.svg?react';
+import LogoIcon from '../../assets/images/logo.svg?react';
+import SignalIcon from '../../assets/icons/network-status.svg?react';
+import ArrowIcon from '../../assets/icons/arrow.svg?react';
+import TemperatureIcon from '../../assets/icons/temperature.svg?react';
+import LuminosityIcon from '../../assets/icons/luminosity.svg?react';
+import HumidityIcon from '../../assets/icons/humidity.svg?react';
+import LogIcon from '../../assets/icons/log.svg?react';
+import SettingsIcon from '../../assets/icons/settings.svg?react';
+import StatsIcon from '../../assets/icons/statistics.svg?react';
+import ControlsIcon from '../../assets/icons/joystick.svg?react';
+import DashboardIcon from '../../assets/icons/dashboard.svg?react';
 
 // Pagina dashboard
 function Dashboard() {

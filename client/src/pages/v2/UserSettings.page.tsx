@@ -14,8 +14,8 @@ import InputCont from '../../components/global/InputCont.comp';
 import Separator from '../../components/global/Separator.comp';
 import Loading from '../../components/global/Loading.comp';
 // Importazione immagini
-import ResetIcon from '../assets/icons/reset.svg?react';
-import SaveIcon from '../assets/icons/save.svg?react';
+import ResetIcon from '../../assets/icons/reset.svg?react';
+import SaveIcon from '../../assets/icons/save.svg?react';
 
 // Pagina impostazione utente
 function UserSettings() {
