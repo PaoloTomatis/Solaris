@@ -78,9 +78,10 @@ function DeviceRegister() {
                             //TODO Attivazione device
                             // Controllo utente
                             if (user) {
+                                // Attivazione dispositivo
                                 await patchData(
                                     accessToken || '',
-                                    `activate_device/${key}`,
+                                    `devices/activate/${key}`,
                                     {
                                         name,
                                     },
