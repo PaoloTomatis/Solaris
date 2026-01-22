@@ -4,6 +4,7 @@ import {
     GetDeviceParamsSchema,
     GetDevicesQuerySchema,
     PatchDeviceActivateParamsSchema,
+    PatchDevicesActivateBodySchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,
     PostDevicesBodySchema,
@@ -89,12 +90,16 @@ async function patchDevicesActivateController(
 ) {
     // Gestione errori
     try {
-        // Validazione body
+        // Validazione paramentri
+        const parsedBody = PatchDevicesActivateBodySchema.parse(req.body);
+
+        // Validazione paramentri
         const parsedParams = PatchDeviceActivateParamsSchema.parse(req.params);
 
         // Chiamata servizio
         const device = await patchDevicesActivateService(
             parsedParams,
+            parsedBody,
             req.user,
         );
 

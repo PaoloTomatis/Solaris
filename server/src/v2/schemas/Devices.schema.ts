@@ -66,6 +66,9 @@ const PatchDevicesBodySchema = z.object({
     name: z.string().min(3).max(15),
 });
 
+// Schema body patch /devices/activate/:deviceId
+const PatchDevicesActivateBodySchema = PatchDevicesBodySchema;
+
 // Schema params patch /devices/:deviceId
 const PatchDevicesParamsSchema = GetDeviceParamsSchema;
 
@@ -77,6 +80,7 @@ export {
     GetDeviceParamsSchema,
     GetDevicesQuerySchema,
     PostDevicesBodySchema,
+    PatchDevicesActivateBodySchema,
     PatchDeviceActivateParamsSchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,

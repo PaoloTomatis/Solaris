@@ -48,6 +48,7 @@
     - **_PATCH_ /devices/activate/:key**:
         - Autore --> user
         - Params --> `/:key`
+        - Body --> `{ name }`
         - Output --> `{ id, userId, name, prototypeModel, activatedAt, updatedAt, createdAt }`
         - Note --> il dispositivo non deve essere posseduto da alcun utente
         - Autenticazione --> ✔️

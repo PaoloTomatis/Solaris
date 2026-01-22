@@ -8,6 +8,7 @@ import z from 'zod';
 import {
     GetDevicesQuerySchema,
     PatchDeviceActivateParamsSchema,
+    PatchDevicesActivateBodySchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,
     PostDevicesBodySchema,
@@ -110,6 +111,7 @@ async function postDevicesService(
 // Servizio patch /devices/activate/:key
 async function patchDevicesActivateService(
     { key }: z.infer<typeof PatchDeviceActivateParamsSchema>,
+    { name }: z.infer<typeof PatchDevicesActivateBodySchema>,
     user?: UserType,
 ) {
     //TODO Errore custom
@@ -129,6 +131,7 @@ async function patchDevicesActivateService(
     // Modifica dispositivo
     const newDevice = await devicesRepository.updateOne(device.id, {
         userId: user.id,
+        name,
     });
 
     //TODO Errore custom
