@@ -256,7 +256,24 @@ function DeviceSettings() {
                                 if (accessToken) {
                                     // Gestione errori
                                     try {
-                                        //TODO Eliminazione dati
+                                        // Eliminazione notifiche
+                                        await deleteData(
+                                            accessToken,
+                                            'notifications',
+                                            `deviceId=${deviceId}`,
+                                        );
+                                        // Eliminazione misurazioni
+                                        await deleteData(
+                                            accessToken,
+                                            'measurements',
+                                            `deviceId=${deviceId}`,
+                                        );
+                                        // Eliminazione irrigazioni
+                                        await deleteData(
+                                            accessToken,
+                                            'irrigations',
+                                            `deviceId=${deviceId}`,
+                                        );
                                         // Modifica dispositivo
                                         await patchData(
                                             accessToken,
@@ -296,7 +313,24 @@ function DeviceSettings() {
                                 try {
                                     // Controllo token
                                     if (accessToken) {
-                                        //TODO Eliminazione dati
+                                        // Eliminazione notifiche
+                                        await deleteData(
+                                            accessToken,
+                                            'notifications',
+                                            `deviceId=${deviceId}`,
+                                        );
+                                        // Eliminazione misurazioni
+                                        await deleteData(
+                                            accessToken,
+                                            'measurements',
+                                            `deviceId=${deviceId}`,
+                                        );
+                                        // Eliminazione irrigazioni
+                                        await deleteData(
+                                            accessToken,
+                                            'irrigations',
+                                            `deviceId=${deviceId}`,
+                                        );
                                     }
                                 } catch (error: any) {
                                     notify(
