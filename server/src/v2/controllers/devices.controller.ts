@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import {
     GetDeviceParamsSchema,
     GetDevicesQuerySchema,
+    PatchDeviceActivateParamsSchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,
     PostDevicesBodySchema,
@@ -14,13 +15,14 @@ import {
     postDevicesService,
     patchDevicesService,
     deleteDevicesService,
+    patchDevicesActivateService,
 } from '../services/devices.service.js';
 
 // Controller get /devices/:deviceId
 async function getDeviceController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -41,15 +43,15 @@ async function getDeviceController(
 async function getDevicesController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
         // Validazione parametri
-        const payload = GetDevicesQuerySchema.parse(req.query);
+        const parsedQuery = GetDevicesQuerySchema.parse(req.query);
 
         // Chiamata servizio
-        const devices = await getDevicesService(payload, req.user);
+        const devices = await getDevicesService(parsedQuery, req.user);
 
         // Risposta
         resHandler(res, true, 200, devices);
@@ -62,15 +64,39 @@ async function getDevicesController(
 async function postDevicesController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
         // Validazione body
-        const body = PostDevicesBodySchema.parse(req.body);
+        const parsedBody = PostDevicesBodySchema.parse(req.body);
 
         // Chiamata servizio
-        const device = await postDevicesService(body, req.user);
+        const device = await postDevicesService(parsedBody, req.user);
+
+        // Risposta
+        resHandler(res, true, 200, device);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Controller patch /devices/activate/:key
+async function patchDevicesActivateController(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    // Gestione errori
+    try {
+        // Validazione body
+        const parsedParams = PatchDeviceActivateParamsSchema.parse(req.params);
+
+        // Chiamata servizio
+        const device = await patchDevicesActivateService(
+            parsedParams,
+            req.user,
+        );
 
         // Risposta
         resHandler(res, true, 200, device);
@@ -83,18 +109,22 @@ async function postDevicesController(
 async function patchDevicesController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
         // Validazione body
-        const body = PatchDevicesBodySchema.parse(req.body);
+        const parsedBody = PatchDevicesBodySchema.parse(req.body);
 
         // Validazione parametri
-        const params = PatchDevicesParamsSchema.parse(req.params);
+        const parsedParams = PatchDevicesParamsSchema.parse(req.params);
 
         // Chiamata servizio
-        const device = await patchDevicesService(body, params, req.user);
+        const device = await patchDevicesService(
+            parsedBody,
+            parsedParams,
+            req.user,
+        );
 
         // Risposta
         resHandler(res, true, 200, device);
@@ -107,7 +137,7 @@ async function patchDevicesController(
 async function deleteDevicesController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -129,6 +159,7 @@ export {
     getDeviceController,
     getDevicesController,
     postDevicesController,
+    patchDevicesActivateController,
     patchDevicesController,
     deleteDevicesController,
 };

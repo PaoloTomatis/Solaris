@@ -32,12 +32,12 @@ const GetDevicesQuerySchema = z
             .refine(
                 (val) => {
                     return val.every(
-                        (obj) => !devicesSortFields.includes(obj.field)
+                        (obj) => !devicesSortFields.includes(obj.field),
                     );
                 },
                 {
                     error: 'Invalid sort field (should be "createdAt", "updatedAt" or "activatedAt")',
-                }
+                },
             ),
     })
     .refine((val) => !val.from || !val.to || val.from <= val.to, {
@@ -56,6 +56,11 @@ const PostDevicesBodySchema = z.object({
     prototypeModel: z.string(),
 });
 
+// Schema params patch /devices/activate/:key
+const PatchDeviceActivateParamsSchema = z.object({
+    key: z.string(),
+});
+
 // Schema body patch /devices/:deviceId
 const PatchDevicesBodySchema = z.object({
     name: z.string().min(3).max(15),
@@ -72,6 +77,7 @@ export {
     GetDeviceParamsSchema,
     GetDevicesQuerySchema,
     PostDevicesBodySchema,
+    PatchDeviceActivateParamsSchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,
     DeleteDevicesParamsSchema,

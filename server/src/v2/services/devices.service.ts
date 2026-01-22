@@ -7,6 +7,7 @@ import pswGenerator from '../../global/utils/pswGenerator.js';
 import z from 'zod';
 import {
     GetDevicesQuerySchema,
+    PatchDeviceActivateParamsSchema,
     PatchDevicesBodySchema,
     PatchDevicesParamsSchema,
     PostDevicesBodySchema,
@@ -26,14 +27,14 @@ async function getDeviceService(deviceId: string, user?: UserType) {
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it"
+            "The device does not exists or the user isn't allowed to get it",
         );
 
     // Conversione dispositivo
     const parsedDevice = dataParser(
         device.toObject(),
         ['key', 'psw', 'schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Ritorno dispositivo
@@ -43,7 +44,7 @@ async function getDeviceService(deviceId: string, user?: UserType) {
 // Servizio get /devices
 async function getDevicesService(
     payload: z.infer<typeof GetDevicesQuerySchema>,
-    user?: UserType
+    user?: UserType,
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -58,7 +59,7 @@ async function getDevicesService(
         return dataParser(
             device.toObject(),
             ['key', 'psw', 'schemaVersion', '__v'],
-            true
+            true,
         );
     });
 
@@ -69,7 +70,7 @@ async function getDevicesService(
 // Servizio post /devices
 async function postDevicesService(
     body: z.infer<typeof PostDevicesBodySchema>,
-    user?: UserType
+    user?: UserType,
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -99,7 +100,46 @@ async function postDevicesService(
     const parsedDevice = dataParser(
         device.toObject(),
         ['key', 'psw', 'schemaVersion', '__v'],
-        true
+        true,
+    );
+
+    // Ritorno dispositivo
+    return parsedDevice;
+}
+
+// Servizio patch /devices/activate/:key
+async function patchDevicesActivateService(
+    { key }: z.infer<typeof PatchDeviceActivateParamsSchema>,
+    user?: UserType,
+) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Richiesta dispositivo
+    const device = await devicesRepository.findOneByKey(key);
+
+    //TODO Errore custom
+    // Controllo device
+    if (!device || device.userId)
+        throw new Error(
+            'The device does not exists or is owned by an other user',
+        );
+
+    // Modifica dispositivo
+    const newDevice = await devicesRepository.updateOne(device.id, {
+        userId: user.id,
+    });
+
+    //TODO Errore custom
+    // Controllo nuovo device
+    if (!newDevice) throw new Error('Activation failed');
+
+    // Conversione dispositivo
+    const parsedDevice = dataParser(
+        newDevice.toObject(),
+        ['key', 'psw', 'schemaVersion', '__v'],
+        true,
     );
 
     // Ritorno dispositivo
@@ -110,7 +150,7 @@ async function postDevicesService(
 async function patchDevicesService(
     body: z.infer<typeof PatchDevicesBodySchema>,
     { deviceId }: z.infer<typeof PatchDevicesParamsSchema>,
-    user?: UserType
+    user?: UserType,
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -120,21 +160,21 @@ async function patchDevicesService(
     const newDevice = await devicesRepository.updateOneSafe(
         deviceId,
         user.id,
-        body
+        body,
     );
 
     //TODO Errore custom
     // Controllo nuovo device
     if (!newDevice)
         throw new Error(
-            "The device does not exists or the user isn't allowed to modify it"
+            "The device does not exists or the user isn't allowed to modify it",
         );
 
     // Conversione dispositivo
     const parsedDevice = dataParser(
         newDevice.toObject(),
         ['key', 'psw', 'schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Ritorno dispositivo
@@ -163,7 +203,7 @@ async function deleteDevicesService(deviceId: string, user?: UserType) {
     const parsedDevice = dataParser(
         oldDevice.toObject(),
         ['key', 'psw', 'schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Ritorno dispositivo
@@ -175,6 +215,7 @@ export {
     getDeviceService,
     getDevicesService,
     postDevicesService,
+    patchDevicesActivateService,
     patchDevicesService,
     deleteDevicesService,
 };

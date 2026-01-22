@@ -4,6 +4,7 @@ import {
     deleteDevicesController,
     getDeviceController,
     getDevicesController,
+    patchDevicesActivateController,
     patchDevicesController,
     postDevicesController,
 } from '../controllers/devices.controller.js';
@@ -16,6 +17,7 @@ devicesRouter
     .get('/:deviceId', getDeviceController)
     .get('/', getDevicesController)
     .post('/', postDevicesController)
+    .patch('/activate/:key', patchDevicesActivateController)
     .patch('/:deviceId', patchDevicesController)
     .delete('/:deviceId', deleteDevicesController);
 
