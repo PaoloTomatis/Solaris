@@ -1,6 +1,7 @@
 // Importazione moduli
 import { Router } from 'express';
 import {
+    deleteMeasurementsController,
     getMeasurementsController,
     postMeasurementsController,
 } from '../controllers/measurements.controller.js';
@@ -11,7 +12,8 @@ const measurementsRouter = Router();
 // Definizione rotte
 measurementsRouter
     .get('/', getMeasurementsController)
-    .post('/', postMeasurementsController);
+    .post('/', postMeasurementsController)
+    .delete('/', deleteMeasurementsController);
 
 // Esportazione router
 export default measurementsRouter;

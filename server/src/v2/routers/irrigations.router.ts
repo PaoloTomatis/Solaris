@@ -1,6 +1,7 @@
 // Importazione moduli
 import { Router } from 'express';
 import {
+    deleteIrrigationsController,
     getIrrigationsController,
     postIrrigationsController,
 } from '../controllers/irrigations.controller.js';
@@ -11,7 +12,8 @@ const irrigationsRouter = Router();
 // Definizione rotte
 irrigationsRouter
     .get('/', getIrrigationsController)
-    .post('/', postIrrigationsController);
+    .post('/', postIrrigationsController)
+    .delete('/', deleteIrrigationsController);
 
 // Esportazione router
 export default irrigationsRouter;

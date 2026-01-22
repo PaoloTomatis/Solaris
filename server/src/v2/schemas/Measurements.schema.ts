@@ -21,12 +21,12 @@ const GetMeasurementsQuerySchema = z
             .refine(
                 (val) => {
                     return val.every(
-                        (obj) => !measurementSortFields.includes(obj.field)
+                        (obj) => !measurementSortFields.includes(obj.field),
                     );
                 },
                 {
                     error: 'Invalid sort field (should be "createdAt", "updatedAt" or "measuredAt")',
-                }
+                },
             ),
     })
     .refine((val) => !val.from || !val.to || val.from <= val.to, {
@@ -43,11 +43,22 @@ const PostMeasurementsBodySchema = z.object({
     measuredAt: z
         .preprocess(
             (val) => (typeof val === 'string' ? new Date(val) : null),
-            z.date()
+            z.date(),
         )
         .optional()
         .default(() => new Date()),
 });
 
+// Schema query delete /irrigations
+const DeleteMeasurementsQuerySchema = z.object({
+    deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+        error: 'Invalid deviceId',
+    }),
+});
+
 // Esportazione schemi
-export { GetMeasurementsQuerySchema, PostMeasurementsBodySchema };
+export {
+    GetMeasurementsQuerySchema,
+    PostMeasurementsBodySchema,
+    DeleteMeasurementsQuerySchema,
+};

@@ -3,6 +3,7 @@ import type { DeviceType, UserType } from '../types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import usersRepository from '../repositories/users.repository.js';
 import type {
+    DeleteMeasurementsQuerySchema,
     GetMeasurementsQuerySchema,
     PostMeasurementsBodySchema,
 } from '../schemas/Measurements.schema.js';
@@ -13,7 +14,7 @@ import dataParser from '../utils/dataParser.js';
 // Servizio get /measurements
 async function getMeasurementsService(
     payload: z.infer<typeof GetMeasurementsQuerySchema>,
-    user: UserType
+    user: UserType,
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -22,14 +23,14 @@ async function getMeasurementsService(
     // Richiesta dispositivo database
     const device = await devicesRepository.findOneSafe(
         payload.deviceId,
-        user.id
+        user.id,
     );
 
     //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it"
+            "The device does not exists or the user isn't allowed to get it",
         );
 
     // Richiesta misurazione database
@@ -41,18 +42,18 @@ async function getMeasurementsService(
         return dataParser(
             measurement.toObject(),
             ['schemaVersion', '__v'],
-            true
+            true,
         );
     });
 
-    // Ritorno irrigazioni
+    // Ritorno misurazioni
     return measurements;
 }
 
 // Servizio post /measurements
 async function postMeasurementsService(
     payload: z.infer<typeof PostMeasurementsBodySchema>,
-    device: DeviceType
+    device: DeviceType,
 ) {
     //TODO Errore custom
     // Controllo dispositivo
@@ -67,19 +68,52 @@ async function postMeasurementsService(
     // Creazione misurazione database
     const measurement = await measurementsRepository.createOne(
         payload,
-        device.id
+        device.id,
     );
 
     // Conversione misurazione
     const parsedMeasurement = dataParser(
         measurement.toObject(),
         ['schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Ritorno misurazione
     return parsedMeasurement;
 }
 
+// Servizio delete /measurements
+async function deleteMeasurementsService(
+    payload: z.infer<typeof DeleteMeasurementsQuerySchema>,
+    user?: UserType,
+) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Richiesta dispositivo database
+    const device = await devicesRepository.findOneSafe(
+        payload.deviceId,
+        user.id,
+    );
+
+    //TODO Errore custom
+    // Controllo dispositivo
+    if (!device)
+        throw new Error(
+            "The device does not exists or the user isn't allowed to get it",
+        );
+
+    // Eliminazione misurazioni database
+    await measurementsRepository.deleteManyByDevice(payload.deviceId);
+
+    // Ritorno null
+    return null;
+}
+
 // Esportazione servizi
-export { getMeasurementsService, postMeasurementsService };
+export {
+    getMeasurementsService,
+    postMeasurementsService,
+    deleteMeasurementsService,
+};

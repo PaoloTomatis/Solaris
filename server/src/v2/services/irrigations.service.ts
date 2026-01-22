@@ -1,6 +1,7 @@
 // Importazione moduli
 import z from 'zod';
 import type {
+    DeleteIrrigationsQuerySchema,
     GetIrrigationsQuerySchema,
     PostIrrigationsBodySchema,
 } from '../schemas/Irrigations.schema.js';
@@ -12,7 +13,7 @@ import dataParser from '../utils/dataParser.js';
 // Servizio get /irrigations
 async function getIrrigationsService(
     payload: z.infer<typeof GetIrrigationsQuerySchema>,
-    user?: UserType
+    user?: UserType,
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -21,14 +22,14 @@ async function getIrrigationsService(
     // Richiesta dispositivo database
     const device = await devicesRepository.findOneSafe(
         payload.deviceId,
-        user.id
+        user.id,
     );
 
     //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it"
+            "The device does not exists or the user isn't allowed to get it",
         );
 
     // Richiesta irrigazione database
@@ -40,7 +41,7 @@ async function getIrrigationsService(
         return dataParser(
             irrigation.toObject(),
             ['schemaVersion', '__v'],
-            true
+            true,
         );
     });
 
@@ -51,7 +52,7 @@ async function getIrrigationsService(
 // Servizio post /irrigations
 async function postIrrigationsService(
     payload: z.infer<typeof PostIrrigationsBodySchema>,
-    device?: DeviceType
+    device?: DeviceType,
 ) {
     //TODO Errore custom
     // Controllo dispositivo
@@ -60,19 +61,52 @@ async function postIrrigationsService(
     // Creazione irrigazione database
     const irrigation = await irrigationsRepository.createOne(
         payload,
-        device.id
+        device.id,
     );
 
     // Conversione irrigazione
     const parsedIrrigation = dataParser(
         irrigation.toObject(),
         ['schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Ritorno irrigazione
     return parsedIrrigation;
 }
 
+// Servizio delete /irrigations
+async function deleteIrrigationsService(
+    payload: z.infer<typeof DeleteIrrigationsQuerySchema>,
+    user?: UserType,
+) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Richiesta dispositivo database
+    const device = await devicesRepository.findOneSafe(
+        payload.deviceId,
+        user.id,
+    );
+
+    //TODO Errore custom
+    // Controllo dispositivo
+    if (!device)
+        throw new Error(
+            "The device does not exists or the user isn't allowed to get it",
+        );
+
+    // Eliminazione irrigazioni database
+    await irrigationsRepository.deleteManyByDevice(payload.deviceId);
+
+    // Ritorno null
+    return null;
+}
+
 // Esportazione servizio
-export { getIrrigationsService, postIrrigationsService };
+export {
+    getIrrigationsService,
+    postIrrigationsService,
+    deleteIrrigationsService,
+};

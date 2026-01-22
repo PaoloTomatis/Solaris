@@ -1,10 +1,12 @@
 // Importazione moduli
 import type { NextFunction, Request, Response } from 'express';
 import {
+    DeleteNotificationsQuerySchema,
     GetNotificationsQuerySchema,
     PostNotificationsBodySchema,
 } from '../schemas/Notifications.schema.js';
 import {
+    deleteNotificationsService,
     getNotificationsService,
     postNotificationsService,
 } from '../services/notifications.service.js';
@@ -14,7 +16,7 @@ import resHandler from '../utils/responseHandler.js';
 async function getNotificationsController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -35,7 +37,7 @@ async function getNotificationsController(
 async function postNotificationsController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -52,5 +54,29 @@ async function postNotificationsController(
     }
 }
 
+// Controller delete /notifications
+async function deleteNotificationsController(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    // Gestione errori
+    try {
+        // Validazione body
+        const parsedQuery = DeleteNotificationsQuerySchema.parse(req.query);
+
+        // Chiamata servizio
+        await deleteNotificationsService(parsedQuery, req.user);
+
+        // Risposta
+        resHandler(res, true, 200, null);
+    } catch (error) {
+        next(error);
+    }
+}
 // Esportazione controller
-export { getNotificationsController, postNotificationsController };
+export {
+    getNotificationsController,
+    postNotificationsController,
+    deleteNotificationsController,
+};

@@ -21,12 +21,12 @@ const GetIrrigationsQuerySchema = z
             .refine(
                 (val) => {
                     return val.every(
-                        (obj) => !irrigationSortFields.includes(obj.field)
+                        (obj) => !irrigationSortFields.includes(obj.field),
                     );
                 },
                 {
                     error: 'Invalid sort field (should be "createdAt", "updatedAt" or "irrigatedAt")',
-                }
+                },
             ),
         type: z.enum(['config', 'auto']).optional(),
     })
@@ -52,10 +52,17 @@ const PostIrrigationsBodySchema = z.object({
     irrigatedAt: z
         .preprocess(
             (val) => (typeof val === 'string' ? new Date(val) : null),
-            z.date()
+            z.date(),
         )
         .optional()
         .default(() => new Date()),
+});
+
+// Schema query delete /irrigations
+const DeleteIrrigationsQuerySchema = z.object({
+    deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+        error: 'Invalid deviceId',
+    }),
 });
 
 // Esportazione schemi
@@ -63,4 +70,5 @@ export {
     GetIrrigationsQuerySchema,
     PostIrrigationsExecuteBodySchema,
     PostIrrigationsBodySchema,
+    DeleteIrrigationsQuerySchema,
 };

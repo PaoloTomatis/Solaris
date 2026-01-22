@@ -23,12 +23,12 @@ const GetNotificationsQuerySchema = z
             .refine(
                 (val) => {
                     return val.every(
-                        (obj) => !notificationSortFields.includes(obj.field)
+                        (obj) => !notificationSortFields.includes(obj.field),
                     );
                 },
                 {
                     error: 'Invalid sort field (should be "createdAt" or "updatedAt")',
-                }
+                },
             ),
         type: z.enum(['error', 'warning', 'info', 'success']).optional(),
     })
@@ -61,5 +61,16 @@ const PostNotificationsBodySchema = z
         path: ['irrigationId', 'measurementId'],
     });
 
+// Schema query delete /irrigations
+const DeleteNotificationsQuerySchema = z.object({
+    deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+        error: 'Invalid deviceId',
+    }),
+});
+
 // Esportazione schemi
-export { GetNotificationsQuerySchema, PostNotificationsBodySchema };
+export {
+    GetNotificationsQuerySchema,
+    PostNotificationsBodySchema,
+    DeleteNotificationsQuerySchema,
+};

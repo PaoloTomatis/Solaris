@@ -3,6 +3,7 @@ import type { DeviceType, UserType } from '../types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import usersRepository from '../repositories/users.repository.js';
 import type {
+    DeleteNotificationsQuerySchema,
     GetNotificationsQuerySchema,
     PostNotificationsBodySchema,
 } from '../schemas/Notifications.schema.js';
@@ -13,7 +14,7 @@ import dataParser from '../utils/dataParser.js';
 // Servizio get /notifications
 async function getNotificationsService(
     payload: z.infer<typeof GetNotificationsQuerySchema>,
-    user: UserType
+    user: UserType,
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -22,14 +23,14 @@ async function getNotificationsService(
     // Richiesta dispositivo database
     const device = await devicesRepository.findOneSafe(
         payload.deviceId,
-        user.id
+        user.id,
     );
 
     //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it"
+            "The device does not exists or the user isn't allowed to get it",
         );
 
     // Richiesta notifica database
@@ -41,7 +42,7 @@ async function getNotificationsService(
         return dataParser(
             notification.toObject(),
             ['schemaVersion', '__v'],
-            true
+            true,
         );
     });
 
@@ -52,7 +53,7 @@ async function getNotificationsService(
 // Servizio post /notifications
 async function postNotificationsService(
     payload: z.infer<typeof PostNotificationsBodySchema>,
-    device: DeviceType
+    device: DeviceType,
 ) {
     //TODO Errore custom
     // Controllo dispositivo
@@ -67,19 +68,52 @@ async function postNotificationsService(
     // Creazione notifica database
     const notification = await notificationsRepository.createOne(
         payload,
-        device.id
+        device.id,
     );
 
     // Conversione notifica
     const parsedNotification = dataParser(
         notification.toObject(),
         ['schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Ritorno notifica
     return parsedNotification;
 }
 
+// Servizio delete /notifications
+async function deleteNotificationsService(
+    payload: z.infer<typeof DeleteNotificationsQuerySchema>,
+    user?: UserType,
+) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Richiesta dispositivo database
+    const device = await devicesRepository.findOneSafe(
+        payload.deviceId,
+        user.id,
+    );
+
+    //TODO Errore custom
+    // Controllo dispositivo
+    if (!device)
+        throw new Error(
+            "The device does not exists or the user isn't allowed to get it",
+        );
+
+    // Eliminazione notifiche database
+    await notificationsRepository.deleteManyByDevice(payload.deviceId);
+
+    // Ritorno null
+    return null;
+}
+
 // Esportazione servizi
-export { getNotificationsService, postNotificationsService };
+export {
+    getNotificationsService,
+    postNotificationsService,
+    deleteNotificationsService,
+};

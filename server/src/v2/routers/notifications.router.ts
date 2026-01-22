@@ -1,6 +1,7 @@
 // Importazione moduli
 import { Router } from 'express';
 import {
+    deleteNotificationsController,
     getNotificationsController,
     postNotificationsController,
 } from '../controllers/notifications.controller.js';
@@ -11,7 +12,8 @@ const notificationsRouter = Router();
 // Definizione rotte
 notificationsRouter
     .get('/', getNotificationsController)
-    .post('/', postNotificationsController);
+    .post('/', postNotificationsController)
+    .delete('/', deleteNotificationsController);
 
 // Esportazione router
 export default notificationsRouter;

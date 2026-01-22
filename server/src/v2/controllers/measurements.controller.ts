@@ -1,10 +1,12 @@
 // Importazione moduli
 import type { NextFunction, Request, Response } from 'express';
 import {
+    DeleteMeasurementsQuerySchema,
     GetMeasurementsQuerySchema,
     PostMeasurementsBodySchema,
 } from '../schemas/Measurements.schema.js';
 import {
+    deleteMeasurementsService,
     getMeasurementsService,
     postMeasurementsService,
 } from '../services/measurements.service.js';
@@ -14,7 +16,7 @@ import resHandler from '../utils/responseHandler.js';
 async function getMeasurementsController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -35,7 +37,7 @@ async function getMeasurementsController(
 async function postMeasurementsController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -52,5 +54,30 @@ async function postMeasurementsController(
     }
 }
 
+// Controller delete /measurements
+async function deleteMeasurementsController(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    // Gestione errori
+    try {
+        // Validazione body
+        const parsedQuery = DeleteMeasurementsQuerySchema.parse(req.query);
+
+        // Chiamata servizio
+        await deleteMeasurementsService(parsedQuery, req.user);
+
+        // Risposta
+        resHandler(res, true, 200, null);
+    } catch (error) {
+        next(error);
+    }
+}
+
 // Esportazione controller
-export { getMeasurementsController, postMeasurementsController };
+export {
+    getMeasurementsController,
+    postMeasurementsController,
+    deleteMeasurementsController,
+};
