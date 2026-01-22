@@ -5,12 +5,12 @@ import BottomBar from '../../components/global/BottomBar.comp';
 import TopBar from '../../components/global/TopBar.comp';
 import Page from '../../components/global/Page.comp';
 import logTitle from '../../utils/global/logTitle.utils';
-import LogComp from '../../components/v1/Log.comp';
+import LogComp from '../../components/v2/Log.comp';
 import Separator from '../../components/global/Separator.comp';
 import Loading from '../../components/global/Loading.comp';
 import type { Data as LogType } from '../../utils/v1/type.utils';
-import { getData } from '../../utils/v1/apiCrud.utils';
-import { useAuth } from '../../context/v1/Auth.context';
+import { getData } from '../../utils/v2/apiCrud.utils';
+import { useAuth } from '../../context/v2/Auth.context';
 import { useNotifications } from '../../context/global/Notifications.context';
 
 // Pagina log
@@ -37,7 +37,12 @@ function Logs() {
             try {
                 // Controllo token
                 if (accessToken) {
-                    await getData(setLogs, accessToken, 'data', 'limit=50');
+                    await getData(
+                        accessToken,
+                        'notifications',
+                        setLogs,
+                        `limit=50&deviceId=${deviceId}`,
+                    );
                 }
             } catch (error: any) {
                 setError(error.message);
@@ -75,7 +80,6 @@ function Logs() {
                             desc={log.desc}
                             type={log.type}
                             date={new Date(log.date)}
-                            read={log.read}
                             key={log.id}
                         />
                     ))

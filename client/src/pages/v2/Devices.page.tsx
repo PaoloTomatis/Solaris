@@ -24,7 +24,7 @@ function Devices() {
     // Lista dispositivi
     const [devices, setDevices] = useState<ExtendedDeviceType[] | null>(null);
     // Autenticazione
-    const { accessToken } = useAuth();
+    const { accessToken, user } = useAuth();
     // Stato caricamento
     const [loading, setLoading] = useState(true);
     // Stato errore
@@ -37,7 +37,12 @@ function Devices() {
             try {
                 // Controllo token e utente
                 if (accessToken) {
-                    await getData(accessToken, 'devices', setDevices);
+                    await getData(
+                        accessToken,
+                        'devices',
+                        setDevices,
+                        `userId=${user?.id}`,
+                    );
                 }
             } catch (error: any) {
                 setError(error.message);

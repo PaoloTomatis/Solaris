@@ -1,5 +1,5 @@
 // Importazione moduli
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/v2/Auth.context';
 import { useNotifications } from '../../context/global/Notifications.context';
@@ -9,6 +9,7 @@ import Page from '../../components/global/Page.comp';
 import Button from '../../components/global/Button.comp';
 import InputCont from '../../components/global/InputCont.comp';
 import Loading from '../../components/global/Loading.comp';
+import { postData } from '../../utils/v2/apiCrud.utils';
 // Importazione immagini
 import InfoIcon from '../assets/icons/info.svg?react';
 
@@ -26,8 +27,6 @@ function Controls() {
     const [loading, setLoading] = useState(false);
     // Stato tempo irrigazione
     const [irrigationTime, setIrrigationTime] = useState(120);
-    // Riferimento socket
-    const socketRef = useRef<WebSocket | null>(null);
 
     // Controllo errore
     useEffect(() => {
@@ -35,46 +34,6 @@ function Controls() {
             notify('ERRORE!', error, 'error');
         }
     }, [error]);
-
-    // Caricamento componente
-    useEffect(() => {
-        // Apertura connessione
-        socketRef.current = new WebSocket(
-            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`,
-        );
-
-        // Controllo errori
-        socketRef.current.onerror = () => {
-            setLoading(false);
-            setError('Errore comunicazione o connessione a websocket!');
-        };
-
-        socketRef.current.onmessage = (event) => {
-            // Dichiarazione dati evento
-            const eventData = JSON.parse(event.data);
-
-            if (eventData.event == 'success') {
-                // Invio notifica
-                notify(
-                    'INVIO COMANDO',
-                    'Comando di irrigazione inviato correttamente!',
-                    'success',
-                );
-                // Impostazione tempo irrigazione e caricamento
-                setLoading(false);
-                setIrrigationTime(120);
-            } else if (eventData.event == 'error') {
-                // Impostazione errore
-                setError(eventData.message);
-                // Impostazione tempo irrigazione e caricamento
-                setLoading(false);
-                setIrrigationTime(120);
-            }
-        };
-
-        // Pulizia connessione
-        return () => socketRef.current?.close();
-    }, []);
 
     // Controllo caricamento
     if (loading) {
@@ -96,32 +55,21 @@ function Controls() {
             </InputCont>
             {/* Pulsante */}
             <Button
-                onClick={() => {
+                onClick={async () => {
                     // Gestione errori
                     try {
-                        // Controllo stato connessione
-                        if (
-                            socketRef.current &&
-                            socketRef.current.readyState === WebSocket.OPEN
-                        ) {
-                            // Impostazione caricamento
-                            setLoading(true);
-
-                            // Invio evento
-                            socketRef.current.send(
-                                JSON.stringify({
-                                    event: 'v2/irrigation',
-                                    data: {
-                                        duration: irrigationTime,
-                                        completed: true,
-                                        deviceId,
-                                    },
-                                }),
+                        // Controllo token
+                        if (accessToken) {
+                            await postData(
+                                'irrigations/execute',
+                                'api',
+                                accessToken,
+                                { interval: irrigationTime },
                             );
                         }
                     } catch (error: any) {
-                        // Impostazione errore e caricamento
                         setError(error.message);
+                    } finally {
                         setLoading(false);
                     }
                 }}

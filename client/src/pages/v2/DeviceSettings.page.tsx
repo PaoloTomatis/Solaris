@@ -296,12 +296,7 @@ function DeviceSettings() {
                                 try {
                                     // Controllo token
                                     if (accessToken) {
-                                        // Eliminazione dati
-                                        await deleteData(
-                                            accessToken,
-                                            'data',
-                                            `deviceId=${deviceId}`,
-                                        );
+                                        //TODO Eliminazione dati
                                     }
                                 } catch (error: any) {
                                     notify(

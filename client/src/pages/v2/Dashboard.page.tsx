@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Page from '../../components/global/Page.comp';
 import BottomBar from '../../components/global/BottomBar.comp';
 import Data from '../../components/global/Data.comp';
-import Log from '../../components/v1/Log.comp';
+import Log from '../../components/v2/Log.comp';
 import Separator from '../../components/global/Separator.comp';
 import Info from '../../components/global/Info.comp';
 import logTitle from '../../utils/global/logTitle.utils';
@@ -292,7 +292,7 @@ function Dashboard() {
                     {logs && logs.length > 0 ? (
                         logs.map((log) => (
                             <Log
-                                tit={logTitle(log.type)}
+                                tit={logTitle(log.title)}
                                 desc={log.description}
                                 type={log.type}
                                 date={new Date(log.createdAt)}
