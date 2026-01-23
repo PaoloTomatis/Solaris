@@ -1,7 +1,7 @@
 // Importazione moduli
 import { type ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/v1/Auth.context';
+import { useAuth } from '../../context/v2/Auth.context';
 import Loading from '../global/Loading.comp';
 
 // Componente dati
