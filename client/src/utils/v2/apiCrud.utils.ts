@@ -36,7 +36,7 @@ async function getData<T>(
     try {
         // Richiesta
         const res = await axios.get<APIResponseSuccess<T> | APIResponseError>(
-            `${import.meta.env.VITE_API_URL}/${link}?authType=user${
+            `${import.meta.env.VITE_API_V2_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
             { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -106,7 +106,7 @@ async function getOneData<T>(
     try {
         // Richiesta
         const res = await axios.get<APIResponseSuccess<T> | APIResponseError>(
-            `${import.meta.env.VITE_API_URL}/${link}?authType=user${
+            `${import.meta.env.VITE_API_V2_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
             { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -157,7 +157,7 @@ async function postData<T>(
     try {
         // Richiesta
         const res = await axios.post<APIResponseSuccess<T> | APIResponseError>(
-            `${type == 'api' ? import.meta.env.VITE_API_URL : import.meta.env.VITE_AUTH_URL}/${link}${
+            `${type == 'api' ? import.meta.env.VITE_API_V2_URL : import.meta.env.VITE_AUTH_V2_URL}/${link}${
                 params ? `/${params}` : ''
             }?authType=user`,
             body,
@@ -202,7 +202,7 @@ async function patchData<T>(
     try {
         // Richiesta
         const res = await axios.patch<APIResponseSuccess<T> | APIResponseError>(
-            `${import.meta.env.VITE_API_URL}/${link}${
+            `${import.meta.env.VITE_API_V2_URL}/${link}${
                 params ? `/${params}` : ''
             }?authType=user`,
             body,
@@ -248,7 +248,7 @@ async function deleteData<T>(
         const res = await axios.delete<
             APIResponseSuccess<T> | APIResponseError
         >(
-            `${import.meta.env.VITE_API_URL}/${link}?authType=user${
+            `${import.meta.env.VITE_API_V2_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
             { headers: { Authorization: `Bearer ${accessToken}` } },

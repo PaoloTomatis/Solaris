@@ -19,7 +19,7 @@ async function getData<T>(
     try {
         // Richiesta
         const res = await axios.get<FullAPIResponse>(
-            `${import.meta.env.VITE_API_URL}/${link}?authType=user${
+            `${import.meta.env.VITE_API_V1_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
             { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -75,7 +75,7 @@ async function patchData<T>(
     try {
         // Richiesta
         const res = await axios.patch<FullAPIResponse>(
-            `${import.meta.env.VITE_API_URL}/${link}${
+            `${import.meta.env.VITE_API_V1_URL}/${link}${
                 params ? `/${params}` : ''
             }?authType=user`,
             body,
@@ -121,7 +121,7 @@ async function deleteData<T>(
 
         // Richiesta
         const res = await axios.delete<FullAPIResponse>(
-            `${import.meta.env.VITE_API_URL}/${link}?authType=user${
+            `${import.meta.env.VITE_API_V1_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
             { headers: { Authorization: `Bearer ${accessToken}` } },
