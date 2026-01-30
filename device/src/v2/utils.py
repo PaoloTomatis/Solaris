@@ -39,7 +39,7 @@ def loadData():
         print("Error loading device info")
         
     # Controllo dati
-    if (len(secrets) <= 0 or len(connInfo) <= 0 or len(settings) <= 0 or len(info) <= 0):
+    if (len(secrets) <= 0 or len(connInfo) <= 0 <= 0 or len(info) <= 0):
         print("Device restart for loading errors")
         sleep(1)
         reset()
@@ -300,6 +300,15 @@ def sendMeasurement (api: str, token: str, humI: float, humE: float, temp: float
     # Ritorno dati
     return postHandler(f"{api}/measurements?authType=device", payload, "measurements", token)
 
+# Funzione invio avvisi
+def sendNotifications (title: str, description: str, _type: str):
+    
+    # Dichiarazione dati
+    payload = {"title": title, "description": description, "type": _type}
+
+    # Ritorno dati
+    return postHandler(f"{api}/notifications?authType=device", payload, "notifications", token)
+
 # Funziona scrittura misurazioni
 def printMeasurement (humI: float, humE: float, temp: float, lum:float):
     print(f"Internal humidity: {round(humI)}%")
@@ -390,3 +399,4 @@ def postHandler(url, payload, name, token = None):
     except Exception as e:
         print(f"Post request error: {name}", e, "\n")
         return None
+

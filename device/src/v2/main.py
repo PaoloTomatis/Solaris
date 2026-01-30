@@ -3,7 +3,7 @@ from machine import Pin, ADC, Timer, RTC, reset
 from time import sleep, time
 import dht, network, json, ubinascii, urandom, urequests, struct, ntptime, utime
 import usocket as sk
-from utils import loadData, syncTime, connWifi, login, connSocket, ws_send, ws_recv, irrigation, measure, sendMeasurement, printMeasurement, getSettings
+from utils import loadData, syncTime, connWifi, login, connSocket, ws_send, ws_recv, irrigation, measure, sendMeasurement, printMeasurement, getSettings, sendNotifications
 
 # Creazione timer
 tim = Timer(0)
@@ -101,8 +101,25 @@ def measurementLoop():
         humE = None
     print(currentTime)
     
+    # Controllo temperatura
+    if temp <= 2:
+        # Invio avviso
+        sendNotifications("TEMPERATURA BASSA", "La temperatura della tua serra è inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+    elif temp >= 30:
+        # Invio avviso
+        sendNotifications("TEMPERATURA ALTA", "La temperatura della tua serra è superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        
+    # Controllo umidità esterna
+    if humE <= 30:
+        # Invio avviso
+        sendNotifications("UMIDITA' BASSA", "L'umidità esterna della tua serra è inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+    elif humE >= 85:
+        # Invio avviso
+        sendNotifications("UMIDITA' ALTA", "L'umidità esterna della tua serra è superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        
+    
     # Controllo modalità config
-    if settings["mode"] == "config":
+    if settings["mode"] == "config" and token:
         # Stampo misurazioni
         printMeasurement(humI, humE, temp, lum)
         # Invio misurazioni
@@ -139,10 +156,10 @@ def mainLoop () :
     # Controllo evento
     if type(event) is dict and "event" in event:        
         # Gestore evento irrigazione
-        if event["event"] == "irrigation" and "duration" in event and token:            
+        if event["event"] == "v2/irrigation" and "duration" in event and token:            
             # Effettuazione irrigazione
             irrigation(pump, info["name"], settings["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, duration=event["duration"])
-        elif event["event"] == "mode" and "mode" in event:
+        elif event["event"] == "v2/mode" and "mode" in event:
             try:
                 if event["mode"] == "auto" and "info" in event:
                     print(f'New mode: {event["mode"].upper()}')
@@ -162,15 +179,14 @@ def mainLoop () :
                 elif event["mode"] == "config" or event["mode"] == "safe":
                     print(f'New mode: {event["mode"].upper()}')
                     
-                    # Nuove informazioni
-                    newSettings = {"humIMax": settings["humIMax"], "humIMin": info["humIMin"], "kInterval": info["kInterval"], "mode": event["mode"]}
+                    # Salvataggio nuove impostazioni
+                    settings["mode"] = event["mode"]
 
                     # Conversione info
-                    parsedSettings = json.dumps(newSettings)
+                    parsedSettings = json.dumps(settings)
                     
                     # Sovrascrittura file
                     with open("settings.json", "w") as settingsFile:
-                        settings = newSettings
                         settingsFile.write(parsedSettings)
                     
                 else:
