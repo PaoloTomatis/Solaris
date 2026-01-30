@@ -7,7 +7,7 @@ import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import mongoose, { type FilterQuery } from 'mongoose';
 import type { DeviceType, UserType } from '../types/types.js';
 import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
-import { algorithmUpdateInterval } from '../../global/utils/irrigationAlgorithm.js';
+import { algorithmUpdateInterval } from '../utils/irrigationAlgorithm.js';
 import trimData from '../../global/utils/trimData.js';
 
 // Gestore get data

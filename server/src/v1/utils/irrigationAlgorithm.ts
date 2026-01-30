@@ -4,14 +4,14 @@ import type { DataType } from '../../v1/models/Data.model.js';
 // Funzione calcolo umidità
 function algorithmHumX(
     raw: DataType[],
-    dataIndex: 0 | 1
+    dataIndex: 0 | 1,
 ): number | { error: { status: number; message: string } } {
     // Filtrazione dati
     const dataDB = raw.filter(
         (data) =>
             Array.isArray(data.humI) &&
             data.humI.length == 2 &&
-            data.humI[1] > data.humI[0]
+            data.humI[1] > data.humI[0],
     ) as { humI: [number, number]; interval: any }[];
 
     // Controllo dati
@@ -55,7 +55,7 @@ function algorithmHumX(
 
 // Funzione calcolo intervallo
 function algorithmInterval(
-    raw: DataType[]
+    raw: DataType[],
 ): number | { error: { status: number; message: string } } {
     // Filtrazione dati
     const dataDB = raw.filter(
@@ -63,7 +63,7 @@ function algorithmInterval(
             Array.isArray(data.humI) &&
             data.humI.length == 2 &&
             !isNaN(data.interval) &&
-            typeof data.interval == 'number'
+            typeof data.interval == 'number',
     ) as { humI: [number, number]; interval: number }[];
 
     // Controllo dati
@@ -94,7 +94,7 @@ function algorithmUpdateInterval(
     humI1: number,
     humI2: number,
     humMax: number,
-    interval: number
+    interval: number,
 ): number | { error: { status: number; message: string } } {
     // Calcolo errore relativo
     const error = (humMax - humI2) / (humMax - humI1);

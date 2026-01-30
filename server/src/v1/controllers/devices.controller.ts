@@ -14,7 +14,7 @@ import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import {
     algorithmHumX,
     algorithmInterval,
-} from '../../global/utils/irrigationAlgorithm.js';
+} from '../utils/irrigationAlgorithm.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {

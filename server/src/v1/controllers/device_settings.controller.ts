@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 // Gestore get devices settings
 async function getDeviceSettings(
     req: Request,
-    res: Response
+    res: Response,
 ): Promise<Response> {
     // Gestione errori
     try {
@@ -32,7 +32,7 @@ async function getDeviceSettings(
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo settingsId
@@ -43,7 +43,7 @@ async function getDeviceSettings(
                     400,
                     null,
                     'Campo "id" invalido!',
-                    false
+                    false,
                 );
 
             // Impostazione settingsId
@@ -58,7 +58,7 @@ async function getDeviceSettings(
                     400,
                     null,
                     'Campo "deviceId" invalido!',
-                    false
+                    false,
                 );
 
             // Impostazione deviceId
@@ -77,7 +77,7 @@ async function getDeviceSettings(
                 404,
                 null,
                 'Impostazioni dispositivo non esistenti!',
-                false
+                false,
             );
 
         if (user) {
@@ -98,7 +98,7 @@ async function getDeviceSettings(
                     403,
                     null,
                     "Il dispositivo che possiede queste impostazioni non appartiene all'account autenticato!",
-                    false
+                    false,
                 );
         }
 
@@ -116,7 +116,7 @@ async function getDeviceSettings(
                 createdAt: deviceSettings.createdAt,
             },
             'Impostazioni dispositivo ricavate con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -133,7 +133,7 @@ async function getDeviceSettings(
 // Gestore patch device settings
 async function patchDeviceSettings(
     req: Request,
-    res: Response
+    res: Response,
 ): Promise<Response> {
     // Gestione errori
     try {
@@ -158,7 +158,7 @@ async function patchDeviceSettings(
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo deviceId
@@ -168,7 +168,7 @@ async function patchDeviceSettings(
                 400,
                 null,
                 'Campo "id" mancante o invalido!',
-                false
+                false,
             );
 
         // Controllo humMax
@@ -199,14 +199,14 @@ async function patchDeviceSettings(
                 403,
                 null,
                 "Il dispositivo che possiede queste impostazioni non appartiene all'account autenticato!",
-                false
+                false,
             );
 
         // Aggiornamento o creazione impostazioni dispositivo database
         const deviceSettings = await DeviceSettingsModel.findOneAndUpdate(
             { deviceId },
             { humMax, humMin, interval },
-            { new: true, upsert: true }
+            { new: true, upsert: true },
         );
 
         // Controllo impostazioni dispositivo
@@ -216,7 +216,7 @@ async function patchDeviceSettings(
                 404,
                 null,
                 'Impostazioni dispositivo non trovate!',
-                false
+                false,
             );
 
         // Risposta finale
@@ -234,7 +234,7 @@ async function patchDeviceSettings(
             },
             'Impostazioni utente modificate con successo!' +
                 (errors.length ? ` (${errors.join(', ')})` : ''),
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -251,7 +251,7 @@ async function patchDeviceSettings(
 // Gestore delete device settings
 async function deleteDeviceSettings(
     req: Request,
-    res: Response
+    res: Response,
 ): Promise<Response> {
     // Gestione errori
     try {
@@ -266,7 +266,7 @@ async function deleteDeviceSettings(
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo deviceId
@@ -276,7 +276,7 @@ async function deleteDeviceSettings(
                 400,
                 null,
                 'Campo "id" mancante o invalido!',
-                false
+                false,
             );
 
         // Ricavo dispositivo database
@@ -289,7 +289,7 @@ async function deleteDeviceSettings(
                 403,
                 null,
                 "Il dispositivo che possiede queste impostazioni non appartiene all'account autenticato!",
-                false
+                false,
             );
 
         // Eliminazione impostazioni dispositivo database
@@ -304,7 +304,7 @@ async function deleteDeviceSettings(
                 404,
                 null,
                 'Impostazioni dispositivo non trovate!',
-                false
+                false,
             );
 
         // Risposta finale
@@ -321,7 +321,7 @@ async function deleteDeviceSettings(
                 createdAt: deviceSettings.createdAt,
             },
             'Impostazioni dispositivo eliminate con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
