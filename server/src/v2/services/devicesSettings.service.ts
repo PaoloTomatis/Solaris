@@ -10,6 +10,11 @@ import devicesRepository from '../repositories/devices.repository.js';
 import usersRepository from '../repositories/users.repository.js';
 import type { GetDeviceParamsSchema } from '../schemas/Devices.schema.js';
 import dataParser from '../utils/dataParser.js';
+import {
+    algorithmHumX,
+    algorithmInterval,
+} from '../utils/irrigationAlgorithm.js';
+import irrigationsRepository from '../repositories/irrigations.repository.js';
 
 // Servizio get /devices-settings/:deviceId
 async function getDevicesSettingsService(
@@ -102,11 +107,29 @@ async function patchDevicesSettingsService(
             "The device does not exists or the user isn't allowed to get it",
         );
 
+    let humIMin = payload.humIMin;
+    let humIMax = payload.humIMax;
+    let kInterval = payload.kInterval;
+
     //TODO Esecuzione algoritmi
+    // Controllo cambio modalità automatica
+    if (payload.mode == 'auto') {
+        // Richiesta irrigazioni database
+        const irrigations = await irrigationsRepository.findMany({
+            deviceId,
+            limit: 20,
+            sort: [{ field: 'irrigatedAt', order: 'desc' }],
+        });
+
+        // Calcolo algoritmo
+        humIMin = algorithmHumX(irrigations, 0);
+        humIMax = algorithmHumX(irrigations, 1);
+        kInterval = algorithmInterval(irrigations);
+    }
 
     // Modifica impostazioni dispositivo
     const deviceSettings = await devicesSettingsRepository.updateOne(
-        payload,
+        { ...payload, humIMin, humIMax, kInterval },
         deviceId,
     );
 

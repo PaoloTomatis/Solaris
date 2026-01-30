@@ -11,6 +11,7 @@ import {
     GetIrrigationsQuerySchema,
     PostIrrigationsBodySchema,
 } from '../schemas/Irrigations.schema.js';
+import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
 // Controller get /irrigations
 async function getIrrigationsController(
@@ -45,7 +46,24 @@ async function postIrrigationsController(
         const parsedBody = PostIrrigationsBodySchema.parse(req.body);
 
         // Chiamata servizio
-        const irrigation = await postIrrigationsService(parsedBody, req.device);
+        const { irrigation, newSettings } = await postIrrigationsService(
+            parsedBody,
+            req.device,
+        );
+
+        // Controllo nuove impostazioni
+        if (newSettings) {
+            // Invio impostazioni ws
+            emitToRoom(`DEVICE-${req.device.id}`, {
+                event: 'v2/mode',
+                mode: 'auto',
+                info: {
+                    humIMin: newSettings.humIMin,
+                    humIMax: newSettings.humIMax,
+                    kInterval: newSettings.kInterval,
+                },
+            });
+        }
 
         // Risposta
         resHandler(res, true, 200, irrigation);

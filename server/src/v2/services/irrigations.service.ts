@@ -9,6 +9,9 @@ import type { UserType, DeviceType } from '../types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import irrigationsRepository from '../repositories/irrigations.repository.js';
 import dataParser from '../utils/dataParser.js';
+import { algorithmUpdateKInterval } from '../utils/irrigationAlgorithm.js';
+import devicesSettingsRepository from '../repositories/devicesSettings.repository.js';
+import type { DevicesSettingsType } from '../models/DeviceSettings.model.js';
 
 // Servizio get /irrigations
 async function getIrrigationsService(
@@ -36,7 +39,7 @@ async function getIrrigationsService(
     const irrigations = await irrigationsRepository.findMany(payload);
 
     // Iterazione irrigazioni
-    irrigations.map((irrigation) => {
+    const parsedIrrigations = irrigations.map((irrigation) => {
         // Conversione irrigazione
         return dataParser(
             irrigation.toObject(),
@@ -46,7 +49,7 @@ async function getIrrigationsService(
     });
 
     // Ritorno irrigazioni
-    return irrigations;
+    return parsedIrrigations;
 }
 
 // Servizio post /irrigations
@@ -64,6 +67,37 @@ async function postIrrigationsService(
         device.id,
     );
 
+    // Richiesta impostazioni database
+    const settings = await devicesSettingsRepository.findOne(device.id);
+
+    //TODO Errore custom
+    // Controllo impostazioni
+    if (!settings) throw new Error('Device settings not found');
+
+    // Inizializzazione nuove impostazioni
+    let newSettings: DevicesSettingsType | null = null;
+
+    // Controllo tipo, humIMax e kInterval
+    if (payload.type == 'auto' && settings.humIMax && settings.kInterval) {
+        // Calcolo impostazioni
+        const newKInterval = algorithmUpdateKInterval(
+            payload.humIBefore,
+            payload.humIAfter,
+            settings.humIMax,
+            settings.kInterval,
+        );
+
+        // Aggiornamento impostazioni
+        newSettings = await devicesSettingsRepository.updateOne(
+            { kInterval: newKInterval },
+            device.id,
+        );
+
+        //TODO Errore custom
+        // Controllo nuove impostazioni
+        if (!newSettings) throw new Error('Device settings update failed');
+    }
+
     // Conversione irrigazione
     const parsedIrrigation = dataParser(
         irrigation.toObject(),
@@ -72,7 +106,7 @@ async function postIrrigationsService(
     );
 
     // Ritorno irrigazione
-    return parsedIrrigation;
+    return { irrigation: parsedIrrigation, newSettings };
 }
 
 // Servizio delete /irrigations
