@@ -23,12 +23,12 @@ function status(ws: AuthenticatedWS, data: { lastSeen?: string | Date }) {
                     `DEVICE-${ws.device.id}`,
                     false,
                     404,
-                    'Invalid authentication'
+                    'Invalid authentication',
                 );
             } else {
                 // Invio risposta finale
                 emitToRoom(`USER-${ws.device.userId}`, {
-                    event: 'status',
+                    event: 'v2/status',
                     deviceId: ws.device.id,
                     lastSeen,
                 });
