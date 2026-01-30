@@ -13,7 +13,7 @@ import UserSettings from '../pages/v2/UserSettings.page';
 import Account from '../pages/v2/Account.page';
 import Auth from '../pages/v2/Auth.page';
 import Warning from '../pages/global/Warning.page';
-import Parent from '../components/global/Parent.comp';
+import Parent from '../components/v2/Parent.comp';
 import ProtectedRoute from '../components/v2/ProtectedRoute.comp';
 
 // Dichiarazione pagine router
