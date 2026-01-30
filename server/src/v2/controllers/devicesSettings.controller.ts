@@ -11,12 +11,13 @@ import {
     PatchDevicesSettingsBodySchema,
 } from '../schemas/DevicesSettings.schema.js';
 import { PatchDevicesParamsSchema } from '../schemas/Devices.schema.js';
+import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
 // Controller get /me/device-settings
 async function getMeSettingsController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -34,7 +35,7 @@ async function getMeSettingsController(
 async function getDevicesSettingsController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -42,7 +43,10 @@ async function getDevicesSettingsController(
         const parsedParams = GetDevicesSettingsParamsSchema.parse(req.params);
 
         // Chiamata servizio
-        const deviceSettings = await getDevicesSettingsService(parsedParams);
+        const deviceSettings = await getDevicesSettingsService(
+            parsedParams,
+            req.user,
+        );
 
         // Risposta
         resHandler(res, true, 200, deviceSettings);
@@ -55,7 +59,7 @@ async function getDevicesSettingsController(
 async function patchDevicesSettingsController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -69,8 +73,19 @@ async function patchDevicesSettingsController(
         const deviceSettings = await patchDevicesSettingsService(
             parsedBody,
             parsedParams,
-            req.device
+            req.user,
         );
+
+        // Invio impostazioni ws
+        emitToRoom(`DEVICE-${parsedParams.deviceId}`, {
+            event: 'v2/mode',
+            mode: deviceSettings.mode,
+            info: {
+                humIMin: deviceSettings.humIMin,
+                humIMax: deviceSettings.humIMax,
+                kInterval: deviceSettings.kInterval,
+            },
+        });
 
         // Risposta
         resHandler(res, true, 200, deviceSettings);
