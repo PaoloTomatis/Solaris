@@ -79,6 +79,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         try {
             // Decodifica token
             const decoded = jwtDecode<JwtUserPayload>(token || '');
+
             // Controllo token
             if (decoded.exp && decoded.exp * 1000 > Date.now() && token) {
                 return {
@@ -92,7 +93,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Funzione pulizia
-    function clear() {
+    function clear(loading = false) {
         // Eliminazione token
         localStorage.removeItem('accessToken');
         // Eliminazione impostazioni utente
@@ -101,6 +102,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setSettings(null);
         setAccessToken(null);
+        if (loading)
+            // Impostazione caricamento
+            setLoading(false);
     }
 
     // Funzione configurazione
@@ -109,50 +113,65 @@ function AuthProvider({ children }: { children: ReactNode }) {
         const token = localStorage.getItem('accessToken');
 
         // Ricavazione impostazioni
-        const loadedSettings: UserSettingsType | '' = JSON.parse(
-            localStorage.getItem('settings') || '',
-        );
+        const rawSettings = localStorage.getItem('settings');
+        const loadedSettings: UserSettingsType | null = rawSettings
+            ? JSON.parse(rawSettings)
+            : null;
 
         // Controllo token
         if (!token) {
             // Pulizia
-            clear();
+            clear(true);
 
             // Ritorno
             return;
         }
 
-        // Richiesta utente
-        const user = await getOneData<UserType | null>(token, 'me', null, null);
+        // Gestion errori
+        try {
+            // Richiesta utente
+            const user = await getOneData<UserType | null>(
+                token,
+                'me',
+                null,
+                null,
+            );
 
-        // Controllo utente
-        if (!user) {
+            // Controllo utente
+            if (!user) {
+                // Pulizia
+                clear();
+
+                // Ritorno
+                return;
+            }
+
+            // Richiesta impostazioni
+            const userSettings = await getOneData<UserSettingsType | null>(
+                token,
+                'me/user-settings',
+            );
+
+            // Impostazione impostazioni utente
+            localStorage.setItem(
+                'settings',
+                JSON.stringify(userSettings || loadedSettings || null),
+            );
+
+            // Impostazione token
+            setAccessToken(token);
+            setUser(user);
+            setSettings(userSettings || loadedSettings || null);
+        } catch (error) {
             // Pulizia
-            clear();
+            clear(true);
 
             // Ritorno
             return;
+        } finally {
+            // Impostazioni caricamento
+            setLoading(false);
         }
-
-        // Richiesta impostazioni
-        const userSettings = await getOneData<UserSettingsType | null>(
-            token,
-            'me/user-settings',
-        );
-
-        // Impostazione impostazioni utente
-        localStorage.setItem(
-            'settings',
-            JSON.stringify(userSettings || loadedSettings || null),
-        );
-
-        // Impostazione token
-        setAccessToken(token);
-        setUser(user);
-        setSettings(userSettings || loadedSettings || null);
-
-        // Impostazione caricamento
-        setLoading(false);
     }
 
     // Caricamento componente
@@ -162,12 +181,18 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     // Controllo token
     useEffect(() => {
+        // Controllo caricamento
+        if (loading) return;
+
+        // Controllo token
+        if (!accessToken) return;
+
         // Conversione token
-        const result = jwtCheck(accessToken || '');
+        const result = jwtCheck(accessToken);
 
         // Controllo risultato token
-        if (!result) clear();
-    }, [accessToken]);
+        if (!result) clear(true);
+    }, [accessToken, loading]);
 
     // Controllo impostazioni
     useEffect(() => {

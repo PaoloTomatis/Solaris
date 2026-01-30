@@ -1,6 +1,6 @@
 // Importazione moduli
-import { type ReactNode, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { type ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/v2/Auth.context';
 import Loading from '../global/Loading.comp';
 
@@ -8,28 +8,27 @@ import Loading from '../global/Loading.comp';
 function ProtectedRoute({ children }: { children: ReactNode }) {
     // Autenticazione
     const { accessToken, loading } = useAuth();
-    // Navigatore
-    const navigator = useNavigate();
     // Url corrente
     const location = useLocation();
 
     // Controllo caricamento
-    useEffect(() => {
-        if (!loading && !accessToken) {
-            navigator(
-                `/auth?page=${encodeURIComponent(
-                    location.pathname + location.search,
-                )}`,
-            );
-        }
-    }, [loading]);
-
-    // Controllo accessToken
-    if (accessToken) {
-        return children;
+    if (loading) {
+        return <Loading />;
     }
 
-    return <Loading />;
+    // Controllo accessToken
+    if (!accessToken) {
+        return (
+            <Navigate
+                to={`/auth?page=${encodeURIComponent(
+                    location.pathname + location.search,
+                )}`}
+                replace
+            />
+        );
+    }
+
+    return children;
 }
 
 // Esportazione componente
