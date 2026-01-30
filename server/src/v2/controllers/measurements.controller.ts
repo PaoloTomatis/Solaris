@@ -11,6 +11,7 @@ import {
     postMeasurementsService,
 } from '../services/measurements.service.js';
 import resHandler from '../utils/responseHandler.js';
+import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
 // Controller get /measurements
 async function getMeasurementsController(
@@ -45,7 +46,16 @@ async function postMeasurementsController(
         const parsedBody = PostMeasurementsBodySchema.parse(req.body);
 
         // Chiamata servizio
-        const measurement = postMeasurementsService(parsedBody, req.device);
+        const measurement = await postMeasurementsService(
+            parsedBody,
+            req.device,
+        );
+
+        // Invio misurazioni ws
+        emitToRoom(`USER-${req.device.userId}`, {
+            event: 'v2/measurements',
+            data: measurement,
+        });
 
         // Risposta
         resHandler(res, true, 200, measurement);
