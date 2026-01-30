@@ -13,16 +13,16 @@ const GetDevicesSettingsParamsSchema = z.object({
 const PatchDevicesSettingsBodySchema = z
     .object({
         mode: z.enum(['config', 'auto', 'safe']).optional(),
-        humIMax: z.number().min(0).max(100).optional(),
-        humIMin: z.number().min(0).max(100).optional(),
-        kInterval: z.number().positive().optional(),
+        humIMax: z.number().min(0).max(100).nullable().optional(),
+        humIMin: z.number().min(0).max(100).nullable().optional(),
+        kInterval: z.number().positive().nullable().optional(),
     })
     .refine(
         (val) => !val.humIMax || !val.humIMin || val.humIMax > val.humIMin,
         {
             error: 'HumIMax should be greater than humIMin',
             path: ['humIMax', 'humIMin'],
-        }
+        },
     );
 
 // Schema params patch /device-settings/:deviceId

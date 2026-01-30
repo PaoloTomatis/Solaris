@@ -188,7 +188,12 @@ function DeviceSettings() {
                             value={settings?.humIMin}
                             setValue={(humIMin) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, humIMin } : prev,
+                                    prev
+                                        ? {
+                                              ...prev,
+                                              humIMin: humIMin || null,
+                                          }
+                                        : prev,
                                 )
                             }
                         >
@@ -200,7 +205,12 @@ function DeviceSettings() {
                             value={settings?.humIMax}
                             setValue={(humIMax) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, humIMax } : prev,
+                                    prev
+                                        ? {
+                                              ...prev,
+                                              humIMax: humIMax || null,
+                                          }
+                                        : prev,
                                 )
                             }
                         >
@@ -212,7 +222,12 @@ function DeviceSettings() {
                             value={settings?.kInterval}
                             setValue={(kInterval) =>
                                 setSettings((prev) =>
-                                    prev ? { ...prev, kInterval } : prev,
+                                    prev
+                                        ? {
+                                              ...prev,
+                                              kInterval: kInterval || null,
+                                          }
+                                        : prev,
                                 )
                             }
                         >
