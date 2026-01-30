@@ -21,18 +21,18 @@ async function jwtVerify(accessToken: string, type: 'user'): Promise<UserType>;
 // Firma dispositivo
 async function jwtVerify(
     accessToken: string,
-    type: 'device'
+    type: 'device',
 ): Promise<DeviceType>;
 
 // Funzione verifica token
 async function jwtVerify(
     accessToken: string,
-    type: 'user' | 'device'
+    type: 'user' | 'device',
 ): Promise<UserType | DeviceType> {
     // Controllo token
     const decoded = jwt.verify(
         accessToken,
-        process.env.JWT_ACCESS as string
+        process.env.JWT_ACCESS as string,
     ) as JwtPayloadCustom;
 
     //TODO Errore custom
@@ -51,7 +51,7 @@ async function jwtVerify(
         const parsedUser = dataParser(
             user.toObject(),
             ['psw', 'schemaVersion'],
-            true
+            true,
         );
 
         // Ritorno
@@ -68,7 +68,7 @@ async function jwtVerify(
         const parsedDevice = dataParser(
             device.toObject(),
             ['psw', 'key', 'schemaVersion'],
-            true
+            true,
         );
 
         // Ritorno
@@ -79,7 +79,7 @@ async function jwtVerify(
 async function jwtMiddlewareRest(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ): Promise<void | Response> {
     // Gestione errori
     try {
@@ -119,7 +119,10 @@ async function jwtMiddlewareWS(ws: AuthenticatedWS, req: IncomingMessage) {
         const type = url.searchParams.get('authType');
 
         // Conversione dati
-        const data = AuthMiddlewareSchema.parse({ accessToken, type });
+        const data = AuthMiddlewareSchema.parse({
+            accessToken,
+            authType: type,
+        });
 
         if (type === 'user') {
             // Impostazione utente

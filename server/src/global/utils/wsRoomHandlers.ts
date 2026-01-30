@@ -12,7 +12,7 @@ function joinRoom(ws: AuthenticatedWSV2, roomName: string, version: 2): void;
 function joinRoom(
     ws: AuthenticatedWSV1 | AuthenticatedWSV2,
     roomName: string,
-    version: 1 | 2
+    version: 1 | 2,
 ) {
     // Controllo esistenza stanza
     if (!rooms.has(roomName)) rooms.set(roomName, new Set());

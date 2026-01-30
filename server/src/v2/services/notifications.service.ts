@@ -37,7 +37,7 @@ async function getNotificationsService(
     const notifications = await notificationsRepository.findMany(payload);
 
     // Iterazione notifiche
-    notifications.map((notification) => {
+    const parsedNotifications = notifications.map((notification) => {
         // Conversione notifica
         return dataParser(
             notification.toObject(),
@@ -47,7 +47,7 @@ async function getNotificationsService(
     });
 
     // Ritorno irrigazioni
-    return notifications;
+    return parsedNotifications;
 }
 
 // Servizio post /notifications

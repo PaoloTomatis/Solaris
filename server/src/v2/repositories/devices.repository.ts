@@ -37,7 +37,7 @@ class DevicesRepository {
     // Funzione ricevi dispositivi
     async findManySafe(
         payload: z.infer<typeof GetDevicesQuerySchema>,
-        user: UserType
+        user: UserType,
     ) {
         // Dichiarazione filtri
         const filter: FilterQuery<typeof DevicesModel> = {
@@ -101,7 +101,7 @@ class DevicesRepository {
     async updateOneSafe(
         id: string,
         userId: string | ObjectId,
-        payload: UpdateQuery<DevicesType>
+        payload: UpdateQuery<DevicesType>,
     ) {
         // Modifica dispositivo database
         const device = await DevicesModel.findOneAndUpdate(
@@ -110,7 +110,7 @@ class DevicesRepository {
             {
                 new: true,
                 runValidators: true,
-            }
+            },
         );
 
         // Ritorno dispositivo
@@ -146,7 +146,7 @@ class DevicesRepository {
             { _id: id, userId },
             {
                 runValidators: true,
-            }
+            },
         );
 
         // Ritorno dispositivo

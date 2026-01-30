@@ -111,7 +111,7 @@ wss.on('connection', async (ws: AuthenticatedWSV1 | AuthenticatedWSV2, req) => {
                         null,
                         'Evento o dati mancanti o invalidi!',
                         false,
-                        'ws'
+                        'ws',
                     );
 
                 // Gestore evento stato
@@ -131,7 +131,7 @@ wss.on('connection', async (ws: AuthenticatedWSV1 | AuthenticatedWSV2, req) => {
                         null,
                         'Evento o dati mancanti o invalidi!',
                         false,
-                        'ws'
+                        'ws',
                     );
 
                 // Gestore evento stato v1
@@ -157,7 +157,7 @@ wss.on('connection', async (ws: AuthenticatedWSV1 | AuthenticatedWSV2, req) => {
                     null,
                     errorMsg,
                     false,
-                    'ws'
+                    'ws',
                 );
             else if (ws.device)
                 resHandlerV1(
@@ -166,7 +166,7 @@ wss.on('connection', async (ws: AuthenticatedWSV1 | AuthenticatedWSV2, req) => {
                     null,
                     errorMsg,
                     false,
-                    'ws'
+                    'ws',
                 );
         }
     });
@@ -187,7 +187,7 @@ app.use(
         origin: process.env.CLIENT_URL || 'http://localhost:5173',
         methods: ['GET', 'POST', 'PATCH', 'DELETE'],
         credentials: true,
-    })
+    }),
 );
 // Middleware json
 app.use(express.json());
@@ -203,7 +203,7 @@ app.get('/', (req: Request, res: Response) => {
         200,
         null,
         "This is the API of SOLARIS HUB, the use is forbidden for commercial use. Normally your requests would be blocked by CORS if the url isn't recognized in the whitelist. USE AT YOUR OWN RISK (for private use only, not commercial)",
-        true
+        true,
     );
 });
 
@@ -226,7 +226,7 @@ app.use((req: Request, res: Response) => {
         404,
         null,
         'Pagina non trovata o disponibile!',
-        false
+        false,
     );
 });
 

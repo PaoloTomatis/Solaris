@@ -14,7 +14,7 @@ import dataParser from '../utils/dataParser.js';
 // Servizio get /devices-settings/:deviceId
 async function getDevicesSettingsService(
     { deviceId }: z.infer<typeof GetDeviceParamsSchema>,
-    user?: UserType
+    user?: UserType,
 ) {
     //TODO Errore custom
     // Controllo utente
@@ -27,7 +27,7 @@ async function getDevicesSettingsService(
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it"
+            "The device does not exists or the user isn't allowed to get it",
         );
 
     // Richiesta impostazioni dispositivo database
@@ -41,7 +41,7 @@ async function getDevicesSettingsService(
     const parsedDeviceSettings = dataParser(
         deviceSettings.toObject(),
         ['__v', 'schemaVersion'],
-        true
+        true,
     );
 
     // Ritorno impostazioni dispositivo
@@ -75,7 +75,7 @@ async function getMeSettingsService(device?: DeviceType) {
     const parsedDeviceSettings = dataParser(
         deviceSettings.toObject(),
         ['__v', 'schemaVersion'],
-        true
+        true,
     );
 
     // Ritorno impostazioni dispositivo
@@ -86,7 +86,7 @@ async function getMeSettingsService(device?: DeviceType) {
 async function patchDevicesSettingsService(
     payload: z.infer<typeof PatchDevicesSettingsBodySchema>,
     { deviceId }: z.infer<typeof PatchDevicesSettingsParamsSchema>,
-    user?: UserType
+    user?: UserType,
 ) {
     //TODO Errore custom
     // Controllo dispositivo
@@ -99,13 +99,15 @@ async function patchDevicesSettingsService(
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it"
+            "The device does not exists or the user isn't allowed to get it",
         );
+
+    //TODO Esecuzione algoritmi
 
     // Modifica impostazioni dispositivo
     const deviceSettings = await devicesSettingsRepository.updateOne(
         payload,
-        deviceId
+        deviceId,
     );
 
     //TODO Errore custom
@@ -116,7 +118,7 @@ async function patchDevicesSettingsService(
     const parsedDeviceSettings = dataParser(
         deviceSettings.toObject(),
         ['__v', 'schemaVersion'],
-        true
+        true,
     );
 
     // Ritorno impostazioni dispositivo

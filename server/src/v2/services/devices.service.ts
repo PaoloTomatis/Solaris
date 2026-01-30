@@ -55,7 +55,7 @@ async function getDevicesService(
     const devices = await devicesRepository.findManySafe(payload, user);
 
     // Iterazione dispositivi
-    devices.map((device) => {
+    const parsedDevices = devices.map((device) => {
         // Conversione dispositivo
         return dataParser(
             device.toObject(),
@@ -65,7 +65,7 @@ async function getDevicesService(
     });
 
     // Ritorno dispositivi
-    return devices;
+    return parsedDevices;
 }
 
 // Servizio post /devices

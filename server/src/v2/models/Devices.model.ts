@@ -22,15 +22,15 @@ interface DevicesType {
 // Schema dispositivi
 const DevicesSchema = new Schema(
     {
-        userId: { type: Schema.Types.ObjectId, ref: 'Users' },
+        userId: { type: Schema.Types.ObjectId, ref: 'Users', default: null },
         key: { type: String, required: true, unique: true },
         name: { type: String, default: 'My Device' },
         psw: { type: String, required: true },
         prototypeModel: { type: String, default: 'Solaris Vega' },
         schemaVersion: { type: Number, default: 1 },
-        activatedAt: { type: Date },
+        activatedAt: { type: Date, default: null },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // Middleware creazione dispositivo
@@ -52,17 +52,17 @@ DevicesSchema.post('deleteOne', async (doc, next) => {
 
     // Eliminazione misurazioni dispositivo database
     await measurementsRepository.deleteManyByDevice(
-        doc._id.toString() as string
+        doc._id.toString() as string,
     );
 
     // Eliminazione irrigazioni dispositivo database
     await irrigationsRepository.deleteManyByDevice(
-        doc._id.toString() as string
+        doc._id.toString() as string,
     );
 
     // Eliminazione notifiche dispositivo database
     await notificationsRepository.deleteManyByDevice(
-        doc._id.toString() as string
+        doc._id.toString() as string,
     );
 
     // Prossimo middleware

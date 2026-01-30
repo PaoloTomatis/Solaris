@@ -37,7 +37,7 @@ async function getMeasurementsService(
     const measurements = await measurementsRepository.findMany(payload);
 
     // Iterazione misurazioni
-    measurements.map((measurement) => {
+    const parsedMeasurements = measurements.map((measurement) => {
         // Conversione misurazione
         return dataParser(
             measurement.toObject(),
@@ -47,7 +47,7 @@ async function getMeasurementsService(
     });
 
     // Ritorno misurazioni
-    return measurements;
+    return parsedMeasurements;
 }
 
 // Servizio post /measurements
