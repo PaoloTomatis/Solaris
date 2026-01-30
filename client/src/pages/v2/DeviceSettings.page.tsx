@@ -70,7 +70,7 @@ function DeviceSettings() {
                 if (accessToken) {
                     await getData(
                         accessToken,
-                        `device-settings/${deviceId}`,
+                        `devices-settings/${deviceId}`,
                         setOriginalSettings,
                     );
                     await getOneData(

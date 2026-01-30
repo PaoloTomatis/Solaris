@@ -53,7 +53,7 @@ function Devices() {
 
         // Apertura WebSocket
         const socket = new WebSocket(
-            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`,
+            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user&v=2`,
         );
 
         // Controllo messaggi
@@ -62,7 +62,7 @@ function Devices() {
             const eventData = JSON.parse(event.data);
 
             // Controllo tipo evento
-            if (eventData.event == 'status') {
+            if (eventData.event == 'v2/status') {
                 // Impostazione dati
                 setDevices((prevDevices) =>
                     prevDevices

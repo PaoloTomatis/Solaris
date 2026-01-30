@@ -35,7 +35,7 @@ async function getData<T>(
     // Gestione errori
     try {
         // Richiesta
-        const res = await axios.get<APIResponseSuccess<T> | APIResponseError>(
+        const res = await axios.get<APIResponseSuccess<T[]> | APIResponseError>(
             `${import.meta.env.VITE_API_V2_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
@@ -49,17 +49,13 @@ async function getData<T>(
         if (!isSuccess(apiData))
             throw new Error(apiData.message || 'Errore nella richiesta!');
 
-        // Controllo lunghezza data
-        if (!Array.isArray(apiData.data) || apiData.data.length <= 0)
-            return null;
-
         // Controllo impostazione valore
         if (setValue) {
             // Impostazione valore
-            setValue(apiData.data[0]);
+            setValue(apiData.data);
         } else {
             // Ritorno valore
-            return apiData.data[0];
+            return apiData.data;
         }
     } catch (error: unknown) {
         let errorMsg = 'Errore sconosciuto!';
@@ -95,7 +91,7 @@ async function getOneData<T>(
     queries?: string | null,
 ): Promise<void>;
 
-// Funzione ricevere dato
+// Funzione ricevere dat0
 async function getOneData<T>(
     accessToken: string,
     link: string,
@@ -105,7 +101,9 @@ async function getOneData<T>(
     // Gestione errori
     try {
         // Richiesta
-        const res = await axios.get<APIResponseSuccess<T> | APIResponseError>(
+        const res = await axios.get<
+            APIResponseSuccess<T | T[]> | APIResponseError
+        >(
             `${import.meta.env.VITE_API_V2_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
@@ -119,13 +117,25 @@ async function getOneData<T>(
         if (!isSuccess(apiData))
             throw new Error(apiData.message || 'Errore nella richiesta!');
 
-        // Controllo impostazione valore
-        if (setValue) {
-            // Impostazione valore
-            setValue(apiData.data);
+        // Controllo lunghezza data
+        if (!Array.isArray(apiData.data)) {
+            // Controllo impostazione valore
+            if (setValue) {
+                // Impostazione valore
+                setValue(apiData.data);
+            } else {
+                // Ritorno valore
+                return apiData.data;
+            }
         } else {
-            // Ritorno valore
-            return apiData.data;
+            // Controllo impostazione valore
+            if (setValue) {
+                // Impostazione valore
+                setValue(apiData.data[0]);
+            } else {
+                // Ritorno valore
+                return apiData.data[0];
+            }
         }
     } catch (error: unknown) {
         let errorMsg = 'Errore sconosciuto!';

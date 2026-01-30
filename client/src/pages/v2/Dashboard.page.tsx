@@ -106,7 +106,7 @@ function Dashboard() {
 
         // Apertura WebSocket
         const socket = new WebSocket(
-            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user`,
+            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user&v=2`,
         );
 
         // Controllo messaggi
@@ -115,16 +115,16 @@ function Dashboard() {
             const eventData = JSON.parse(event.data);
 
             // Controllo tipo evento
-            if (eventData.event == 'data') {
+            if (eventData.event == 'v2/measurements') {
                 // Impostazione dati
                 setRealTimeData({
                     humE: eventData.data.humE,
                     humI: Math.round(eventData.data.humI),
                     temp: eventData.data.temp,
                     lum: Math.round(eventData.data.lum),
-                    date: new Date(),
+                    date: new Date(eventData.data.measuredAt),
                 });
-            } else if (eventData.event == 'status') {
+            } else if (eventData.event == 'v2/status') {
                 // Impostazione dati
                 setStatus(new Date(eventData.lastSeen));
 
@@ -250,7 +250,7 @@ function Dashboard() {
                         />
                         <Data
                             img={LuminosityIcon}
-                            dato={`${realTimeData?.lum.toFixed(0) || '-'}%`}
+                            dato={`${realTimeData?.lum?.toFixed(0) || '-'}%`}
                         />
                     </div>
                     <div className="flex items-center justify-center gap-7 w-full">
@@ -267,7 +267,7 @@ function Dashboard() {
                             <Data
                                 img={HumidityIcon}
                                 dato={`${
-                                    realTimeData?.humI.toFixed(0) || '-'
+                                    realTimeData?.humI?.toFixed(0) || '-'
                                 }%`}
                             />
                             <p className="text-white font-bold text-xlarge absolute top-[40%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
