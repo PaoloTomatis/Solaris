@@ -10,7 +10,7 @@ const UsersLoginBodySchema = z.object({
 // Schema body /device-login
 const DevicesLoginBodySchema = z.object({
     key: z.string().min(10),
-    psw: z.string().regex(/^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,255}$/),
+    psw: z.string(),
 });
 
 // Schema info
