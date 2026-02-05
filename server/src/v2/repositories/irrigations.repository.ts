@@ -1,5 +1,7 @@
 // Importazione moduli
-import IrrigationsModel from '../models/Irrigations.model.js';
+import IrrigationsModel, {
+    type IrrigationsType,
+} from '../models/Irrigations.model.js';
 import type { FilterQuery, ObjectId } from 'mongoose';
 import {
     PostIrrigationsBodySchema,
@@ -12,7 +14,7 @@ class IrrigationsRepository {
     // Funzione ricevi irrigazioni
     async findMany(payload: z.infer<typeof GetIrrigationsQuerySchema>) {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof IrrigationsModel> = {
+        const filter: FilterQuery<IrrigationsType> = {
             deviceId: payload.deviceId,
         };
 
@@ -51,7 +53,7 @@ class IrrigationsRepository {
     // Funzione creazione irrigazione
     async createOne(
         payload: z.infer<typeof PostIrrigationsBodySchema>,
-        deviceId: string | ObjectId
+        deviceId: string | ObjectId,
     ) {
         // Creazione irrigazione
         const irrigation = new IrrigationsModel({ ...payload, deviceId });

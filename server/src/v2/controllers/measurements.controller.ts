@@ -25,7 +25,10 @@ async function getMeasurementsController(
         const parsedQuery = GetMeasurementsQuerySchema.parse(req.query);
 
         // Chiamata servizio
-        const measurements = getMeasurementsService(parsedQuery, req.user);
+        const measurements = await getMeasurementsService(
+            parsedQuery,
+            req.user,
+        );
 
         // Risposta
         resHandler(res, true, 200, measurements);

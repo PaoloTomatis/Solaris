@@ -32,10 +32,10 @@ class SessionsRepository {
     // Funzione richiesta sessioni da id utente
     async findManyByUserId(
         userId: string | ObjectId,
-        type?: 'active' | 'revoked' | 'expired'
+        type?: 'active' | 'revoked' | 'expired',
     ) {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof SessionsModel> = {
+        const filter: FilterQuery<SessionsType> = {
             userId,
             subject: 'user',
         };
@@ -53,10 +53,10 @@ class SessionsRepository {
     // Funzione richiesta sessioni da id utente
     async findManyByDeviceId(
         deviceId: string | ObjectId,
-        type?: 'active' | 'revoked' | 'expired'
+        type?: 'active' | 'revoked' | 'expired',
     ) {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof SessionsModel> = {
+        const filter: FilterQuery<SessionsType> = {
             deviceId,
             subject: 'device',
         };
@@ -74,7 +74,7 @@ class SessionsRepository {
     // Funzione richiesta sessioni da id utente
     async findManyByIp(ip: string, type?: 'active' | 'revoked' | 'expired') {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof SessionsModel> = {
+        const filter: FilterQuery<SessionsType> = {
             ipAddress: ip,
         };
 
@@ -123,7 +123,7 @@ class SessionsRepository {
     // Funzione creazione sessioni
     async updateOne(
         type: 'active' | 'revoked' | 'expired',
-        id: string | ObjectId
+        id: string | ObjectId,
     ) {
         // Aggiornamento sessione database
         const session = await SessionsModel.findByIdAndUpdate(id, { type });

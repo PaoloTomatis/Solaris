@@ -24,7 +24,10 @@ async function getNotificationsController(
         const parsedQuery = GetNotificationsQuerySchema.parse(req.query);
 
         // Chiamata servizio
-        const notifications = getNotificationsService(parsedQuery, req.user);
+        const notifications = await getNotificationsService(
+            parsedQuery,
+            req.user,
+        );
 
         // Risposta
         resHandler(res, true, 200, notifications);

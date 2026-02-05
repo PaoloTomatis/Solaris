@@ -40,7 +40,7 @@ class DevicesRepository {
         user: UserType,
     ) {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof DevicesModel> = {
+        const filter: FilterQuery<DevicesType> = {
             deviceId: payload.deviceId,
         };
 

@@ -1,5 +1,7 @@
 // Importazione moduli
-import MeasurementsModel from '../models/Measurements.model.js';
+import MeasurementsModel, {
+    type MeasurementsType,
+} from '../models/Measurements.model.js';
 import { type FilterQuery, type ObjectId } from 'mongoose';
 import {
     GetMeasurementsQuerySchema,
@@ -12,7 +14,7 @@ class MeasurementsRepository {
     // Funzione ricevi misurazioni
     async findMany(payload: z.infer<typeof GetMeasurementsQuerySchema>) {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof MeasurementsModel> = {
+        const filter: FilterQuery<MeasurementsType> = {
             deviceId: payload.deviceId,
         };
 
@@ -48,7 +50,7 @@ class MeasurementsRepository {
     // Funzione creazione misurazione
     async createOne(
         payload: z.infer<typeof PostMeasurementsBodySchema>,
-        deviceId: string | ObjectId
+        deviceId: string | ObjectId,
     ) {
         // Creazione misurazione
         const measurement = new MeasurementsModel({ ...payload, deviceId });

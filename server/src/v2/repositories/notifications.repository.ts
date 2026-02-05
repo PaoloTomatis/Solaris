@@ -1,5 +1,7 @@
 // Importazione moduli
-import NotificationsModel from '../models/Notifications.model.js';
+import NotificationsModel, {
+    type NotificationsType,
+} from '../models/Notifications.model.js';
 import { type FilterQuery, type ObjectId } from 'mongoose';
 import {
     GetNotificationsQuerySchema,
@@ -12,7 +14,7 @@ class NotificationsRepository {
     // Funzione ricevi notifiche
     async findMany(payload: z.infer<typeof GetNotificationsQuerySchema>) {
         // Dichiarazione filtri
-        const filter: FilterQuery<typeof NotificationsModel> = {
+        const filter: FilterQuery<NotificationsType> = {
             deviceId: payload.deviceId,
         };
 
@@ -51,7 +53,7 @@ class NotificationsRepository {
     // Funzione creazione notifica
     async createOne(
         payload: z.infer<typeof PostNotificationsBodySchema>,
-        deviceId: string | ObjectId
+        deviceId: string | ObjectId,
     ) {
         // Creazione notifica
         const notification = new NotificationsModel({ ...payload, deviceId });
