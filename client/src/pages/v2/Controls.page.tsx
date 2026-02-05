@@ -64,7 +64,7 @@ function Controls() {
                                 'irrigations/execute',
                                 'api',
                                 accessToken,
-                                { interval: irrigationTime },
+                                { interval: irrigationTime, deviceId },
                             );
                         }
                     } catch (error: any) {

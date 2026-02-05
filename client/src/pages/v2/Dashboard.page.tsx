@@ -7,7 +7,6 @@ import Data from '../../components/global/Data.comp';
 import Log from '../../components/v2/Log.comp';
 import Separator from '../../components/global/Separator.comp';
 import Info from '../../components/global/Info.comp';
-import logTitle from '../../utils/global/logTitle.utils';
 import Loading from '../../components/global/Loading.comp';
 import type {
     Notifications as NotificationsType,
@@ -52,7 +51,7 @@ function Dashboard() {
         humE: number;
         temp: number;
         lum: number;
-        date: Date;
+        measuredAt: Date;
     } | null>(null);
     // Stato timeout
     const statusTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -78,7 +77,7 @@ function Dashboard() {
                         accessToken,
                         'notifications',
                         setLogs,
-                        `limit=3&deviceId=${deviceId}`,
+                        `limit=3&deviceId=${deviceId}&sort=createdAt`,
                     );
                     await getOneData(
                         accessToken,
@@ -90,13 +89,18 @@ function Dashboard() {
                         accessToken,
                         'measurements',
                         setRealTimeData,
-                        `deviceId=${deviceId}&limit=1`,
-                    );
-
-                    setRealTimeData((prev) =>
-                        prev ? { ...prev, date: new Date(prev.date) } : null,
+                        `deviceId=${deviceId}&limit=1&sort=measuredAt`,
                     );
                 }
+
+                setRealTimeData((prev) => {
+                    return prev?.measuredAt
+                        ? {
+                              ...prev,
+                              measuredAt: new Date(prev?.measuredAt),
+                          }
+                        : prev;
+                });
             } catch (error: any) {
                 setError(error.message);
             } finally {
@@ -122,7 +126,7 @@ function Dashboard() {
                     humI: Math.round(eventData.data.humI),
                     temp: eventData.data.temp,
                     lum: Math.round(eventData.data.lum),
-                    date: new Date(eventData.data.measuredAt),
+                    measuredAt: new Date(eventData.data.measuredAt),
                 });
             } else if (eventData.event == 'v2/status') {
                 // Impostazione dati
@@ -238,8 +242,8 @@ function Dashboard() {
                     </div>
                     {/* Data */}
                     <p className="text-primary-text text-xsmall">{`${
-                        realTimeData?.date?.toLocaleDateString() || '-'
-                    } - ${realTimeData?.date?.toLocaleTimeString() || '-'}`}</p>
+                        realTimeData?.measuredAt?.toLocaleDateString() || '-'
+                    } - ${realTimeData?.measuredAt?.toLocaleTimeString() || '-'}`}</p>
                 </div>
                 {/* Contenitore dati */}
                 <div className="flex flex-col items-center justify-center gap-5 w-full">
@@ -292,7 +296,7 @@ function Dashboard() {
                     {logs && logs.length > 0 ? (
                         logs.map((log) => (
                             <Log
-                                tit={logTitle(log.title)}
+                                tit={log.title}
                                 desc={log.description}
                                 type={log.type}
                                 date={new Date(log.createdAt)}
