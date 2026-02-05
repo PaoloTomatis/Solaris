@@ -4,6 +4,7 @@ import type {
     DeleteIrrigationsQuerySchema,
     GetIrrigationsQuerySchema,
     PostIrrigationsBodySchema,
+    PostIrrigationsExecuteBodySchema,
 } from '../schemas/Irrigations.schema.js';
 import type { UserType, DeviceType } from '../types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
@@ -109,6 +110,44 @@ async function postIrrigationsService(
     return { irrigation: parsedIrrigation, newSettings };
 }
 
+// Servizio post /irrigations/execute
+async function postIrrigationsExecuteService(
+    payload: z.infer<typeof PostIrrigationsExecuteBodySchema>,
+    user: UserType,
+) {
+    //TODO Errore custom
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Richiesta dispositivo database
+    const device = await devicesRepository.findOneSafe(
+        payload.deviceId,
+        user.id,
+    );
+
+    //TODO Errore custom
+    // Controllo dispositivo
+    if (!device)
+        throw new Error(
+            "The device does not exists or the user isn't allowed to get it",
+        );
+
+    // Richiesta impostazioni dispositivo database
+    const settings = await devicesSettingsRepository.findOne(payload.deviceId);
+
+    //TODO Errore custom
+    // Controllo impostazioni dispositivo
+    if (!settings) throw new Error('Device settings not found');
+
+    //TODO Errore custom
+    // Controllo modalità
+    if (settings.mode == 'auto' || settings.mode == 'safe')
+        throw new Error("The device mustn't be in automatic or safe mode");
+
+    // Ritorno nullo
+    return null;
+}
+
 // Servizio delete /irrigations
 async function deleteIrrigationsService(
     payload: z.infer<typeof DeleteIrrigationsQuerySchema>,
@@ -142,5 +181,6 @@ async function deleteIrrigationsService(
 export {
     getIrrigationsService,
     postIrrigationsService,
+    postIrrigationsExecuteService,
     deleteIrrigationsService,
 };

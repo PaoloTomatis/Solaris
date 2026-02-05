@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import {
     deleteIrrigationsService,
     getIrrigationsService,
+    postIrrigationsExecuteService,
     postIrrigationsService,
 } from '../services/irrigations.service.js';
 import resHandler from '../utils/responseHandler.js';
@@ -10,6 +11,7 @@ import {
     DeleteIrrigationsQuerySchema,
     GetIrrigationsQuerySchema,
     PostIrrigationsBodySchema,
+    PostIrrigationsExecuteBodySchema,
 } from '../schemas/Irrigations.schema.js';
 import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
@@ -72,6 +74,33 @@ async function postIrrigationsController(
     }
 }
 
+// Controller post /irrigations/execute
+async function postIrrigationsExecuteController(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    // Gestione errori
+    try {
+        // Validazione body
+        const parsedBody = PostIrrigationsExecuteBodySchema.parse(req.body);
+
+        // Chiamata servizio
+        await postIrrigationsExecuteService(parsedBody, req.user);
+
+        // Invio irrigazione ws
+        emitToRoom(`DEVICE-${parsedBody.deviceId}`, {
+            event: 'v2/irrigation',
+            interval: parsedBody.interval,
+        });
+
+        // Risposta
+        resHandler(res, true, 200, null);
+    } catch (error) {
+        next(error);
+    }
+}
+
 // Controller delete /irrigations
 async function deleteIrrigationsController(
     req: Request,
@@ -97,5 +126,6 @@ async function deleteIrrigationsController(
 export {
     getIrrigationsController,
     postIrrigationsController,
+    postIrrigationsExecuteController,
     deleteIrrigationsController,
 };

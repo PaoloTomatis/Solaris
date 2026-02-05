@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
     deleteIrrigationsController,
     getIrrigationsController,
+    postIrrigationsExecuteController,
     postIrrigationsController,
 } from '../controllers/irrigations.controller.js';
 
@@ -13,6 +14,7 @@ const irrigationsRouter = Router();
 irrigationsRouter
     .get('/', getIrrigationsController)
     .post('/', postIrrigationsController)
+    .post('/execute', postIrrigationsExecuteController)
     .delete('/', deleteIrrigationsController);
 
 // Esportazione router
