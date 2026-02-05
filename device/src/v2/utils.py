@@ -219,14 +219,7 @@ def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, s
     # Calcolo humI1
     humI1 = measure(sensor, 50) / 4095 * 100
     
-    if irrigationTime > 0:
-        pump.on()
-        print(f"Irrigation for {irrigationTime}s")
-        # tim.init(mode=Timer.ONE_SHOT, period=irrigationTime * 1000, callback=lambda t: pumpOff())
-        sleep(irrigationTime)
-        pumpOff()
-    
-    def pumpOff ():
+    def pumpOff (humI1):
         pump.off()
         
         # Dichiarazione humI2
@@ -255,7 +248,7 @@ def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, s
 
         # Inizializzazione nome richiesta
         reqName = ""
-            
+        
         # Controllo variazione umidità
         if humI2 < (humMax * 80/100):
             # Dichiarazione dati
@@ -278,6 +271,13 @@ def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, s
 
         # Ritorno dati
         return postHandler(f"{api}/{reqUrl}", payload, reqName, token)
+    
+    if irrigationTime > 0:
+        pump.on()
+        print(f"Irrigation for {irrigationTime}s")
+        # tim.init(mode=Timer.ONE_SHOT, period=irrigationTime * 1000, callback=lambda t: pumpOff())
+        sleep(irrigationTime)
+        pumpOff(humI1)
 
 # Funzione calcolo misurazioni
 def measure(sensor, n=10):

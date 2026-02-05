@@ -156,9 +156,9 @@ def mainLoop () :
     # Controllo evento
     if type(event) is dict and "event" in event:        
         # Gestore evento irrigazione
-        if event["event"] == "v2/irrigation" and "duration" in event and token:            
+        if event["event"] == "v2/irrigation" and "interval" in event and token:            
             # Effettuazione irrigazione
-            irrigation(pump, info["name"], settings["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, duration=event["duration"])
+            irrigation(pump, info["name"], settings["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, duration=event["interval"])
         elif event["event"] == "v2/mode" and "mode" in event:
             try:
                 if event["mode"] == "auto" and "info" in event:
@@ -217,3 +217,4 @@ if __name__ == "__main__":
    while True:
        mainLoop()
        sleep(0.5)
+
