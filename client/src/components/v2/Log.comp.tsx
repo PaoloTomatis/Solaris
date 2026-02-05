@@ -18,11 +18,11 @@ function Log({
         // Contenitore principale
         <div className="flex items-center relative justify-start rounded-3xl bg-primary-bg border-[2px] border-primary-text pb-4 pt-1.5 pl-2.5 pr-2.5 w-[95%] max-w-[500px] min-h-[12vh]">
             {/* Icona */}
-            {type == 'log_error' ? (
+            {type == 'error' ? (
                 <WarningIcon className="fill-current text-error w-[90px] h-[90px] aspect-square" />
-            ) : type == 'log_warning' ? (
+            ) : type == 'warning' ? (
                 <WarningIcon className="fill-current text-warning w-[90px] h-[90px] aspect-square" />
-            ) : type?.includes('irrigation') ? (
+            ) : type == 'success' ? (
                 <InfoIcon className="fill-current text-success w-[90px] h-[90px] aspect-square" />
             ) : (
                 <InfoIcon className="fill-current text-info w-[90px] h-[90px] aspect-square" />

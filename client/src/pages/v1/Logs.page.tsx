@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import BottomBar from '../../components/global/BottomBar.comp';
 import TopBar from '../../components/global/TopBar.comp';
 import Page from '../../components/global/Page.comp';
-import logTitle from '../../utils/global/logTitle.utils';
+import logTitle from '../../utils/v1/logTitle.utils';
 import LogComp from '../../components/v1/Log.comp';
 import Separator from '../../components/global/Separator.comp';
 import Loading from '../../components/global/Loading.comp';

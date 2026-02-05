@@ -7,7 +7,7 @@ import Data from '../../components/global/Data.comp';
 import Log from '../../components/v1/Log.comp';
 import Separator from '../../components/global/Separator.comp';
 import Info from '../../components/global/Info.comp';
-import logTitle from '../../utils/global/logTitle.utils';
+import logTitle from '../../utils/v1/logTitle.utils';
 import Loading from '../../components/global/Loading.comp';
 import type {
     Device as DeviceType,

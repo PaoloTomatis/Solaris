@@ -4,11 +4,10 @@ import { useParams } from 'react-router-dom';
 import BottomBar from '../../components/global/BottomBar.comp';
 import TopBar from '../../components/global/TopBar.comp';
 import Page from '../../components/global/Page.comp';
-import logTitle from '../../utils/global/logTitle.utils';
 import LogComp from '../../components/v2/Log.comp';
 import Separator from '../../components/global/Separator.comp';
 import Loading from '../../components/global/Loading.comp';
-import type { Data as LogType } from '../../utils/v1/type.utils';
+import type { Notifications as NotificationsType } from '../../utils/v2/type.utils';
 import { getData } from '../../utils/v2/apiCrud.utils';
 import { useAuth } from '../../context/v2/Auth.context';
 import { useNotifications } from '../../context/global/Notifications.context';
@@ -23,7 +22,7 @@ function Logs() {
     // Notificatore
     const notify = useNotifications();
     // Stato logs
-    const [logs, setLogs] = useState<LogType[] | null>(null);
+    const [logs, setLogs] = useState<NotificationsType[] | null>(null);
     // Stato caricamento
     const [loading, setLoading] = useState(true);
     // Stato errore
@@ -76,10 +75,10 @@ function Logs() {
                 {logs && logs.length > 0 ? (
                     logs.map((log) => (
                         <LogComp
-                            tit={logTitle(log.type)}
-                            desc={log.desc}
+                            tit={log.title}
+                            desc={log.description}
                             type={log.type}
-                            date={new Date(log.date)}
+                            date={new Date(log.createdAt)}
                             key={log.id}
                         />
                     ))
