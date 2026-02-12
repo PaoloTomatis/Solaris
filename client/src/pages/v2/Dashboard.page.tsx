@@ -77,7 +77,7 @@ function Dashboard() {
                         accessToken,
                         'notifications',
                         setLogs,
-                        `limit=3&deviceId=${deviceId}&sort=createdAt`,
+                        `limit=3&deviceId=${deviceId}&sort=-createdAt`,
                     );
                     await getOneData(
                         accessToken,
@@ -89,7 +89,7 @@ function Dashboard() {
                         accessToken,
                         'measurements',
                         setRealTimeData,
-                        `deviceId=${deviceId}&limit=1&sort=measuredAt`,
+                        `deviceId=${deviceId}&limit=1&sort=-measuredAt`,
                     );
                 }
 

@@ -153,10 +153,10 @@ function UserSettings() {
                                 if (accessToken) {
                                     // Gestione errori
                                     try {
-                                        // Modifica impostazioni dispositivo
+                                        // Modifica impostazioni utente
                                         await patchData(
                                             accessToken,
-                                            'user_settings',
+                                            'me/user-settings',
                                             {
                                                 styleMode: settings?.styleMode,
                                                 units: settings?.units,
