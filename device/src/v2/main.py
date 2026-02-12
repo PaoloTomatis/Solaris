@@ -70,7 +70,7 @@ sensor.atten(ADC.ATTN_11DB)
 sensor.width(ADC.WIDTH_12BIT)
 
 # Dichiarazione sensore esterno
-sensorOut = dht.DHT11(Pin(33))
+sensorOut = dht.DHT22(Pin(33))
 
 # Dichiarazione sensore luminosità
 sensorLum = ADC(Pin(35))
@@ -89,7 +89,7 @@ def measurementLoop():
     currentTime = f"{rtc.datetime()[0]:04d}-{rtc.datetime()[1]:02d}-{rtc.datetime()[2]:02d}T{rtc.datetime()[4]:02d}:{rtc.datetime()[5]:02d}:{rtc.datetime()[6]:02d}"
     
     # Misurazioni
-    humI = measure(sensor, 50) / 4095 * 100
+    humI = (1 - measure(sensor, 50) / 4095) * 100
     lum = measure(sensorLum, 50) / 4095 * 100
     try:
         sensorOut.measure()
@@ -104,18 +104,18 @@ def measurementLoop():
     # Controllo temperatura
     if temp <= 2:
         # Invio avviso
-        sendNotifications("TEMPERATURA BASSA", "La temperatura della tua serra è inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        sendNotifications(connInfo["api_url"], token, "TEMPERATURA BASSA", "La temperatura della tua serra è inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
     elif temp >= 30:
         # Invio avviso
-        sendNotifications("TEMPERATURA ALTA", "La temperatura della tua serra è superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        sendNotifications(connInfo["api_url"], token, "TEMPERATURA ALTA", "La temperatura della tua serra è superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         
     # Controllo umidità esterna
     if humE <= 30:
         # Invio avviso
-        sendNotifications("UMIDITA' BASSA", "L'umidità esterna della tua serra è inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        sendNotifications(connInfo["api_url"], token, "UMIDITA' BASSA", "L'umidità esterna della tua serra è inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
     elif humE >= 85:
         # Invio avviso
-        sendNotifications("UMIDITA' ALTA", "L'umidità esterna della tua serra è superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        sendNotifications(connInfo["api_url"], token, "UMIDITA' ALTA", "L'umidità esterna della tua serra è superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         
     
     # Controllo modalità config
