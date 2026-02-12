@@ -19,7 +19,6 @@ async function getIrrigationsService(
     payload: z.infer<typeof GetIrrigationsQuerySchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -29,11 +28,10 @@ async function getIrrigationsService(
         user.id,
     );
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Richiesta irrigazione database
@@ -58,7 +56,6 @@ async function postIrrigationsService(
     payload: z.infer<typeof PostIrrigationsBodySchema>,
     device?: DeviceType,
 ) {
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device) throw new Error('Invalid authentication');
 
@@ -71,7 +68,6 @@ async function postIrrigationsService(
     // Richiesta impostazioni database
     const settings = await devicesSettingsRepository.findOne(device.id);
 
-    //TODO Errore custom
     // Controllo impostazioni
     if (!settings) throw new Error('Device settings not found');
 
@@ -94,9 +90,8 @@ async function postIrrigationsService(
             device.id,
         );
 
-        //TODO Errore custom
         // Controllo nuove impostazioni
-        if (!newSettings) throw new Error('Device settings update failed');
+        if (!newSettings) throw new Error('Update of device settings failed');
     }
 
     // Conversione irrigazione
@@ -115,7 +110,6 @@ async function postIrrigationsExecuteService(
     payload: z.infer<typeof PostIrrigationsExecuteBodySchema>,
     user: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -125,21 +119,18 @@ async function postIrrigationsExecuteService(
         user.id,
     );
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Richiesta impostazioni dispositivo database
     const settings = await devicesSettingsRepository.findOne(payload.deviceId);
 
-    //TODO Errore custom
     // Controllo impostazioni dispositivo
     if (!settings) throw new Error('Device settings not found');
 
-    //TODO Errore custom
     // Controllo modalità
     if (settings.mode == 'auto' || settings.mode == 'safe')
         throw new Error("The device mustn't be in automatic or safe mode");
@@ -153,7 +144,6 @@ async function deleteIrrigationsService(
     payload: z.infer<typeof DeleteIrrigationsQuerySchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -163,11 +153,10 @@ async function deleteIrrigationsService(
         user.id,
     );
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Eliminazione irrigazioni database

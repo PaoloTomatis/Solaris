@@ -17,14 +17,12 @@ import dataParser from '../utils/dataParser.js';
 
 // Servizio get /devices/:id
 async function getDeviceService(deviceId: string, user?: UserType) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta dispositivo
     const device = await devicesRepository.findOneSafe(deviceId, user.id);
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
@@ -47,7 +45,6 @@ async function getDevicesService(
     payload: z.infer<typeof GetDevicesQuerySchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -73,11 +70,9 @@ async function postDevicesService(
     body: z.infer<typeof PostDevicesBodySchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
-    //TODO Errore custom
     // Controllo ruolo utente
     if (user.role !== 'admin')
         throw new Error('The user has to be an admin to perform this action');
@@ -93,7 +88,6 @@ async function postDevicesService(
     // Richiesta dispositivo
     const device = await devicesRepository.createOne({ ...body, psw, key });
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device) throw new Error('Creation of the device failed');
 
@@ -114,14 +108,12 @@ async function patchDevicesActivateService(
     { name }: z.infer<typeof PatchDevicesActivateBodySchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta dispositivo
     const device = await devicesRepository.findOneByKey(key);
 
-    //TODO Errore custom
     // Controllo device
     if (!device || device.userId)
         throw new Error(
@@ -134,7 +126,6 @@ async function patchDevicesActivateService(
         name,
     });
 
-    //TODO Errore custom
     // Controllo nuovo device
     if (!newDevice) throw new Error('Activation failed');
 
@@ -155,7 +146,6 @@ async function patchDevicesService(
     { deviceId }: z.infer<typeof PatchDevicesParamsSchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -166,11 +156,10 @@ async function patchDevicesService(
         body,
     );
 
-    //TODO Errore custom
     // Controllo nuovo device
     if (!newDevice)
         throw new Error(
-            "The device does not exists or the user isn't allowed to modify it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Conversione dispositivo
@@ -186,21 +175,18 @@ async function patchDevicesService(
 
 // Servizio delete /devices/:deviceId
 async function deleteDevicesService(deviceId: string, user?: UserType) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
-    //TODO Errore custom
     // Controllo ruolo utente
-    if (user.role !== 'admin') throw new Error('Forbidden');
+    if (user.role !== 'admin')
+        throw new Error('The user has to be an admin to perform this action');
 
     // Eliminazione dispositivo
     const oldDevice = await devicesRepository.deleteOne(deviceId);
 
-    //TODO Errore custom
     // Controllo vecchio dispositivo
-    if (!oldDevice)
-        throw new Error('The device does not exists or the elimination failed');
+    if (!oldDevice) throw new Error('Deletion of the device failed');
 
     // Conversione dispositivo
     const parsedDevice = dataParser(

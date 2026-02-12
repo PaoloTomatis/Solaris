@@ -16,7 +16,6 @@ async function getNotificationsService(
     payload: z.infer<typeof GetNotificationsQuerySchema>,
     user: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -26,11 +25,10 @@ async function getNotificationsService(
         user.id,
     );
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Richiesta notifica database
@@ -55,7 +53,6 @@ async function postNotificationsService(
     payload: z.infer<typeof PostNotificationsBodySchema>,
     device: DeviceType,
 ) {
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device) throw new Error('Invalid authentication');
 
@@ -87,7 +84,6 @@ async function deleteNotificationsService(
     payload: z.infer<typeof DeleteNotificationsQuerySchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -97,11 +93,10 @@ async function deleteNotificationsService(
         user.id,
     );
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Eliminazione notifiche database

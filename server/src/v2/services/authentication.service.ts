@@ -16,19 +16,17 @@ import type { DeviceType, UserType } from '../types/types.js';
 // Servizio post /user-login
 async function usersLoginService(
     payload: z.infer<typeof UsersLoginBodySchema>,
-    info: { ipAddress: string; userAgent: string }
+    info: { ipAddress: string; userAgent: string },
 ) {
     // Richiesta utente database
     const user = await usersRepository.findOneByEmail(payload.email);
 
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid email or credentials');
 
     // Controllo password
     const isPswValid = await bcrypt.compare(payload.psw, user.psw);
 
-    //TODO Errore custom
     // Controllo validazione password
     if (!isPswValid) throw new Error('Invalid email or credentials');
 
@@ -36,20 +34,20 @@ async function usersLoginService(
     const parsedUser = dataParser(
         user.toObject(),
         ['psw', 'schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Conversione utente minimale
     const minimalParsedUser = dataParser(
         user.toObject(),
         ['email', 'psw', 'schemaVersion', 'updatedAt', 'createdAt', '__v'],
-        true
+        true,
     );
 
     // Richiesta sessione database
     const sessions = await sessionsRepository.findManyByIp(
         info.ipAddress,
-        'active'
+        'active',
     );
 
     // Iterazione sessioni
@@ -64,7 +62,7 @@ async function usersLoginService(
         process.env.JWT_ACCESS as string,
         {
             expiresIn: '1h',
-        }
+        },
     );
 
     // Firma refresh token
@@ -73,7 +71,7 @@ async function usersLoginService(
         process.env.JWT_REFRESH as string,
         {
             expiresIn: '3d',
-        }
+        },
     );
 
     // Creazione sessione database
@@ -93,23 +91,20 @@ async function usersLoginService(
 // Servizio post /device-login
 async function devicesLoginService(
     payload: z.infer<typeof DevicesLoginBodySchema>,
-    info: { ipAddress: string; userAgent: string }
+    info: { ipAddress: string; userAgent: string },
 ) {
     // Richiesta dispositivo database
     const device = await devicesRepository.findOneByKey(payload.key);
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device) throw new Error('Invalid email or credentials');
 
     // Controllo password
     const isPswValid = await bcrypt.compare(payload.psw, device.psw);
 
-    //TODO Errore custom
     // Controllo validazione password
     if (!isPswValid) throw new Error('Invalid email or credentials');
 
-    //TODO Errore custom
     // Controllo variabili ambiente
     if (!process.env.JWT_ACCESS || !process.env.JWT_REFRESH)
         throw new Error('Sign keys are missing');
@@ -118,7 +113,7 @@ async function devicesLoginService(
     const parsedDevice = dataParser(
         device.toObject(),
         ['key', 'psw', 'schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Conversione dispositivo minimale
@@ -135,13 +130,13 @@ async function devicesLoginService(
             'createdAt',
             '__v',
         ],
-        true
+        true,
     );
 
     // Richiesta sessione database
     const sessions = await sessionsRepository.findManyByIp(
         info.ipAddress,
-        'active'
+        'active',
     );
 
     // Iterazione sessioni
@@ -161,7 +156,7 @@ async function devicesLoginService(
         process.env.JWT_REFRESH,
         {
             expiresIn: '3d',
-        }
+        },
     );
 
     // Creazione sessione database
@@ -180,12 +175,11 @@ async function devicesLoginService(
 
 // Servizio post /user-register
 async function usersRegisterService(
-    payload: z.infer<typeof UsersRegisterBodySchema>
+    payload: z.infer<typeof UsersRegisterBodySchema>,
 ) {
     // Richiesta utente database
     const duplicatedUser = await usersRepository.findOneByEmail(payload.email);
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (duplicatedUser) throw new Error('Invalid email or credentials');
 
@@ -199,7 +193,7 @@ async function usersRegisterService(
     const parsedUser = dataParser(
         user.toObject(),
         ['psw', 'schemaVersion', '__v'],
-        true
+        true,
     );
 
     // Ritorno utente
@@ -211,13 +205,11 @@ async function refreshService(
     info: { ipAddress: string; userAgent: string },
     refreshToken?: string,
     user?: UserType,
-    device?: DeviceType
+    device?: DeviceType,
 ) {
-    //TODO Errore custom
     // Controllo refresh token
     if (!refreshToken) throw new Error('Invalid authentication');
 
-    //TODO Errore custom
     // Controllo soggetto autenticato
     if (user) {
         // Richiesta sessione database
@@ -227,7 +219,6 @@ async function refreshService(
             type: 'active',
         });
 
-        //TODO Errore custom
         // Controllo sessione
         if (!session) throw new Error('Invalid authentication');
 
@@ -244,7 +235,7 @@ async function refreshService(
             process.env.JWT_ACCESS as string,
             {
                 expiresIn: '1h',
-            }
+            },
         );
 
         // Firma refresh token
@@ -253,7 +244,7 @@ async function refreshService(
             process.env.JWT_REFRESH as string,
             {
                 expiresIn: '3d',
-            }
+            },
         );
 
         // Aggiornamento sessione database
@@ -279,7 +270,6 @@ async function refreshService(
             type: 'active',
         });
 
-        //TODO Errore custom
         // Controllo sessione
         if (!session) throw new Error('Invalid authentication');
 
@@ -298,7 +288,7 @@ async function refreshService(
             process.env.JWT_ACCESS as string,
             {
                 expiresIn: '1h',
-            }
+            },
         );
 
         // Firma refresh token
@@ -307,7 +297,7 @@ async function refreshService(
             process.env.JWT_REFRESH as string,
             {
                 expiresIn: '3d',
-            }
+            },
         );
 
         // Aggiornamento sessione database
@@ -332,7 +322,7 @@ async function refreshService(
 async function logoutService(
     refreshToken?: string,
     user?: UserType,
-    device?: DeviceType
+    device?: DeviceType,
 ) {
     // Controllo refresh token
     if (!refreshToken) return null;

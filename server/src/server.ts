@@ -31,6 +31,7 @@ import statusV1 from './v1/controllers/status.controller.js';
 import statusV2 from './v2/controllers/status.controller.js';
 import irrigationV1 from './v1/controllers/irrigation.controller.js';
 import { joinRoom, leaveRoom } from './global/utils/wsRoomHandlers.js';
+import errorsList from './v2/errors/errors.js';
 
 // Configurazione
 configDotenv();
@@ -232,15 +233,22 @@ app.use((req: Request, res: Response) => {
 
 // Middleware errori
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
-    // Errore in console
-    console.error(err);
-    const errorMsg =
-        err instanceof Error
-            ? err?.message || 'Errore interno del server!'
-            : 'Errore sconosciuto!';
+    // Dichiarazione errore
+    const error = {
+        message:
+            err instanceof Error
+                ? err?.message || 'Errore interno del server!'
+                : 'Errore sconosciuto!',
+        code:
+            err instanceof Error
+                ? errorsList.find(
+                      (errorItem) => errorItem.message == err?.message,
+                  )?.code || 500
+                : 500,
+    };
 
     // Risposta finale
-    return resHandlerV2(res, false, 500, errorMsg);
+    return resHandlerV2(res, false, error.code, error.message);
 });
 
 // Funzione avvio

@@ -21,24 +21,21 @@ async function getDevicesSettingsService(
     { deviceId }: z.infer<typeof GetDeviceParamsSchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta dispositivo database
     const device = await devicesRepository.findOneSafe(deviceId, user.id);
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Richiesta impostazioni dispositivo database
     const deviceSettings = await devicesSettingsRepository.findOne(deviceId);
 
-    //TODO Errore custom
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Device settings not found');
 
@@ -55,11 +52,9 @@ async function getDevicesSettingsService(
 
 // Servizio get me/device-settings
 async function getMeSettingsService(device?: DeviceType) {
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device) throw new Error('Invalid authentication');
 
-    //TODO Errore custom
     // Controllo id utente
     if (!device.userId) throw new Error('The device must be owned by a user');
 
@@ -72,7 +67,6 @@ async function getMeSettingsService(device?: DeviceType) {
     // Richiesta impostazioni dispositivo database
     const deviceSettings = await devicesSettingsRepository.findOne(device.id);
 
-    //TODO Errore custom
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Device settings not found');
 
@@ -93,18 +87,16 @@ async function patchDevicesSettingsService(
     { deviceId }: z.infer<typeof PatchDevicesSettingsParamsSchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo dispositivo
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta dispositivo database
     const device = await devicesRepository.findOneSafe(deviceId, user.id);
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     let humIMin = payload.humIMin;
@@ -133,7 +125,6 @@ async function patchDevicesSettingsService(
         deviceId,
     );
 
-    //TODO Errore custom
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Update of device settings failed');
 

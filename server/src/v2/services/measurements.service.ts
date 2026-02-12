@@ -16,7 +16,6 @@ async function getMeasurementsService(
     payload: z.infer<typeof GetMeasurementsQuerySchema>,
     user: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -26,11 +25,10 @@ async function getMeasurementsService(
         user.id,
     );
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Richiesta misurazione database
@@ -55,7 +53,6 @@ async function postMeasurementsService(
     payload: z.infer<typeof PostMeasurementsBodySchema>,
     device: DeviceType,
 ) {
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device) throw new Error('Invalid authentication');
 
@@ -87,7 +84,6 @@ async function deleteMeasurementsService(
     payload: z.infer<typeof DeleteMeasurementsQuerySchema>,
     user?: UserType,
 ) {
-    //TODO Errore custom
     // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
@@ -97,11 +93,10 @@ async function deleteMeasurementsService(
         user.id,
     );
 
-    //TODO Errore custom
     // Controllo dispositivo
     if (!device)
         throw new Error(
-            "The device does not exists or the user isn't allowed to get it",
+            'The device does not exists or is owned by an other user',
         );
 
     // Eliminazione misurazioni database
