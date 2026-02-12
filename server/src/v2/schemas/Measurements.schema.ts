@@ -20,8 +20,8 @@ const GetMeasurementsQuerySchema = z
             .transform((val) => (val ? sortParser(val) : []))
             .refine(
                 (val) => {
-                    return val.every(
-                        (obj) => !measurementSortFields.includes(obj.field),
+                    return val.every((obj) =>
+                        measurementSortFields.includes(obj.field),
                     );
                 },
                 {

@@ -20,8 +20,8 @@ const GetIrrigationsQuerySchema = z
             .transform((val) => (val ? sortParser(val) : []))
             .refine(
                 (val) => {
-                    return val.every(
-                        (obj) => !irrigationSortFields.includes(obj.field),
+                    return val.every((obj) =>
+                        irrigationSortFields.includes(obj.field),
                     );
                 },
                 {
@@ -37,6 +37,9 @@ const GetIrrigationsQuerySchema = z
 
 // Schema body post /irrigations/execute
 const PostIrrigationsExecuteBodySchema = z.object({
+    deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+        error: 'Invalid deviceId',
+    }),
     interval: z.number().int().positive(),
 });
 

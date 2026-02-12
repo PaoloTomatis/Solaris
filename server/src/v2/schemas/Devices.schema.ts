@@ -31,8 +31,8 @@ const GetDevicesQuerySchema = z
             .transform((val) => (val ? sortParser(val) : []))
             .refine(
                 (val) => {
-                    return val.every(
-                        (obj) => !devicesSortFields.includes(obj.field),
+                    return val.every((obj) =>
+                        devicesSortFields.includes(obj.field),
                     );
                 },
                 {
