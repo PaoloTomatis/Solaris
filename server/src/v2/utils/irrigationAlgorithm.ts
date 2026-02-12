@@ -12,7 +12,6 @@ function algorithmHumX(raw: IrrigationsType[], dataIndex: 0 | 1): number {
             };
         });
 
-    //TODO Errore custom
     // Controllo dati
     if (!dataDB || dataDB?.length < 10)
         throw new Error('Irrigations data are less than 10');
@@ -60,7 +59,6 @@ function algorithmInterval(raw: IrrigationsType[]): number {
             };
         });
 
-    //TODO Errore custom
     // Controllo dati
     if (!dataDB || dataDB?.length < 10)
         throw new Error('Irrigations data are less than 10');
@@ -95,7 +93,6 @@ function algorithmUpdateKInterval(
     const intervalMax = (kInterval * 110) / 100;
     const intervalMin = (kInterval * 90) / 100;
 
-    //TODO Errore custom
     // Controllo nuovo interval
     if (newInterval > intervalMax || newInterval < intervalMin)
         throw new Error('Irrigations data are wrong');

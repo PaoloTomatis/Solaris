@@ -35,7 +35,6 @@ async function jwtVerify(
         process.env.JWT_ACCESS as string,
     ) as JwtPayloadCustom;
 
-    //TODO Errore custom
     // Controllo dati
     if (!decoded) throw new Error('Invalid authentication');
 
@@ -43,7 +42,6 @@ async function jwtVerify(
         // Ricavo utente database
         const user = await usersRepository.findOneById(decoded.id);
 
-        //TODO Errore custom
         // Controllo esistenza soggetto
         if (!user) throw new Error('Invalid authentication');
 
@@ -60,7 +58,6 @@ async function jwtVerify(
         // Ricavo utente database
         const device = await devicesRepository.findOneById(decoded.id);
 
-        //TODO Errore custom
         // Controllo esistenza soggetto
         if (!device) throw new Error('Invalid authentication');
 

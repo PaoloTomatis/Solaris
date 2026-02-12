@@ -103,7 +103,6 @@ async function patchDevicesSettingsService(
     let humIMax = payload.humIMax;
     let kInterval = payload.kInterval;
 
-    //TODO Esecuzione algoritmi
     // Controllo cambio modalità automatica
     if (payload.mode == 'auto') {
         // Richiesta irrigazioni database
