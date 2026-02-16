@@ -629,7 +629,7 @@ def irrigationCheck(humI1: float, humI2: float, humE: float, lum: float, temp: f
     # Controllo variazione umidità
     if humI2 <= humI1:
         # Invio notifica
-        sendNotifications("ERRORE IRRIGAZIONE!", f'Irrigazione di {irrigationTime}s del dispositivo {deviceState["info"]["name"]} non effettuata correttamente, controllare tanica d\'acqua!', "error")
+        sendNotifications("ERRORE IRRIGAZIONE", f'Irrigazione di {irrigationTime}s del dispositivo {deviceState["info"]["name"]} non effettuata correttamente, controllare tanica d\'acqua!', "error")
     else:
         # Invio Irrigazione
         sendIrrigations(date, irrigationTime, _type, humI1, humI2, humE, lum, temp)
@@ -812,74 +812,51 @@ def main():
 
         sleep(1)
 
+# Funzione gestiore errori critici
+def criticError(e):
+    # Stampa dettagli
+    import sys
+    import uio
+    buf = uio.StringIO()
+    sys.print_exception(e, buf)
+    exc_str = buf.getvalue()
+
+    print("Critical error:", e)
+    print("\n", exc_str)
+
+    # Pulizia hardware
+    try:
+        # Impostazione colore
+        rgbColor("red")
+    except Exception as hw_err:
+        print("Hardware cleanup failed:", hw_err)
+
+    # Invio notifica
+    try:
+        if "deviceState" in globals() and "token" in deviceState:
+            sendNotifications("ERRORE DISPOSITIVO", str(e), "error")
+    except Exception as notify_err:
+        print("Failed to send notification:", notify_err)
+
+    # Reset automatico
+    print("Restarting device in 5 seconds...")
+    sleep(5)
+    reset()
+
 # Esecuzione script
 if __name__ == "__main__":
     while True:
         try:
+            # Funzione pricipale
             main()
 
         except TransientError as e:
             print("Recoverable error:", e)
 
         except CriticalError as e:
-            # Stampa dettagli
-            import sys
-            import uio
-            buf = uio.StringIO()
-            sys.print_exception(e, buf)
-            exc_str = buf.getvalue()
-
-            print("Critical error:", e)
-            print("\n", exc_str)
-
-            # Pulizia hardware
-            try:
-                # Impostazione colore
-                rgbColor("red")
-            except Exception as hw_err:
-                print("Hardware cleanup failed:", hw_err)
-
-            # Invio notifica
-            try:
-                if "deviceState" in globals() and "token" in deviceState:
-                    sendNotifications("ERRORE DISPOSITIVO!", str(e), "error")
-            except Exception as notify_err:
-                print("Failed to send notification:", notify_err)
-
-            # Reset automatico
-            print("Restarting device in 5 seconds...")
-            sleep(5)
-            reset()
+            # Gestione errore
+            criticError(e)
 
         except Exception as e:
-            # Stampa dettagli
-            import sys
-            import uio
-            buf = uio.StringIO()
-            sys.print_exception(e, buf)
-            exc_str = buf.getvalue()
-            
-            print("Unknown error:", e)
-            print("\n", exc_str)
-
-            # Pulizia hardware
-            try:
-                # Impostazione colore
-                rgbColor("red")
-            except Exception as hw_err:
-                print("Hardware cleanup failed:", hw_err)
-
-            # Invio notifica
-            try:
-                if "deviceState" in globals() and "token" in deviceState:
-                    sendNotifications("ERRORE DISPOSITIVO!", str(e), "error")
-            except Exception as notify_err:
-                print("Failed to send notification:", notify_err)
-
-            # Reset automatico
-            print("Restarting device in 5 seconds...")
-            sleep(5)
-            reset()
-
-
-
+            # Gestione errore
+            criticError(e)
