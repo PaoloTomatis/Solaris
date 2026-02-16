@@ -47,6 +47,10 @@
     - Controllo --> Digital
     - Tensione operativa --> `5v`
 
+- **RGB Led**
+    - Tipo --> supporto
+    - Tensione operativa --> `3.3v`
+
 - **Power Supply**
     - Tipo --> supporto
 
@@ -66,7 +70,7 @@
     - Protocollo dati --> JSON
 
 - **Alimentazione**
-    - Tipo --> Batteria
+    - Tipo --> Batteria / Cavo
     - Voltaggio operativo --> `9v` (ridotto a `5v` dal power supply)
     - Modalità risparmio energetico --> ❌
 
