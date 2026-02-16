@@ -28,8 +28,9 @@
         // Style Options
         "noImplicitReturns": true,
         // "noImplicitOverride": true,
-        // "noUnusedLocals": true,
+        "noUnusedLocals": true,
         "noUnusedParameters": false,
+        "noImplicitAny": true,
         // "noFallthroughCasesInSwitch": true,
         // "noPropertyAccessFromIndexSignature": true,
 

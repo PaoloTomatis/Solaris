@@ -1,13 +1,13 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
-import resHandler from '../../global/utils/responseHandler.js';
+import resHandler from '../../v1/utils/responseHandler.js';
 import DataModel from '../models/Data.model.js';
 import DeviceModel from '../models/Device.model.js';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import mongoose, { type FilterQuery } from 'mongoose';
-import type { DeviceType, UserType } from '../../global/types/types.js';
+import type { DeviceType, UserType } from '../types/types.js';
 import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
-import { algorithmUpdateInterval } from '../../global/utils/irrigationAlgorithm.js';
+import { algorithmUpdateInterval } from '../utils/irrigationAlgorithm.js';
 import trimData from '../../global/utils/trimData.js';
 
 // Gestore get data
@@ -65,7 +65,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo id
@@ -76,7 +76,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "id" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione id
@@ -92,7 +92,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "date" invalido!',
-                    false
+                    false,
                 );
             // Impostazione date
             filter.date = parsedDate;
@@ -108,7 +108,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "read" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione read
@@ -123,7 +123,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "humI" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione humI
@@ -138,7 +138,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "humE" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione humE
@@ -153,7 +153,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "temp" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione temp
@@ -168,7 +168,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "lum" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione lum
@@ -183,7 +183,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "interval" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione interval
@@ -208,7 +208,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "type" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione type
@@ -223,7 +223,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "deviceId" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione deviceId
@@ -252,7 +252,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
         // Controllo deviceId
         data = data.filter((dato) => {
             return devicesId.some(
-                (id) => id.toString() === dato.deviceId.toString()
+                (id) => id.toString() === dato.deviceId.toString(),
             );
         });
 
@@ -279,7 +279,7 @@ async function getData(req: Request, res: Response): Promise<Response> {
                 };
             }),
             'Dati ricavati con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -348,7 +348,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo desc
@@ -359,7 +359,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "desc" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione desc
@@ -378,7 +378,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "link" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione link
@@ -394,7 +394,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "date" invalido!',
-                    false
+                    false,
                 );
             // Impostazione date
             data.date = parsedDate;
@@ -408,7 +408,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "read" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione read
@@ -424,13 +424,13 @@ async function postData(req: Request, res: Response): Promise<Response> {
                         400,
                         null,
                         'Campo "humI" invalido nella richiesta!',
-                        false
+                        false,
                     );
 
                 // Impostazione humI
                 data.humI = [Number(humI[0]), Number(humI[1])] as [
                     number,
-                    number
+                    number,
                 ];
             } else {
                 if (typeof humI !== 'number' || isNaN(humI))
@@ -439,7 +439,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                         400,
                         null,
                         'Campo "humI" invalido nella richiesta!',
-                        false
+                        false,
                     );
 
                 // Impostazione humI
@@ -455,7 +455,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "humE" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione humE
@@ -470,7 +470,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "temp" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione temp
@@ -485,7 +485,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "lum" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione lum
@@ -500,7 +500,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "interval" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione interval
@@ -525,7 +525,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "type" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione type
@@ -554,7 +554,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                     404,
                     null,
                     'Impostazioni dispositivo inesistenti!',
-                    false
+                    false,
                 );
 
             // Calcolo nuovo intervallo
@@ -562,17 +562,17 @@ async function postData(req: Request, res: Response): Promise<Response> {
                 data.humI[0],
                 data.humI[1],
                 settings.humMax,
-                settings.interval
+                settings.interval,
             );
 
             // Controllo nuovo intervallo
-            if (typeof newInterval !== 'object' && newInterval !== null) {
+            if (newInterval !== null) {
                 // Aggiornamento impostazioni dispositivo database
                 const settingsUpdate =
                     await DeviceSettingsModel.findOneAndUpdate(
                         { deviceId: data.deviceId },
                         { interval: newInterval },
-                        { new: true }
+                        { new: true },
                     );
 
                 // Controllo modifiche
@@ -582,7 +582,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
                         500,
                         null,
                         'Modifica impostazioni non apportata correttamente!',
-                        false
+                        false,
                     );
 
                 // Invio eventi ws
@@ -640,7 +640,7 @@ async function postData(req: Request, res: Response): Promise<Response> {
             200,
             returnData,
             'Dati creati con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -671,7 +671,7 @@ async function patchData(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo read
@@ -681,7 +681,7 @@ async function patchData(req: Request, res: Response): Promise<Response> {
                 400,
                 null,
                 'Campo "read" invalido nella richiesta!',
-                false
+                false,
             );
 
         // Controllo id dati
@@ -710,7 +710,7 @@ async function patchData(req: Request, res: Response): Promise<Response> {
                 404,
                 null,
                 'Il dato non è esistente!',
-                false
+                false,
             );
 
         // Controllo dataId
@@ -724,14 +724,14 @@ async function patchData(req: Request, res: Response): Promise<Response> {
                 403,
                 null,
                 "Il dispositivo da cui proviene il dato non appartiene all'account autenticato!",
-                false
+                false,
             );
 
         // Aggiornamento dati database
         const dato = await DataModel.findByIdAndUpdate(
             dataId,
             { read },
-            { new: true }
+            { new: true },
         );
 
         // Controllo modifiche
@@ -741,7 +741,7 @@ async function patchData(req: Request, res: Response): Promise<Response> {
                 500,
                 null,
                 'Modifiche non apportate correttamente!',
-                false
+                false,
             );
 
         // Risposta finale
@@ -765,7 +765,7 @@ async function patchData(req: Request, res: Response): Promise<Response> {
                 createdAt: dato.createdAt,
             },
             'Dati modificati con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -809,7 +809,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo id
@@ -820,7 +820,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "id" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione id
@@ -836,7 +836,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "date" invalido!',
-                    false
+                    false,
                 );
             // Impostazione date
             filter.date = parsedDate;
@@ -852,7 +852,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "read" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione read
@@ -877,7 +877,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "type" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione type
@@ -892,7 +892,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "deviceId" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione deviceId
@@ -911,7 +911,7 @@ async function deleteData(req: Request, res: Response): Promise<Response> {
         }
 
         // Ricavo dati database
-        const data = await DataModel.deleteMany(filter);
+        await DataModel.deleteMany(filter);
 
         // Risposta finale
         return resHandler(res, 200, null, 'Dati eliminati con successo!', true);

@@ -1,5 +1,5 @@
 // Importazione moduli
-import mongoose, { Schema, model, type ObjectId } from 'mongoose';
+import { Schema, model, type ObjectId } from 'mongoose';
 import DeviceModel from './Device.model.js';
 import UserSettingsModel from './UserSettings.model.js';
 

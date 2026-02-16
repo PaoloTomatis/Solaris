@@ -1,5 +1,5 @@
 // Importazione moduli
-import type { AuthenticatedWS } from '../../global/types/types.js';
+import type { AuthenticatedWS } from '../types/types.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';

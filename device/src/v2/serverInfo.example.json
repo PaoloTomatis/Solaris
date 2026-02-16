@@ -1,0 +1,6 @@
+{
+    "skIp": "192.168.0.0",
+    "skPort": "8080",
+    "apiUrl": "http://localhost:3000/v2/api",
+    "authUrl": "http://localhost:3000/v2/auth"
+}

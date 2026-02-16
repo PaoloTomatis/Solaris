@@ -1,9 +1,19 @@
 // Importazione moduli
 import { rooms } from '../../server.js';
-import type { AuthenticatedWS } from '../types/types.js';
+import type { AuthenticatedWS as AuthenticatedWSV1 } from '../../v1/types/types.js';
+import type { AuthenticatedWS as AuthenticatedWSV2 } from '../../v2/types/types.js';
+
+// Firma funzione v1
+function joinRoom(ws: AuthenticatedWSV1, roomName: string, version: 1): void;
+// Firma funzione v2
+function joinRoom(ws: AuthenticatedWSV2, roomName: string, version: 2): void;
 
 // Funzione gestione partecipazione stanza
-function joinRoom(ws: AuthenticatedWS, roomName: string) {
+function joinRoom(
+    ws: AuthenticatedWSV1 | AuthenticatedWSV2,
+    roomName: string,
+    version: 1 | 2,
+) {
     // Controllo esistenza stanza
     if (!rooms.has(roomName)) rooms.set(roomName, new Set());
 
@@ -15,7 +25,7 @@ function joinRoom(ws: AuthenticatedWS, roomName: string) {
 }
 
 // Funzione gestione uscita stanza
-function leaveRoom(ws: AuthenticatedWS) {
+function leaveRoom(ws: AuthenticatedWSV1 | AuthenticatedWSV2) {
     // Ricavo dati da ws
     const roomName = (ws as any).room;
 

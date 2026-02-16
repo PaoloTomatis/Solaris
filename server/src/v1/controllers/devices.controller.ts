@@ -1,8 +1,8 @@
 // Importazione moduli
 import type { Request, Response } from 'express';
-import type { UserType } from '../../global/types/types.js';
+import type { UserType } from '../types/types.js';
 import type { DataType } from '../models/Data.model.js';
-import resHandler from '../../global/utils/responseHandler.js';
+import resHandler from '../../v1/utils/responseHandler.js';
 import DeviceModel from '../models/Device.model.js';
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
@@ -14,7 +14,7 @@ import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import {
     algorithmHumX,
     algorithmInterval,
-} from '../../global/utils/irrigationAlgorithm.js';
+} from '../utils/irrigationAlgorithm.js';
 
 // Gestore get devices
 async function getDevices(req: Request, res: Response): Promise<Response> {
@@ -59,7 +59,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo id
@@ -70,7 +70,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "id" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione id
@@ -85,7 +85,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "key" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione key
@@ -104,7 +104,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "name" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione name
@@ -119,7 +119,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "prototypeModel" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione prototypeModel
@@ -135,7 +135,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "activatedAt" invalido!',
-                    false
+                    false,
                 );
             // Impostazione activatedAt
             filter.activatedAt = date;
@@ -149,7 +149,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "mode" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione mode
@@ -186,7 +186,7 @@ async function getDevices(req: Request, res: Response): Promise<Response> {
                 };
             }),
             'Dispositivi ricavati con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -239,7 +239,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo ruolo utente
@@ -249,7 +249,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                 403,
                 null,
                 "L'operazione di creazione di un dispositivo è riservata agli amministratori!",
-                false
+                false,
             );
 
         // Controllo key
@@ -260,7 +260,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "key" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione key
@@ -281,7 +281,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "name" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione key
@@ -296,7 +296,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "prototypeModel" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione prototypeModel
@@ -312,7 +312,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "activatedAt" invalido!',
-                    false
+                    false,
                 );
             // Impostazione activatedAt
             data.activatedAt = date;
@@ -326,7 +326,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "mode" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione mode
@@ -342,7 +342,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "psw" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione psw
@@ -368,7 +368,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                 500,
                 null,
                 'Dispositivo non creato correttamente!',
-                false
+                false,
             );
 
         // Creazione impostazioni dispositivo database
@@ -385,7 +385,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                 500,
                 null,
                 'Impostazioni dispositivo non crate correttamente!',
-                false
+                false,
             );
 
         // Risposta finale
@@ -404,7 +404,7 @@ async function postDevice(req: Request, res: Response): Promise<Response> {
                 createdAt: device.createdAt,
             },
             'Dispositivo creato con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -452,7 +452,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo id dispositivo
@@ -462,7 +462,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 400,
                 null,
                 'Id del dispositivo mancante o invalida!',
-                false
+                false,
             );
 
         // Controllo name
@@ -477,7 +477,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "name" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione key
@@ -492,7 +492,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "userId" invalido!',
-                    false
+                    false,
                 );
             data.userId = userId ? new mongoose.Types.ObjectId(userId) : null;
         }
@@ -506,7 +506,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "activatedAt" invalido!',
-                    false
+                    false,
                 );
             // Impostazione activatedAt
             data.activatedAt = date;
@@ -522,7 +522,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                     400,
                     null,
                     'Campo "mode" invalido nella richiesta!',
-                    false
+                    false,
                 );
 
             // Impostazione mode
@@ -536,7 +536,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 400,
                 null,
                 'Nessun campo valido da aggiornare!',
-                false
+                false,
             );
 
         // Aggiornamento dispositivo database
@@ -545,7 +545,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
             data,
             {
                 new: true,
-            }
+            },
         );
 
         // Controllo modifiche
@@ -555,7 +555,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 500,
                 null,
                 'Modifiche non apportate correttamente!',
-                false
+                false,
             );
 
         // Risposta finale
@@ -574,7 +574,7 @@ async function patchDevice(req: Request, res: Response): Promise<Response> {
                 createdAt: device.createdAt,
             },
             'Dispositivo aggiornato con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -604,7 +604,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo nome
@@ -614,7 +614,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
                 400,
                 null,
                 'Nome mancante o invalido!',
-                false
+                false,
             );
 
         // Ricavo dispositivo database
@@ -627,14 +627,14 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
                 403,
                 null,
                 'Dispositivo inesistente, non disponibile o in utilizzo!',
-                false
+                false,
             );
 
         // Aggiornamento dispositivo database
         const deviceUpdate = await DeviceModel.findOneAndUpdate(
             { key },
             { userId: user.id, mode: 'config', activatedAt: new Date(), name },
-            { new: true }
+            { new: true },
         );
 
         // Controllo modifiche
@@ -644,7 +644,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
                 500,
                 null,
                 'Attivazione non apportata correttamente!',
-                false
+                false,
             );
 
         // Invio eventi ws
@@ -673,7 +673,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
                 createdAt: deviceUpdate.createdAt,
             },
             'Dispositivo attivato con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -690,7 +690,7 @@ async function activateDevice(req: Request, res: Response): Promise<Response> {
 // Gestore modifica modalità
 async function updateModeDevice(
     req: Request,
-    res: Response
+    res: Response,
 ): Promise<Response> {
     // Gestione errori
     try {
@@ -715,7 +715,7 @@ async function updateModeDevice(
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo mode
@@ -725,7 +725,7 @@ async function updateModeDevice(
                 400,
                 null,
                 'Campo "mode" invalido nella richiesta!',
-                false
+                false,
             );
 
         // Ricavo dispositivo database
@@ -738,7 +738,7 @@ async function updateModeDevice(
                 403,
                 null,
                 "Dispositivo inesistente o non appartenente all'utente autenticato!",
-                false
+                false,
             );
 
         // Controllo modalità
@@ -770,7 +770,7 @@ async function updateModeDevice(
                     humMinResult.error.status,
                     null,
                     humMinResult.error.message,
-                    false
+                    false,
                 );
             }
 
@@ -785,7 +785,7 @@ async function updateModeDevice(
                     humMaxResult.error.status,
                     null,
                     humMaxResult.error.message,
-                    false
+                    false,
                 );
             }
 
@@ -800,7 +800,7 @@ async function updateModeDevice(
                     intervalResult.error.status,
                     null,
                     intervalResult.error.message,
-                    false
+                    false,
                 );
             }
 
@@ -813,14 +813,14 @@ async function updateModeDevice(
         const deviceUpdate = await DeviceModel.findOneAndUpdate(
             { _id: id },
             { mode },
-            { new: true }
+            { new: true },
         );
 
         // Aggiornamento impostazioni dispositivo database
         const deviceSettingsUpdate = await DeviceSettingsModel.findOneAndUpdate(
             { deviceId: id },
             { humMin, humMax, interval },
-            { new: true }
+            { new: true },
         );
 
         // Controllo modifiche
@@ -830,7 +830,7 @@ async function updateModeDevice(
                 500,
                 null,
                 'Modifiche non apportate correttamente!',
-                false
+                false,
             );
 
         // Invio eventi ws
@@ -861,7 +861,7 @@ async function updateModeDevice(
                 createdAt: deviceUpdate.createdAt,
             },
             'Dispositivo attivato con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
@@ -891,7 +891,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
                 401,
                 null,
                 'Autenticazione non eseguita correttamente!',
-                false
+                false,
             );
 
         // Controllo ruolo utente
@@ -901,7 +901,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
                 403,
                 null,
                 "L'operazione di eliminazione di un dispositivo è riservata agli amministratori!",
-                false
+                false,
             );
 
         // Controllo id dispositivo
@@ -911,7 +911,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
                 400,
                 null,
                 'Id del dispositivo mancante!',
-                false
+                false,
             );
 
         // Controllo deviceId
@@ -931,7 +931,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
                 500,
                 null,
                 'Modifiche non apportate correttamente!',
-                false
+                false,
             );
 
         // Risposta finale
@@ -950,7 +950,7 @@ async function deleteDevice(req: Request, res: Response): Promise<Response> {
                 createdAt: device.createdAt,
             },
             'Dispositivo eliminato con successo!',
-            true
+            true,
         );
     } catch (error: unknown) {
         // Errore in console
