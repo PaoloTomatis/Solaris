@@ -1,15 +1,55 @@
 # Importazione moduli
 from machine import Timer, reset
 import network, json, ubinascii, urandom, urequests, struct, ntptime, utime
-from time import sleep
+from time import sleep, sleep_ms
 import usocket as sk
 
+# Dichiarazione rgb
+RED = 0
+GREEN = 1
+BLUE = 2
+
+# Funzione mappatura
+def mapRange(x, in_min, in_max, out_min, out_max):
+  return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+
+# Funzione spegnimento led
+def rgbOff(pwms):
+    pwms[RED].duty_u16(0)
+    pwms[GREEN].duty_u16(0)
+    pwms[BLUE].duty_u16(0)
+    sleep(0.1)
+    
+# Funzione deinizializzazione pin
+def deinitPins(pwms):
+    pwms[RED].deinit()
+    pwms[GREEN].deinit()
+    pwms[BLUE].deinit()
+
+# Funzione accensione colore
+def rgbColor (color: str, pwms):
+    if color == "red":
+        pwms[RED].duty_u16(mapRange(255, 0, 255, 0, 65535))
+        pwms[GREEN].duty_u16(mapRange(0, 0, 255, 0, 65535))
+        pwms[BLUE].duty_u16(mapRange(0, 0, 255, 0, 65535))
+    elif color == "yellow":
+        pwms[RED].duty_u16(mapRange(230, 0, 255, 0, 65535))
+        pwms[GREEN].duty_u16(mapRange(80, 0, 255, 0, 65535))
+        pwms[BLUE].duty_u16(mapRange(0, 0, 255, 0, 65535))
+    elif color == "green":
+        pwms[RED].duty_u16(mapRange(0, 0, 255, 0, 65535))
+        pwms[GREEN].duty_u16(mapRange(255, 0, 255, 0, 65535))
+        pwms[BLUE].duty_u16(mapRange(0, 0, 255, 0, 65535))
+
 # Funzione caricamento dati
-def loadData():
+def loadData(pwms):
     secrets = {}
     connInfo = {}
     settings = {}
     info = {}
+    
+    rgbColor("yellow", pwms)
+    
     # Caricamento informazione wifi
     try:
         with open('secrets.json', 'r') as secretsFile:
@@ -41,18 +81,22 @@ def loadData():
     # Controllo dati
     if (len(secrets) <= 0 or len(connInfo) <= 0 <= 0 or len(info) <= 0):
         print("Device restart for loading errors")
+        rgbColor("red", pwms)
         sleep(1)
         reset()
     else:
+        rgbColor("green", pwms)
         return [secrets, connInfo, settings, info]
 
 # Funzione caricamento impostazioni
 def getSettings(api: str, token: str):
     # Ritorno dati
-    return getHandler(f"{api}/me/device-settings?authType=device", "settings", token)
+    return getHandler(f"{api}/me/device-settings?authType=device", "settings", pwms, token)
     
 # Funzione sincronizzazione orario
-def syncTime(rtc):
+def syncTime(rtc, pwms):
+    rgbColor("yellow", pwms)
+    
     try:
         print("\nTime sync...")
         # Aggiornamento orario
@@ -60,12 +104,16 @@ def syncTime(rtc):
         epoch_local = utime.time() + 2 * 3600  # UTC+2
         lt = utime.localtime(epoch_local)
         rtc.datetime((lt[0], lt[1], lt[2], lt[6] + 1, lt[3], lt[4], lt[5], 0))
+        rgbColor("green", pwms)
         print("Time sync success\n")
     except Exception as e:
+        rgbColor("red", pwms)
         print("Time sync error: ", e, "\n")
 
 # Funzione connessione wifi
-def connWifi(ssid: str, psw: str):
+def connWifi(ssid: str, psw: str, pwms):
+    
+    rgbColor("yellow", pwms)
 
     # Configurazione wifi
     wlan = network.WLAN(network.STA_IF)
@@ -79,18 +127,19 @@ def connWifi(ssid: str, psw: str):
     for i in range(10):
         if wlan.isconnected():
             print("Wifi connection success")
+            rgbColor("green", pwms)
             break
         sleep(1)
         print(f"Wifi tentative {i}")
     return wlan
 
 # Funzione login
-def login(auth: str, key: str, psw: str):
+def login(auth: str, key: str, psw: str, pwms):    
     # Dichiarazione dati
     payload = {"key": key, "psw": psw}
     
     # Ritorno dati
-    return postHandler(f"{auth}/device-login?authType=device", payload, "login")
+    return postHandler(f"{auth}/device-login?authType=device", payload, "login", pwms)
 
 # Funzione connessione socket
 def connSocket(ip: str, port: int, token: str):
@@ -201,7 +250,7 @@ def ws_recv(sock, timeout=2):
             return None
         
 # Funzione irrigazione
-def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, sensorLum, sensorOut, humI = None, humMax = None, interval = None, duration = None):
+def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, sensorLum, sensorOut, pwms, humI = None, humMax = None, interval = None, duration = None):
     # Dichiarazione tempo irrigazione
     irrigationTime = 0
     
@@ -217,7 +266,7 @@ def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, s
         irrigationTime = round(((humMax - humI) * interval))
     
     # Calcolo humI1
-    humI1 = measure(sensor, 50) / 4095 * 100
+    humI1 = (1 - measure(sensor, 50) / 4095) * 100
     
     def pumpOff (humI1):
         pump.off()
@@ -227,7 +276,7 @@ def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, s
         
         while humI2 <= 0:
             # Calcolo humI2
-            humI2 = measure(sensor, 50) / 4095 * 100
+            humI2 =  (1 - measure(sensor, 50) / 4095) * 100
             lum = measure(sensorLum, 50) / 4095 * 100
 
         # Calcolo humE e temp
@@ -248,9 +297,9 @@ def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, s
 
         # Inizializzazione nome richiesta
         reqName = ""
-        
+
         # Controllo variazione umidità
-        if humI2 < (humMax * 80/100):
+        if humI2 <= humI1:
             # Dichiarazione dati
             payload = {"title":"ERRORE IRRIGAZIONE!", "description": f"Irrigazione di {irrigationTime}s del dispositivo {name} non effettuata correttamente, controllare tanica d'acqua!", "type": "error"}
 
@@ -270,7 +319,7 @@ def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, s
             reqName = "irrigation"
 
         # Ritorno dati
-        return postHandler(f"{api}/{reqUrl}", payload, reqName, token)
+        return postHandler(f"{api}/{reqUrl}", payload, reqName, pwms, token)
     
     if irrigationTime > 0:
         pump.on()
@@ -279,15 +328,31 @@ def irrigation(pump, name: str, mode: str, date, token: str, api: str, sensor, s
         sleep(irrigationTime)
         pumpOff(humI1)
 
+# Dichiarazione smoothing
+smoothed = 0
+# Dichiarazione fattore smoothing
+alpha = 0.1
+
 # Funzione calcolo misurazioni
-def measure(sensor, n=10):
+def measure(sensor, n=10, delay_ms=10):
+    # Globalizzazione smoothing
+    global smoothed
+    
+    # Calcolo somma letture
     total = 0
     for _ in range(n):
         total += sensor.read()
-    return total / n
+        sleep_ms(delay_ms)
+    
+    # Calcolo media letture
+    raw_avg = total / n
+    
+    # Calcolo smoothing esponenziale
+    smoothed = alpha * raw_avg + (1 - alpha) * smoothed
+    return smoothed
 
 # Funzione invio misurazioni
-def sendMeasurement (api: str, token: str, humI: float, humE: float, temp: float, lum: float, date): 
+def sendMeasurement (api: str, token: str, humI: float, humE: float, temp: float, lum: float, date, pwms): 
 
     # Controllo dati
     if humI is None or humE is None or temp is None or lum is None or not token:
@@ -298,16 +363,16 @@ def sendMeasurement (api: str, token: str, humI: float, humE: float, temp: float
     payload = {"measuredAt": date, "humI": humI, "humE": humE, "temp":temp, "lum":lum}
 
     # Ritorno dati
-    return postHandler(f"{api}/measurements?authType=device", payload, "measurements", token)
+    return postHandler(f"{api}/measurements?authType=device", payload, "measurements", pwms, token)
 
 # Funzione invio avvisi
-def sendNotifications (title: str, description: str, _type: str):
+def sendNotifications (api: str, token: str, title: str, description: str, _type: str, pwms):
     
     # Dichiarazione dati
     payload = {"title": title, "description": description, "type": _type}
 
     # Ritorno dati
-    return postHandler(f"{api}/notifications?authType=device", payload, "notifications", token)
+    return postHandler(f"{api}/notifications?authType=device", payload, "notifications", pwms, token)
 
 # Funziona scrittura misurazioni
 def printMeasurement (humI: float, humE: float, temp: float, lum:float):
@@ -317,7 +382,10 @@ def printMeasurement (humI: float, humE: float, temp: float, lum:float):
     print(f"Luminosity: {round(lum)}%")
 
 # Funzione gestione richieste get
-def getHandler(url, name, token = None) :
+def getHandler(url, name, pwms, token = None) :
+    
+    rgbColor("yellow", pwms)
+    
     print(f"Get request: {name}...")
 
     # Controllo token
@@ -349,17 +417,21 @@ def getHandler(url, name, token = None) :
         # Chiusura richiesta
         response.close()
         
+        rgbColor("green", pwms)
         print(f"Get request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
     except Exception as e:
+        rgbColor("red", pwms)
         print(f"Get request error: {name}",e, "\n")
         return None
     
 # Funzione gestione richieste get
-def postHandler(url, payload, name, token = None):
+def postHandler(url, payload, name, pwms, token = None):
     print(f"Post request: {name}...")
+    
+    rgbColor("yellow", pwms)
 
     # Controllo token
     if token:
@@ -373,11 +445,11 @@ def postHandler(url, payload, name, token = None):
     resData = None
     
     # Gestione errori
-    try:
+    try:        
         # Effettuazione richiesta
         response = urequests.post(
             url,
-            data=json.dumps(payload),
+            data=json.dumps(payload).encode("utf-8"),
             headers=headers
         )
         
@@ -392,11 +464,12 @@ def postHandler(url, payload, name, token = None):
         # Chiusura richiesta
         response.close()
 
+        rgbColor("green", pwms)
         print(f"Post request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
     except Exception as e:
+        rgbColor("red", pwms)
         print(f"Post request error: {name}", e, "\n")
         return None
-

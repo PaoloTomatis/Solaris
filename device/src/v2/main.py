@@ -1,65 +1,17 @@
 # Importazione moduli
-from machine import Pin, ADC, Timer, RTC, reset
+from machine import Pin, ADC, Timer, RTC, reset, PWM
 from time import sleep, time
 import dht, network, json, ubinascii, urandom, urequests, struct, ntptime, utime
 import usocket as sk
-from utils import loadData, syncTime, connWifi, login, connSocket, ws_send, ws_recv, irrigation, measure, sendMeasurement, printMeasurement, getSettings, sendNotifications
+from utils import loadData, syncTime, connWifi, login, connSocket, ws_send, ws_recv, irrigation, measure, sendMeasurement, printMeasurement, getSettings, sendNotifications, rgbColor, rgbOff, deinitPins
+ 
+# Dichiarazione pin led
+pwm_pins = [27,13,12]
 
-# Creazione timer
-tim = Timer(0)
-
-# Creazione orario
-rtc = RTC()
-    
-# Caricamento dati
-[secrets, connInfo, settings, info] = loadData()
-
-# Connessione wifi
-wlan = connWifi(secrets["ssid"], secrets["psw"])
-
-# Sincronizzazione orario
-syncTime(rtc)
-
-# Effettuazione login
-loginData = login(connInfo["auth_url"], info["key"], info["psw"])
-
-if loginData:
-    token = loginData["accessToken"]
-    newDevice = loginData["device"]
-else:
-    reset()
-
-# Controllo nuove info dispositivo
-if newDevice != "":
-    try:
-        # Conversione dispositivo
-        parsedInfo = {"id":newDevice["id"], "key":info["key"], "psw":info["psw"], "name": newDevice["name"], "prototypeModel":newDevice["prototypeModel"]}
-        
-        # Sovrascrittura file
-        with open("info.json", "w") as infoFile:
-            info = parsedInfo
-            infoFile.write(json.dumps(parsedInfo))
-    except Exception as e:
-        print("Device info writing error: ", e, "\n")
-
-# Richiesta impostazioni
-newSettings = getSettings(connInfo["api_url"], token)
-
-# Controllo impostazioni
-if newSettings:
-    try:
-        # Conversione impostazioni
-        parsedSettings = json.dumps(newSettings)
-        
-        # Sovrascrittura file
-        with open("settings.json", "w") as settingsFile:
-            settings = newSettings
-            settingsFile.write(parsedSettings)
-    except Exception as e:
-        print("Device settings writing error", e, "\n")
-
-# Connessione socket
-sock = connSocket(connInfo["sk_ip"], connInfo["sk_port"], token)
+# Configurazione pin led
+pwms = [PWM(Pin(pwm_pins[0])),PWM(Pin(pwm_pins[1])),
+                PWM(Pin(pwm_pins[2]))]
+[pwm.freq(1000) for pwm in pwms]
 
 # Dichiarazione pompa
 pump = Pin(26, Pin.OUT)
@@ -77,144 +29,210 @@ sensorLum = ADC(Pin(35))
 sensorLum.atten(ADC.ATTN_11DB)
 sensorLum.width(ADC.WIDTH_12BIT)
 
-# Funzione riconnessione websocket
-def reconnect():
-    global token, sock
-    # Richesta connessione socket
+# Creazione timer
+tim = Timer(0)
+
+# Creazione orario
+rtc = RTC()
+
+# Ciclo main
+def main(pwms, pump, sensor, sensorOut, sensorLum): 
+    # Caricamento dati
+    [secrets, connInfo, settings, info] = loadData(pwms)
+
+    # Connessione wifi
+    wlan = connWifi(secrets["ssid"], secrets["psw"], pwms)
+
+    # Sincronizzazione orario
+    syncTime(rtc, pwms)
+
+    # Effettuazione login
+    loginData = login(connInfo["auth_url"], info["key"], info["psw"], pwms)
+
+    # Controllo dati
+    if loginData:
+        # Impostazione token e nuove info dispositivo
+        token = loginData["accessToken"]
+        newDevice = loginData["device"]
+    else:
+        # Reset
+        reset()
+
+    # Controllo nuove info dispositivo
+    if newDevice != "":
+        try:
+            # Conversione dispositivo
+            parsedInfo = {"id":newDevice["id"], "key":info["key"], "psw":info["psw"], "name": newDevice["name"], "prototypeModel":newDevice["prototypeModel"]}
+            
+            # Sovrascrittura file
+            with open("info.json", "w") as infoFile:
+                info = parsedInfo
+                infoFile.write(json.dumps(parsedInfo))
+        except Exception as e:
+            print("Device info writing error: ", e, "\n")
+
+    # Richiesta impostazioni
+    newSettings = getSettings(connInfo["api_url"], token, pwms)
+
+    # Controllo impostazioni
+    if newSettings:
+        try:
+            # Conversione impostazioni
+            parsedSettings = json.dumps(newSettings)
+            
+            # Sovrascrittura file
+            with open("settings.json", "w") as settingsFile:
+                settings = newSettings
+                settingsFile.write(parsedSettings)
+        except Exception as e:
+            print("Device settings writing error", e, "\n")
+
+    # Connessione socket
     sock = connSocket(connInfo["sk_ip"], connInfo["sk_port"], token)
 
-# Loop misurazioni
-def measurementLoop():
-    # Dichiarazione tempo corrente
-    currentTime = f"{rtc.datetime()[0]:04d}-{rtc.datetime()[1]:02d}-{rtc.datetime()[2]:02d}T{rtc.datetime()[4]:02d}:{rtc.datetime()[5]:02d}:{rtc.datetime()[6]:02d}"
-    
-    # Misurazioni
-    humI = (1 - measure(sensor, 50) / 4095) * 100
-    lum = measure(sensorLum, 50) / 4095 * 100
-    try:
-        sensorOut.measure()
-        temp = sensorOut.temperature()
-        humE = sensorOut.humidity()
-    except Exception as e:
-        print("DHT error:", e, "\n")
-        temp = None
-        humE = None
-    print(currentTime)
-    
-    # Controllo temperatura
-    if temp <= 2:
-        # Invio avviso
-        sendNotifications(connInfo["api_url"], token, "TEMPERATURA BASSA", "La temperatura della tua serra è inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
-    elif temp >= 30:
-        # Invio avviso
-        sendNotifications(connInfo["api_url"], token, "TEMPERATURA ALTA", "La temperatura della tua serra è superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+    # Funzione riconnessione websocket
+    def reconnect():
+        global token, sock
+        # Richesta connessione socket
+        sock = connSocket(connInfo["sk_ip"], connInfo["sk_port"], token)
+
+    # Loop misurazioni
+    def measurementLoop():
+        # Dichiarazione tempo corrente
+        currentTime = f"{rtc.datetime()[0]:04d}-{rtc.datetime()[1]:02d}-{rtc.datetime()[2]:02d}T{rtc.datetime()[4]:02d}:{rtc.datetime()[5]:02d}:{rtc.datetime()[6]:02d}"
         
-    # Controllo umidità esterna
-    if humE <= 30:
-        # Invio avviso
-        sendNotifications(connInfo["api_url"], token, "UMIDITA' BASSA", "L'umidità esterna della tua serra è inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
-    elif humE >= 85:
-        # Invio avviso
-        sendNotifications(connInfo["api_url"], token, "UMIDITA' ALTA", "L'umidità esterna della tua serra è superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
-        
-    
-    # Controllo modalità config
-    if settings["mode"] == "config" and token:
-        # Stampo misurazioni
-        printMeasurement(humI, humE, temp, lum)
-        # Invio misurazioni
-        sendMeasurement(connInfo["api_url"], token, humI, humE, temp, lum, currentTime)
-    # Controllo modalità auto
-    elif settings["mode"] == "auto" and token:
-        # Stampo misurazioni
-        printMeasurement(humI, humE, temp, lum)
-        # Controllo umidità minima
-        if settings["humIMin"] > humI:
-            # Irrigazione
-            irrigation(pump, info["name"], info["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, humI, settings["humMax"], settings["interval"])
-        else:
-            # Invio misurazioni
-            sendMeasurement(connInfo["api_url"], token, humI, humE, temp, lum, currentTime, info["mode"])
-    
-    # Attesa
-    print("\n\n")
-    
-# Timer
-tim.init(mode=Timer.PERIODIC, period=60000, callback=lambda t: measurementLoop())
-
-# Loop principale
-def mainLoop () :
-    # Globalizzazione variabili
-    global info, settings, token, sock, connInfo
-    
-    # Dichiarazione tempo corrente
-    currentTime = f"{rtc.datetime()[0]:04d}-{rtc.datetime()[1]:02d}-{rtc.datetime()[2]:02d}T{rtc.datetime()[4]:02d}:{rtc.datetime()[5]:02d}:{rtc.datetime()[6]:02d}"
-    
-    # Ricezione evento
-    event = ws_recv(sock, 0.1)
-    
-    # Controllo evento
-    if type(event) is dict and "event" in event:        
-        # Gestore evento irrigazione
-        if event["event"] == "v2/irrigation" and "interval" in event and token:            
-            # Effettuazione irrigazione
-            irrigation(pump, info["name"], settings["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, duration=event["interval"])
-        elif event["event"] == "v2/mode" and "mode" in event:
-            try:
-                if event["mode"] == "auto" and "info" in event:
-                    print(f'New mode: {event["mode"].upper()}')
-                    print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
-
-                    # Nuove informazioni
-                    newSettings = {"humIMax": event["info"]["humIMax"], "humIMin": event["info"]["humIMin"], "kInterval": event["info"]["kInterval"], "mode": event["mode"]}
-                        
-                    # Conversione info
-                    parsedSettings = json.dumps(newSettings)
-                    
-                    # Sovrascrittura file
-                    with open("settings.json", "w") as settingsFile:
-                        settings = newSettings
-                        settingsFile.write(parsedSettings)
-
-                elif event["mode"] == "config" or event["mode"] == "safe":
-                    print(f'New mode: {event["mode"].upper()}')
-                    
-                    # Salvataggio nuove impostazioni
-                    settings["mode"] = event["mode"]
-
-                    # Conversione info
-                    parsedSettings = json.dumps(settings)
-                    
-                    # Sovrascrittura file
-                    with open("settings.json", "w") as settingsFile:
-                        settingsFile.write(parsedSettings)
-                    
-                else:
-                    print("Invalid mode request\n")
-            except Exception as e:
-                print("Error changing mode: ", e, "\n")
-    
-    # Controllo socket
-    if sock:
+        # Misurazioni
+        humI = (1 - measure(sensor, 50) / 4095) * 100
+        lum = measure(sensorLum, 50) / 4095 * 100
         try:
-            # Invio stato
-            ws_send(sock, json.dumps({"event": "v2/status", "data":{"lastSeen":currentTime}}))
+            sensorOut.measure()
+            temp = sensorOut.temperature()
+            humE = sensorOut.humidity()
         except Exception as e:
-            print("Error sending WS event:", e)
-            print("WS reconnection")
+            print("DHT error:", e, "\n")
+            temp = None
+            humE = None
+        print(currentTime)
+        
+        # Controllo temperatura
+        if temp <= 2:
+            # Invio avviso
+            sendNotifications(connInfo["api_url"], token, "TEMPERATURA BASSA", "La temperatura della tua serra è inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning", pwms)
+        elif temp >= 30:
+            # Invio avviso
+            sendNotifications(connInfo["api_url"], token, "TEMPERATURA ALTA", "La temperatura della tua serra è superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning", pwms)
+            
+        # Controllo umidità esterna
+        if humE <= 30:
+            # Invio avviso
+            sendNotifications(connInfo["api_url"], token, "UMIDITA' BASSA", "L'umidità esterna della tua serra è inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning", pwms)
+        elif humE >= 85:
+            # Invio avviso
+            sendNotifications(connInfo["api_url"], token, "UMIDITA' ALTA", "L'umidità esterna della tua serra è superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning", pwms)
+            
+        
+        # Controllo modalità config
+        if settings["mode"] == "config" and token:
+            # Stampo misurazioni
+            printMeasurement(humI, humE, temp, lum)
+            # Invio misurazioni
+            sendMeasurement(connInfo["api_url"], token, humI, humE, temp, lum, currentTime, pwms)
+        # Controllo modalità auto
+        elif settings["mode"] == "auto" and token:
+            # Stampo misurazioni
+            printMeasurement(humI, humE, temp, lum)
+            # Controllo umidità minima
+            if settings["humIMin"] > humI:
+                # Irrigazione
+                irrigation(pump, info["name"], info["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, pwms, humI, settings["humMax"], settings["interval"])
+            else:
+                # Invio misurazioni
+                sendMeasurement(connInfo["api_url"], token, humI, humE, temp, lum, currentTime, info["mode"], pwms)
+        
+        # Attesa
+        print("\n\n")
+        
+    # Timer
+    tim.init(mode=Timer.PERIODIC, period=60000, callback=lambda t: measurementLoop())
 
+    # Loop principale
+    def mainLoop () :
+        # Globalizzazione variabili
+        global info, settings, token, sock, connInfo
+        
+        # Dichiarazione tempo corrente
+        currentTime = f"{rtc.datetime()[0]:04d}-{rtc.datetime()[1]:02d}-{rtc.datetime()[2]:02d}T{rtc.datetime()[4]:02d}:{rtc.datetime()[5]:02d}:{rtc.datetime()[6]:02d}"
+        
+        # Ricezione evento
+        event = ws_recv(sock, 0.1)
+        
+        # Controllo evento
+        if type(event) is dict and "event" in event:        
+            # Gestore evento irrigazione
+            if event["event"] == "v2/irrigation" and "interval" in event and token:            
+                # Effettuazione irrigazione
+                irrigation(pump, info["name"], settings["mode"], currentTime, token, connInfo["api_url"], sensor, sensorLum, sensorOut, pwms, duration=event["interval"])
+            elif event["event"] == "v2/mode" and "mode" in event:
+                try:
+                    if event["mode"] == "auto" and "info" in event:
+                        print(f'New mode: {event["mode"].upper()}')
+                        print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
+
+                        # Nuove informazioni
+                        newSettings = {"humIMax": event["info"]["humIMax"], "humIMin": event["info"]["humIMin"], "kInterval": event["info"]["kInterval"], "mode": event["mode"]}
+                            
+                        # Conversione info
+                        parsedSettings = json.dumps(newSettings)
+                        
+                        # Sovrascrittura file
+                        with open("settings.json", "w") as settingsFile:
+                            settings = newSettings
+                            settingsFile.write(parsedSettings)
+
+                    elif event["mode"] == "config" or event["mode"] == "safe":
+                        print(f'New mode: {event["mode"].upper()}')
+                        
+                        # Salvataggio nuove impostazioni
+                        settings["mode"] = event["mode"]
+
+                        # Conversione info
+                        parsedSettings = json.dumps(settings)
+                        
+                        # Sovrascrittura file
+                        with open("settings.json", "w") as settingsFile:
+                            settingsFile.write(parsedSettings)
+                        
+                    else:
+                        print("Invalid mode request\n")
+                except Exception as e:
+                    print("Error changing mode: ", e, "\n")
+        
+        # Controllo socket
+        if sock:
             try:
-                # Chiusura connessione
-                sock.close()
-            except:
-                pass
+                # Invio stato
+                ws_send(sock, json.dumps({"event": "v2/status", "data":{"lastSeen":currentTime}}))
+            except Exception as e:
+                print("Error sending WS event:", e)
+                print("WS reconnection")
 
-            # Riconnessione
-            reconnect()
+                try:
+                    # Chiusura connessione
+                    sock.close()
+                except:
+                    pass
+
+                # Riconnessione
+                reconnect()
+
+    while True:
+        mainLoop()
+        sleep(0.5)
 
 # Esecuzione script
 if __name__ == "__main__":
-   while True:
-       mainLoop()
-       sleep(0.5)
-
+    try:
+        main(pwms, pump, sensor, sensorOut, sensorLum)
+    except KeyboardInterrupt:
+        rgbOff(pwms)
+        deinitPins(pwms)
