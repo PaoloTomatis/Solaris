@@ -40,7 +40,7 @@ function Logs() {
                         accessToken,
                         'notifications',
                         setLogs,
-                        `limit=50&deviceId=${deviceId}`,
+                        `limit=50&deviceId=${deviceId}&sort=-createdAt`,
                     );
                 }
             } catch (error: any) {
