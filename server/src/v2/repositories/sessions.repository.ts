@@ -41,7 +41,7 @@ class SessionsRepository {
         };
 
         // Controllo type
-        if (type) filter.type = type;
+        if (type) filter.status = type;
 
         // Richiesta sessione database
         const sessions = await SessionsModel.find(filter);
@@ -62,7 +62,7 @@ class SessionsRepository {
         };
 
         // Controllo type
-        if (type) filter.type = type;
+        if (type) filter.status = type;
 
         // Richiesta sessione database
         const sessions = await SessionsModel.find(filter);
@@ -79,7 +79,7 @@ class SessionsRepository {
         };
 
         // Controllo type
-        if (type) filter.type = type;
+        if (type) filter.status = type;
 
         // Richiesta sessione database
         const sessions = await SessionsModel.find(filter);
@@ -126,7 +126,9 @@ class SessionsRepository {
         id: string | ObjectId,
     ) {
         // Aggiornamento sessione database
-        const session = await SessionsModel.findByIdAndUpdate(id, { type });
+        const session = await SessionsModel.findByIdAndUpdate(id, {
+            status: type,
+        });
 
         // Ritorno sessione
         return session;
