@@ -43,9 +43,6 @@ interface AuthContextType {
         setLoading: React.Dispatch<React.SetStateAction<boolean>>,
         setError: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
-    refreshToken: (
-        setError: React.Dispatch<React.SetStateAction<string>>,
-    ) => Promise<void>;
     loading: boolean;
 }
 
@@ -94,8 +91,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     // Funzione pulizia
     function clear(loading = false) {
-        // Eliminazione token
-        localStorage.removeItem('accessToken');
         // Eliminazione impostazioni utente
         localStorage.removeItem('settings');
         // Impostazione utente e token
@@ -110,7 +105,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     // Funzione configurazione
     async function config() {
         // Ricavazione token
-        const token = localStorage.getItem('accessToken');
+        const token = await refresh();
 
         // Ricavazione impostazioni
         const rawSettings = localStorage.getItem('settings');
@@ -250,7 +245,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
                 // Impostazione token
                 setAccessToken(loginRes.accessToken);
-                localStorage.setItem('accessToken', loginRes.accessToken);
 
                 // Impostazione impostazioni utente
                 localStorage.setItem('settings', JSON.stringify(userSettings));
@@ -335,7 +329,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setSettings(null);
             setAccessToken(null);
-            localStorage.removeItem('accessToken');
 
             // Navigazione
             navigator('/auth/login');
@@ -377,7 +370,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setSettings(null);
             setAccessToken(null);
-            localStorage.removeItem('accessToken');
 
             // Navigazione
             navigator('/auth/register');
@@ -403,9 +395,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Funzione rinnovo token
-    async function refresh(
-        setError: React.Dispatch<React.SetStateAction<string>>,
-    ) {
+    async function refresh() {
         // Gestione errori
         try {
             // Richiesta logout
@@ -415,24 +405,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 accessToken,
             );
 
-            // Impostazione utente e accessToken
-            setAccessToken(res.accessToken);
-            localStorage.setItem('accessToken', res.accessToken);
+            // Ritorno accessToken
+            return res.accessToken;
         } catch (error: unknown) {
-            let errorMsg = 'Errore sconosciuto!';
-
-            if (axios.isAxiosError(error)) {
-                // Caso 1: risposta dal server con campo "message"
-                errorMsg =
-                    (error as any).response?.data?.message ||
-                    (error as any).message;
-            } else if (error instanceof Error) {
-                // Caso 2: altri errori generici
-                errorMsg = error.message;
-            }
-
-            // Impostazione errore
-            setError(errorMsg);
+            return null;
         }
     }
 
@@ -449,7 +425,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
                 logout,
                 deleteAccount,
                 loading,
-                refreshToken: refresh,
             }}
         >
             {children}

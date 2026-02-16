@@ -1,6 +1,6 @@
 // Importazione moduli
 import z from 'zod';
-import jwt from 'jsonwebtoken';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 import type {
     DevicesLoginBodySchema,
     UsersLoginBodySchema,
@@ -44,17 +44,8 @@ async function usersLoginService(
         true,
     );
 
-    // Richiesta sessione database
-    const sessions = await sessionsRepository.findManyByIp(
-        info.ipAddress,
-        'active',
-    );
-
-    // Iterazione sessioni
-    sessions.forEach(async (session) => {
-        // Invalidazione sessione
-        await sessionsRepository.updateOne('revoked', session.id);
-    });
+    // Invalidazione sessioni
+    await sessionsRepository.updateMany(user._id, 'revoked');
 
     // Firma access token
     const accessToken = jwt.sign(
@@ -85,7 +76,7 @@ async function usersLoginService(
     });
 
     // Ritorno access token e utente
-    return { accessToken, user: parsedUser };
+    return { accessToken, refreshToken, user: parsedUser };
 }
 
 // Servizio post /device-login
@@ -133,17 +124,8 @@ async function devicesLoginService(
         true,
     );
 
-    // Richiesta sessione database
-    const sessions = await sessionsRepository.findManyByIp(
-        info.ipAddress,
-        'active',
-    );
-
-    // Iterazione sessioni
-    sessions.forEach(async (session) => {
-        // Invalidazione sessione
-        await sessionsRepository.updateOne('revoked', session.id);
-    });
+    // Invalidazione sessioni
+    await sessionsRepository.updateMany(device._id, 'revoked');
 
     // Firma access token
     const accessToken = jwt.sign(minimalParsedDevice, process.env.JWT_ACCESS, {
@@ -170,7 +152,7 @@ async function devicesLoginService(
     });
 
     // Ritorno access token e dispositivo
-    return { accessToken, device: parsedDevice };
+    return { accessToken, refreshToken, device: parsedDevice };
 }
 
 // Servizio post /user-register
@@ -200,15 +182,33 @@ async function usersRegisterService(
     return parsedUser;
 }
 
+// Interfaccia payload
+interface JwtPayloadCustom extends JwtPayload {
+    id: string;
+}
+
 // Servizio post /refresh
 async function refreshService(
     info: { ipAddress: string; userAgent: string },
     refreshToken?: string,
-    user?: UserType,
-    device?: DeviceType,
 ) {
     // Controllo refresh token
     if (!refreshToken) throw new Error('Invalid authentication');
+
+    // Validazione refresh token
+    const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH as string,
+    ) as JwtPayloadCustom;
+
+    // Controllo dati
+    if (!decoded) throw new Error('Invalid authentication');
+
+    // Richiesta utente database
+    const user = await usersRepository.findOneById(decoded.id);
+
+    // Richiesta dispositivo database
+    const device = await devicesRepository.findOneById(decoded.id);
 
     // Controllo soggetto autenticato
     if (user) {
@@ -216,18 +216,25 @@ async function refreshService(
         const [session] = await sessionsRepository.findMany({
             userId: user.id,
             refreshToken,
-            type: 'active',
+            status: 'active',
         });
 
         // Controllo sessione
         if (!session) throw new Error('Invalid authentication');
 
+        // Conversione utente
+        const parsedUser = dataParser(
+            user.toObject(),
+            ['psw', 'schemaVersion', '__v'],
+            true,
+        );
+
         // Conversione utente minimale
-        const minimalParsedUser = dataParser(user, [
-            'email',
-            'updatedAt',
-            'createdAt',
-        ]);
+        const minimalParsedUser = dataParser(
+            user.toObject(),
+            ['email', 'psw', 'schemaVersion', 'updatedAt', 'createdAt', '__v'],
+            true,
+        );
 
         // Firma access token
         const newAccessToken = jwt.sign(
@@ -261,26 +268,45 @@ async function refreshService(
         });
 
         // Ritorno access token e utente
-        return { accessToken: newAccessToken, user };
+        return {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            user: parsedUser,
+        };
     } else if (device) {
         // Richiesta sessione database
         const [session] = await sessionsRepository.findMany({
             deviceId: device.id,
             refreshToken,
-            type: 'active',
+            status: 'active',
         });
 
         // Controllo sessione
         if (!session) throw new Error('Invalid authentication');
 
+        // Conversione dispositivo
+        const parsedDevice = dataParser(
+            device.toObject(),
+            ['key', 'psw', 'schemaVersion', '__v'],
+            true,
+        );
+
         // Conversione dispositivo minimale
-        const minimalParsedDevice = dataParser(device, [
-            'name',
-            'prototypeModel',
-            'activatedAt',
-            'updatedAt',
-            'createdAt',
-        ]);
+        const minimalParsedDevice = dataParser(
+            device.toObject(),
+            [
+                'key',
+                'name',
+                'psw',
+                'prototypeModel',
+                'schemaVersion',
+                'activatedAt',
+                'updatedAt',
+                'createdAt',
+                '__v',
+            ],
+            true,
+        );
 
         // Firma access token
         const newAccessToken = jwt.sign(
@@ -314,7 +340,7 @@ async function refreshService(
         });
 
         // Ritorno access token e dispositivo
-        return { accessToken: newAccessToken, device };
+        return { accessToken: newAccessToken, device: parsedDevice };
     } else throw new Error('Invalid authentication');
 }
 
@@ -333,7 +359,7 @@ async function logoutService(
         const [session] = await sessionsRepository.findMany({
             userId: user.id,
             refreshToken,
-            type: 'active',
+            status: 'active',
         });
 
         // Controllo sessione
@@ -346,7 +372,7 @@ async function logoutService(
         const [session] = await sessionsRepository.findMany({
             deviceId: device.id,
             refreshToken,
-            type: 'active',
+            status: 'active',
         });
 
         // Controllo sessione

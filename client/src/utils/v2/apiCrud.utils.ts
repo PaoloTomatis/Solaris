@@ -107,7 +107,10 @@ async function getOneData<T>(
             `${import.meta.env.VITE_API_V2_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
-            { headers: { Authorization: `Bearer ${accessToken}` } },
+            {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                withCredentials: true,
+            },
         );
 
         // Dichiarazione dati api
@@ -171,7 +174,10 @@ async function postData<T>(
                 params ? `/${params}` : ''
             }?authType=user`,
             body,
-            { headers: { Authorization: `Bearer ${accessToken}` } },
+            {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                withCredentials: true,
+            },
         );
 
         // Dichiarazione dati api
@@ -216,7 +222,10 @@ async function patchData<T>(
                 params ? `/${params}` : ''
             }?authType=user`,
             body,
-            { headers: { Authorization: `Bearer ${accessToken}` } },
+            {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                withCredentials: true,
+            },
         );
 
         // Dichiarazione dati api
@@ -261,7 +270,10 @@ async function deleteData<T>(
             `${import.meta.env.VITE_API_V2_URL}/${link}?authType=user${
                 queries ? `&${queries}` : ''
             }`,
-            { headers: { Authorization: `Bearer ${accessToken}` } },
+            {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                withCredentials: true,
+            },
         );
 
         // Dichiarazione dati api

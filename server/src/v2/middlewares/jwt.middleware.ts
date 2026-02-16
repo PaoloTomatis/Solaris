@@ -12,7 +12,7 @@ import { AuthMiddlewareSchema } from '../schemas/Authentication.schema.js';
 // Interfaccia payload
 interface JwtPayloadCustom extends JwtPayload {
     id: string;
-    email: string;
+    role: 'admin' | 'user';
 }
 
 // Firma utente

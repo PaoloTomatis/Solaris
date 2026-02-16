@@ -19,7 +19,7 @@ import resHandler from '../utils/responseHandler.js';
 async function usersLoginController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -35,8 +35,19 @@ async function usersLoginController(
         // Chiamata servizio
         const data = await usersLoginService(parsedBody, info);
 
+        // Impostazione cookie
+        res.cookie('refreshToken', data.refreshToken, {
+            httpOnly: true,
+            maxAge: 3 * 24 * 60 * 1000,
+            secure: false,
+            sameSite: 'lax',
+        });
+
         // Risposta
-        resHandler(res, true, 200, data);
+        resHandler(res, true, 200, {
+            accessToken: data.accessToken,
+            user: data.user,
+        });
     } catch (error) {
         next(error);
     }
@@ -46,7 +57,7 @@ async function usersLoginController(
 async function devicesLoginController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -62,8 +73,19 @@ async function devicesLoginController(
         // Chiamata servizio
         const data = await devicesLoginService(parsedBody, info);
 
+        // Impostazione cookie
+        res.cookie('refreshToken', data.refreshToken, {
+            httpOnly: true,
+            maxAge: 3 * 24 * 60 * 1000,
+            secure: false,
+            sameSite: 'lax',
+        });
+
         // Risposta
-        resHandler(res, true, 200, data);
+        resHandler(res, true, 200, {
+            accessToken: data.accessToken,
+            device: data.device,
+        });
     } catch (error) {
         next(error);
     }
@@ -73,7 +95,7 @@ async function devicesLoginController(
 async function usersRegisterController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -94,7 +116,7 @@ async function usersRegisterController(
 async function refreshController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -108,15 +130,21 @@ async function refreshController(
         });
 
         // Chiamata servizio
-        const data = await refreshService(
-            info,
-            refreshToken,
-            req.user,
-            req.device
-        );
+        const data = await refreshService(info, refreshToken);
+
+        // Impostazione cookie
+        res.cookie('refreshToken', data.refreshToken, {
+            httpOnly: true,
+            maxAge: 3 * 24 * 60 * 1000,
+            secure: false,
+            sameSite: 'lax',
+        });
 
         // Risposta
-        resHandler(res, true, 200, data);
+        resHandler(res, true, 200, {
+            accessToken: data.accessToken,
+            user: data.user,
+        });
     } catch (error) {
         next(error);
     }
@@ -126,7 +154,7 @@ async function refreshController(
 async function logoutController(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) {
     // Gestione errori
     try {
@@ -149,5 +177,5 @@ export {
     devicesLoginController,
     usersRegisterController,
     refreshController,
-    logoutController
+    logoutController,
 };

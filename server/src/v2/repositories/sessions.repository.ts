@@ -17,7 +17,7 @@ interface SessionInput {
 class SessionsRepository {
     // Funzione richiesta sessioni da id utente
     async findMany(payload: {
-        type?: 'active' | 'revoked' | 'expired';
+        status?: 'active' | 'revoked' | 'expired';
         refreshToken?: string;
         userId?: string | ObjectId;
         deviceId?: string | ObjectId;
@@ -132,6 +132,23 @@ class SessionsRepository {
 
         // Ritorno sessione
         return session;
+    }
+
+    // Funzione aggiornamento sessioni
+    async updateMany(
+        userId: string | ObjectId,
+        type: 'active' | 'revoked' | 'expired',
+    ) {
+        // Aggiornamento sessione database
+        const sessions = await SessionsModel.updateMany(
+            { userId },
+            {
+                status: type,
+            },
+        );
+
+        // Ritorno sessione
+        return sessions;
     }
 }
 
