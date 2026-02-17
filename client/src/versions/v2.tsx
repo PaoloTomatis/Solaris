@@ -6,6 +6,8 @@ import Dashboard from '../pages/v2/Dashboard.page';
 import Controls from '../pages/v2/Controls.page';
 import DeviceSettings from '../pages/v2/DeviceSettings.page';
 import Log from '../pages/v2/Logs.page';
+import Measurements from '../pages/v2/Measurements.page';
+import Irrigations from '../pages/v2/Irrigations.page';
 import Stats from '../pages/global/Stats.page';
 import Page404 from '../pages/global/Page404.page';
 import Credits from '../pages/global/Credits.page';
@@ -68,6 +70,22 @@ const pagesv2 = [
                 element: (
                     <ProtectedRoute>
                         <Log />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/dashboard/:id/measurements',
+                element: (
+                    <ProtectedRoute>
+                        <Measurements />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/dashboard/:id/irrigations',
+                element: (
+                    <ProtectedRoute>
+                        <Irrigations />
                     </ProtectedRoute>
                 ),
             },
