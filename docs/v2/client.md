@@ -122,6 +122,20 @@
     - Chiamate API
         1. `GET /api/v2/notifications` --> al caricamento
 
+- **Irrigations**
+    - Url --> `/dashboard/:id/irrigations`
+    - Protetto --> ✔️
+    - Note --> mostra le irrigazioni del dispositivo selezionato
+    - Chiamate API
+        1. `GET /api/v2/irrigations` --> al caricamento
+
+- **Measurements**
+    - Url --> `/dashboard/:id/measurements`
+    - Protetto --> ✔️
+    - Note --> mostra le misurazioni del dispositivo selezionato
+    - Chiamate API
+        1. `GET /api/v2/measurements` --> al caricamento
+
 - **Stats**
     - Url --> `/dashboard/:id/stats`
     - Protetto --> ✔️
