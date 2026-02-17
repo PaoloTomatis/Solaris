@@ -30,6 +30,8 @@ import SettingsIcon from '../../assets/icons/settings.svg?react';
 import StatsIcon from '../../assets/icons/statistics.svg?react';
 import TemperatureIcon from '../../assets/icons/temperature.svg?react';
 import WarningIcon from '../../assets/icons/warning.svg?react';
+import IrrigationIcon from '../../assets/icons/irrigation.svg?react';
+import MeasurementIcon from '../../assets/icons/measurement.svg?react';
 
 // Pagina crediti
 function Credits() {
@@ -72,6 +74,16 @@ function Credits() {
             url: 'https://icons8.com/',
         },
         { name: 'Avviso', img: WarningIcon, url: 'https://icons8.com/' },
+        {
+            name: 'Misurazione',
+            img: MeasurementIcon,
+            url: 'https://icons8.com/',
+        },
+        {
+            name: 'Irrigazione',
+            img: IrrigationIcon,
+            url: 'https://icons8.com/',
+        },
     ];
 
     return (
