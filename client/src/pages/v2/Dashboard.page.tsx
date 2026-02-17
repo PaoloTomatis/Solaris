@@ -21,12 +21,15 @@ import SignalIcon from '../../assets/icons/network-status.svg?react';
 import ArrowIcon from '../../assets/icons/arrow.svg?react';
 import TemperatureIcon from '../../assets/icons/temperature.svg?react';
 import LuminosityIcon from '../../assets/icons/luminosity.svg?react';
-import HumidityIcon from '../../assets/icons/humidity.svg?react';
+import HumidityIIcon from '../../assets/icons/humidityI.svg?react';
+import HumidityEIcon from '../../assets/icons/humidityE.svg?react';
 import LogIcon from '../../assets/icons/log.svg?react';
 import SettingsIcon from '../../assets/icons/settings.svg?react';
 import StatsIcon from '../../assets/icons/statistics.svg?react';
 import ControlsIcon from '../../assets/icons/joystick.svg?react';
 import DashboardIcon from '../../assets/icons/dashboard.svg?react';
+import MeasurementIcon from '../../assets/icons/measurement.svg?react';
+import IrrigationIcon from '../../assets/icons/irrigation.svg?react';
 
 // Pagina dashboard
 function Dashboard() {
@@ -254,29 +257,23 @@ function Dashboard() {
                         />
                         <Data
                             img={LuminosityIcon}
-                            dato={`${realTimeData?.lum?.toFixed(0) || '-'}%`}
+                            dato={`${realTimeData?.lum?.toFixed(1) || '-'}%`}
                         />
                     </div>
                     <div className="flex items-center justify-center gap-7 w-full">
                         <div className="flex items-center justify-center relative">
                             <Data
-                                img={HumidityIcon}
+                                img={HumidityEIcon}
                                 dato={`${realTimeData?.humE || '-'}%`}
                             />
-                            <p className="text-white font-bold text-xlarge absolute top-[40%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
-                                E
-                            </p>
                         </div>
                         <div className="flex items-center justify-center relative">
                             <Data
-                                img={HumidityIcon}
+                                img={HumidityIIcon}
                                 dato={`${
-                                    realTimeData?.humI?.toFixed(0) || '-'
+                                    realTimeData?.humI?.toFixed(1) || '-'
                                 }%`}
                             />
-                            <p className="text-white font-bold text-xlarge absolute top-[40%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
-                                I
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -331,6 +328,16 @@ function Dashboard() {
                         url={`/dashboard/${deviceId}/log`}
                         name="Log"
                         icon={LogIcon}
+                    />
+                    <Info
+                        url={`/dashboard/${deviceId}/measurements`}
+                        name="Misurazioni"
+                        icon={MeasurementIcon}
+                    />
+                    <Info
+                        url={`/dashboard/${deviceId}/irrigations`}
+                        name="Irrigazioni"
+                        icon={IrrigationIcon}
                     />
                     <Info
                         url={`/dashboard/${deviceId}/stats`}
