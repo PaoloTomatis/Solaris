@@ -77,9 +77,7 @@ function useNotifications() {
     const context = useContext(NotificationsContext);
     // Controllo contesto
     if (!context) {
-        throw new Error(
-            'useNotifications deve essere usato in un NotificationsProvider',
-        );
+        throw new Error('useNotifications must be in a NotificationsProvider');
     }
     return context;
 }

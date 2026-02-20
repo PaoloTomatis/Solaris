@@ -83,7 +83,7 @@ function usePopup() {
     const context = useContext(PopupContext);
     // Controllo contesto
     if (!context) {
-        throw new Error('usePopup deve essere usato in un PopupProvider');
+        throw new Error('usePopup must be in a PopupProvider');
     }
     return context;
 }

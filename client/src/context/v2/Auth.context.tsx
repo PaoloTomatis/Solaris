@@ -437,7 +437,7 @@ function useAuth(): AuthContextType {
     const context = useContext(AuthContext);
     // Controllo contesto
     if (!context) {
-        throw new Error('useAuth deve essere usato in un AuthProvider');
+        throw new Error('useAuth must be in an AuthProvider');
     }
     return context;
 }
