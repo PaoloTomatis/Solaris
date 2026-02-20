@@ -1,14 +1,14 @@
 # Importazione moduli
 from machine import Pin, ADC, Timer, RTC, reset, PWM
 import usocket as sk
-from time import sleep, sleep_ms
+from time import sleep, sleep_ms, ticks_ms, ticks_diff
 import dht, network, json, ubinascii, urandom, urequests, struct, ntptime, utime
 
 # Dichiarazione stato dispositivo
 deviceState = {}
 
 # Impostazione flags
-deviceState["flags"] = {"measure": False, "irrigate": False, "irrigationInfo": None}
+deviceState["flags"] = {"measure": False, "irrigate": False, "irrigationInfo": None, "readingDht": False}
 
 # Classe errore critico
 class CriticalError(Exception):
@@ -274,7 +274,7 @@ def sensorConfig():
 
     # Impostazione dati
     deviceState["sensors"] = {"pump":pump, "sensorIn":sensorIn, "sensorOut":sensorOut, "sensorLum":sensorLum}
-    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "tim2":tim2, "pwms":pwms}
+    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "tim2":tim2, "pwms":pwms, "dhtRead":0}
 
 # Funzione configurazione
 def config():
@@ -340,15 +340,35 @@ def config():
 
 # Funzione misurazione dht
 def dhtMeasure():
+    MIN_INTERVAL = 2500  # ms
+
+    now = ticks_ms()
+    last = deviceState["utils"]["dhtRead"]
+
+    # rate limiter duro
+    if ticks_diff(now, last) < MIN_INTERVAL:
+        return None
+
     for _ in range(3):
         try:
+            deviceState["flags"]["readingDht"] = True
+            sleep_ms(50)
+
             deviceState["sensors"]["sensorOut"].measure()
-            return deviceState["sensors"]["sensorOut"].humidity(), deviceState["sensors"]["sensorOut"].temperature()
-            break
+
+            h = deviceState["sensors"]["sensorOut"].humidity()
+            t = deviceState["sensors"]["sensorOut"].temperature()
+
+            deviceState["utils"]["dhtRead"] = ticks_ms()
+            deviceState["flags"]["readingDht"] = False
+
+            return h, t
+
         except OSError:
-            sleep_ms(200)
-    else:
-        raise TransientError("DHT22 read failed")
+            deviceState["flags"]["readingDht"] = False
+            sleep_ms(2500)
+
+    return None, None
 
 # Funzione calcolo misurazioni
 def measure(sensor, n=10, delay_ms=10):
@@ -784,6 +804,11 @@ def main():
 
     # Loop
     while True:
+        # Controllo flag lettura dht
+        if deviceState["flags"]["readingDht"]:
+            sleep(1)
+            continue
+
         # Gestore connessione socket
         socketHandler()
         # Controllo flag misurazione
