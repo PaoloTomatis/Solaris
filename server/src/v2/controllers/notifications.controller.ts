@@ -11,6 +11,7 @@ import {
     postNotificationsService,
 } from '../services/notifications.service.js';
 import resHandler from '../utils/responseHandler.js';
+import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
 // Controller get /notifications
 async function getNotificationsController(
@@ -48,7 +49,16 @@ async function postNotificationsController(
         const parsedBody = PostNotificationsBodySchema.parse(req.body);
 
         // Chiamata servizio
-        const notification = postNotificationsService(parsedBody, req.device);
+        const notification = await postNotificationsService(
+            parsedBody,
+            req.device,
+        );
+
+        // Invio notifiche ws
+        emitToRoom(`USER-${req.device.userId}`, {
+            event: 'v2/notifications',
+            notification,
+        });
 
         // Risposta
         resHandler(res, true, 200, notification);
