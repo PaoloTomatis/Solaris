@@ -4,7 +4,6 @@ import {
     useContext,
     useEffect,
     useRef,
-    useState,
     type ReactNode,
 } from 'react';
 import { useAuth } from './Auth.context';
@@ -12,7 +11,7 @@ import { useNotifications } from '../global/Notifications.context';
 
 // Tipo contesto connessione ws
 interface WSConnectionContextType {
-    status: 'open' | 'closed' | 'errored';
+    status: 'open' | 'closed' | 'errored' | 'connecting';
     subscribe: (
         deviceId: string,
         event: keyof Listener['events'],
@@ -38,15 +37,15 @@ interface Listener {
 const WSConnectionContext = createContext<WSConnectionContextType | null>(null);
 
 // Provider connessione ws
-function WSConnectionProvider({ children }: { children: ReactNode }) {
+export function WSConnectionProvider({ children }: { children: ReactNode }) {
     // Autenticazione
     const { accessToken } = useAuth();
     // Notifiche
     const notify = useNotifications();
     // Riferimento socket
-    let socket = useRef<WebSocket | null>(null);
+    const socket = useRef<WebSocket | null>(null);
     // Stato connessione
-    const [status, setStatus] = useState<'open' | 'closed' | 'errored'>(
+    const status = useRef<'open' | 'closed' | 'errored' | 'connecting'>(
         'closed',
     );
     // Riferimento listener
@@ -56,6 +55,9 @@ function WSConnectionProvider({ children }: { children: ReactNode }) {
 
     // Funzione connessione ws
     function connectWS() {
+        // Impostazione stato
+        status.current = 'connecting';
+
         // Controllo connessione
         if (socket.current) {
             // Chiusura connessione
@@ -70,7 +72,7 @@ function WSConnectionProvider({ children }: { children: ReactNode }) {
         // Gestione apertura
         socket.current.onopen = () => {
             // Impostazione stato
-            setStatus('open');
+            status.current = 'open';
         };
 
         // Gestione errori
@@ -81,7 +83,7 @@ function WSConnectionProvider({ children }: { children: ReactNode }) {
                 'Errore comunicazione o connessione a websocket!',
             );
             // Impostazione stato
-            setStatus('errored');
+            status.current = 'errored';
         };
 
         // Funzione chiamata callback
@@ -117,7 +119,7 @@ function WSConnectionProvider({ children }: { children: ReactNode }) {
                     'measurements',
                     eventData,
                 );
-            } else if (eventData.event == 'v2/irrigations') {
+            } else if (eventData.event == 'v2/irrigation') {
                 // Chiamata callbacks
                 eventCallbacks(
                     eventData.irrigation.deviceId,
@@ -143,7 +145,7 @@ function WSConnectionProvider({ children }: { children: ReactNode }) {
         // Gestione chiusura
         socket.current.onclose = () => {
             // Impostazione stato
-            setStatus('closed');
+            status.current = 'closed';
         };
     }
 
@@ -186,11 +188,17 @@ function WSConnectionProvider({ children }: { children: ReactNode }) {
         };
     }
 
-    // Controllo token
+    // Controllo stato
     useEffect(() => {
-        if (accessToken) {
+        if (
+            (status.current == 'closed' || status.current == 'errored') &&
+            tentatives.current <= 5 &&
+            accessToken
+        ) {
             // Connessione ws
             connectWS();
+            // Aggiornamento tentativi
+            tentatives.current += 1;
         }
 
         return () => {
@@ -200,30 +208,19 @@ function WSConnectionProvider({ children }: { children: ReactNode }) {
                 socket.current.close();
             }
         };
-    }, [accessToken]);
-
-    // Controllo stato
-    useEffect(() => {
-        if (
-            (status == 'closed' || status == 'errored') &&
-            tentatives.current <= 5
-        ) {
-            // Connessione ws
-            connectWS();
-            // Aggiornamento tentativi
-            tentatives.current += 1;
-        }
-    }, [status]);
+    }, [status, accessToken]);
 
     return (
-        <WSConnectionContext.Provider value={{ status, subscribe }}>
+        <WSConnectionContext.Provider
+            value={{ status: status.current, subscribe }}
+        >
             {children}
         </WSConnectionContext.Provider>
     );
 }
 
 // Hook connessione ws
-function useWSConnection() {
+export function useWSConnection() {
     // Contesto
     const context = useContext(WSConnectionContext);
 
@@ -235,6 +232,3 @@ function useWSConnection() {
     // Ritorno contesto
     return context;
 }
-
-// Esportazione hook e provider
-export { WSConnectionProvider, useWSConnection };
