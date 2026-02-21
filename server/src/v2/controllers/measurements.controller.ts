@@ -49,7 +49,7 @@ async function postMeasurementsController(
         const parsedBody = PostMeasurementsBodySchema.parse(req.body);
 
         // Chiamata servizio
-        const measurement = await postMeasurementsService(
+        const measurements = await postMeasurementsService(
             parsedBody,
             req.device,
         );
@@ -57,11 +57,11 @@ async function postMeasurementsController(
         // Invio misurazioni ws
         emitToRoom(`USER-${req.device.userId}`, {
             event: 'v2/measurements',
-            data: measurement,
+            measurements,
         });
 
         // Risposta
-        resHandler(res, true, 200, measurement);
+        resHandler(res, true, 200, measurements);
     } catch (error) {
         next(error);
     }

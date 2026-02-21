@@ -56,7 +56,7 @@ function Logs() {
     // Controllo errore
     useEffect(() => {
         if (error) {
-            notify('ERRORE!', error, 'error');
+            notify('ERRORE!', error, 'error', 3);
         }
     }, [error]);
 

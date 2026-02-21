@@ -125,7 +125,14 @@
     - **OUTPUT v2/irrigation**:
         - Ricevente --> device
         - Body --> `{ event, interval }`
-        - Note --> inviato a seguito di una richiesta di irrigazione manuale (solo se attivo in quel momento)
+        - Note --> inviato al dispositivo dopo una richiesta di irrigazione manuale
+        - Autenticazione --> ✔️
+        - Protocollo --> ws
+
+    - **OUTPUT v2/irrigation**:
+        - Ricevente --> user
+        - Body --> `{ event, irrigation: { id, deviceId, temp, lum, humE, humIBefore, humIAfter, interval, type, irrigatedAt, updatedAt, createdAt } }`
+        - Note --> inviato al proprietario del dispositivo a seguito di un'irrigazione (solo se attivo in quel momento)
         - Autenticazione --> ✔️
         - Protocollo --> ws
 
@@ -156,7 +163,7 @@
 
     - **OUTPUT v2/measurements**:
         - Ricevente --> device
-        - Body --> `{ event, data }`
+        - Body --> `{ event, measurements: { id, deviceId, temp, lum, humE, humI, measuredAt, updatedAt, createdAt } }`
         - Note --> inviato al proprietario del dispositivo a seguito di una misurazione (solo se attivo in quel momento)
         - Autenticazione --> ✔️
         - Protocollo --> ws
@@ -185,6 +192,13 @@
         - Note --> il dispositivo deve essere posseduto dall'utente
         - Autenticazione --> ✔️
         - Protocollo --> http
+
+    - **OUTPUT v2/notifications**:
+        - Ricevente --> user
+        - Body --> `{ event, notification: { id, irrigationId, measurementId, deviceId, title, description, type, updatedAt, createdAt } }`
+        - Note --> inviato al proprietario del dispositivo a seguito di una notifica (solo se attivo in quel momento)
+        - Autenticazione --> ✔️
+        - Protocollo --> ws
 
 - **UserSettings**
     - **_GET_ /me/user-settings**:

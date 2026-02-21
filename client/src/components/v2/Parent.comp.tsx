@@ -4,6 +4,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../../context/v2/Auth.context';
 import { NotificationsProvider } from '../../context/global/Notifications.context';
 import { PopupProvider } from '../../context/global/Popup.context';
+import { WSConnectionProvider } from '../../context/v2/WSConnection.context';
 
 // Componente genitore
 const Parent = () => {
@@ -23,9 +24,11 @@ const Parent = () => {
         return (
             <AuthProvider>
                 <NotificationsProvider>
-                    <PopupProvider>
-                        <Outlet />
-                    </PopupProvider>
+                    <WSConnectionProvider>
+                        <PopupProvider>
+                            <Outlet />
+                        </PopupProvider>
+                    </WSConnectionProvider>
                 </NotificationsProvider>
             </AuthProvider>
         );

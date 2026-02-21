@@ -67,6 +67,12 @@ async function postIrrigationsController(
             });
         }
 
+        // Invio irrigazione ws
+        emitToRoom(`USER-${req.device.userId}`, {
+            event: 'v2/irrigation',
+            irrigation,
+        });
+
         // Risposta
         resHandler(res, true, 200, irrigation);
     } catch (error) {

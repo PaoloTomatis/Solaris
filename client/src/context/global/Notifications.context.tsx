@@ -16,11 +16,18 @@ interface NotificationsOptions {
     title: string;
     desc?: string;
     type?: NotificationsType;
+    maxDuration?: number;
 }
 
 // Contesto notifications
 const NotificationsContext = createContext<
-    ((title: string, desc?: string, type?: NotificationsType) => void) | null
+    | ((
+          title: string,
+          desc?: string,
+          type?: NotificationsType,
+          maxDuration?: number,
+      ) => void)
+    | null
 >(null);
 
 // Provider notifications
@@ -36,10 +43,13 @@ function NotificationsProvider({ children }: { children: ReactNode }) {
         let id: NodeJS.Timeout;
         if (!show) {
             setNotifications(null);
-        } else {
+        } else if (
+            notifications?.maxDuration &&
+            notifications?.maxDuration > 0
+        ) {
             id = setTimeout(() => {
                 setShow(false);
-            }, 3000);
+            }, notifications?.maxDuration * 1000);
         }
 
         return () => clearTimeout(id);
@@ -50,8 +60,9 @@ function NotificationsProvider({ children }: { children: ReactNode }) {
         title: string,
         desc?: string,
         type?: 'info' | 'error' | 'warning' | 'success',
+        maxDuration?: number,
     ) {
-        setNotifications({ title, desc, type });
+        setNotifications({ title, desc, type, maxDuration });
         setShow(true);
     }
 
@@ -77,9 +88,7 @@ function useNotifications() {
     const context = useContext(NotificationsContext);
     // Controllo contesto
     if (!context) {
-        throw new Error(
-            'useNotifications deve essere usato in un NotificationsProvider',
-        );
+        throw new Error('useNotifications must be in a NotificationsProvider');
     }
     return context;
 }

@@ -11,6 +11,7 @@ import Loading from '../../components/global/Loading.comp';
 import type {
     Notifications as NotificationsType,
     Device as DeviceType,
+    Measurements as MeasurementsType,
 } from '../../utils/v2/type.utils';
 import { useAuth } from '../../context/v2/Auth.context';
 import { getData, getOneData } from '../../utils/v2/apiCrud.utils';
@@ -30,6 +31,7 @@ import ControlsIcon from '../../assets/icons/joystick.svg?react';
 import DashboardIcon from '../../assets/icons/dashboard.svg?react';
 import MeasurementIcon from '../../assets/icons/measurement.svg?react';
 import IrrigationIcon from '../../assets/icons/irrigation.svg?react';
+import { useWSConnection } from '../../context/v2/WSConnection.context';
 
 // Pagina dashboard
 function Dashboard() {
@@ -39,6 +41,8 @@ function Dashboard() {
     const { id: deviceId } = useParams();
     // Notificatore
     const notify = useNotifications();
+    // Iscrizione eventi
+    const ws = useWSConnection();
 
     // Stato colore icona
     const [iconColor, setIconColor] = useState('#00d68b');
@@ -49,13 +53,9 @@ function Dashboard() {
     // Autenticazione
     const { accessToken } = useAuth();
     // Stato dati in tempo reale
-    const [realTimeData, setRealTimeData] = useState<{
-        humI: number;
-        humE: number;
-        temp: number;
-        lum: number;
-        measuredAt: Date;
-    } | null>(null);
+    const [realTimeData, setRealTimeData] = useState<MeasurementsType | null>(
+        null,
+    );
     // Stato timeout
     const statusTimeout = useRef<NodeJS.Timeout | null>(null);
     // Stato errore
@@ -111,60 +111,107 @@ function Dashboard() {
             }
         };
 
-        // Apertura WebSocket
-        const socket = new WebSocket(
-            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user&v=2`,
-        );
-
-        // Controllo messaggi
-        socket.onmessage = (event) => {
-            // Dichiarazione dati evento
-            const eventData = JSON.parse(event.data);
-
-            // Controllo tipo evento
-            if (eventData.event == 'v2/measurements') {
-                // Impostazione dati
-                setRealTimeData({
-                    humE: eventData.data.humE,
-                    humI: Math.round(eventData.data.humI),
-                    temp: eventData.data.temp,
-                    lum: Math.round(eventData.data.lum),
-                    measuredAt: new Date(eventData.data.measuredAt),
-                });
-            } else if (eventData.event == 'v2/status') {
-                // Impostazione dati
-                setStatus(new Date(eventData.lastSeen));
-
-                // Reset timeout precedente
-                if (statusTimeout.current) {
-                    clearTimeout(statusTimeout.current);
-                }
-
-                // Impostazione timeout
-                statusTimeout.current = setTimeout(() => {
-                    setStatus(null);
-                }, 30000);
-            } else if (eventData.event == 'error') {
-                // Impostazione errore
-                setError(eventData.message);
-            }
-        };
-
-        // Controllo errori
-        socket.onerror = () => {
-            setError('Errore comunicazione o connessione a websocket!');
-        };
-
         loadData();
 
-        // Chiusura connesione
+        // Ritorno
         return () => {
-            socket.close();
             if (statusTimeout.current) {
                 clearTimeout(statusTimeout.current);
             }
         };
     }, []);
+
+    // Controllo ws
+    useEffect(() => {
+        if (!ws) return;
+
+        // Lista funzioni rimozione iscrizione
+        const unsubscribes: (() => void)[] = [];
+
+        // Controllo id dispositivo
+        if (deviceId) {
+            // Iscrizione evento misurazioni
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'measurements', (eventData: any) => {
+                    // Impostazione dati in tempo reale
+                    setRealTimeData({
+                        ...eventData.measurements,
+                        measuredAt: new Date(eventData.measurements.measuredAt),
+                    });
+                }),
+            );
+
+            // Iscrizione evento irrigazioni
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'irrigations', (eventData: any) => {
+                    // Invio notifica
+                    notify(
+                        `IRRIGAZIONE ${eventData?.irrigation?.type == 'auto' ? 'AUTOMATICA' : 'MANUALE'}`,
+                        `Intervallo: ${eventData?.irrigation?.interval}sec | Umidità Interna: ${eventData?.irrigation?.humIBefore?.toFixed(1)}% --> ${eventData?.irrigation?.humIAfter.toFixed(1)}% | Luminosità: ${eventData?.irrigation?.lum?.toFixed(1)}% | Umidità Esterna: ${eventData?.irrigation?.humE}% | Temperatura: ${eventData?.irrigation?.temp}°C`,
+                        'success',
+                    );
+                }),
+            );
+
+            // Iscrizione evento notifiche
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'notifications', (eventData: any) => {
+                    // Invio notifica
+                    notify(
+                        eventData?.notification?.title,
+                        eventData?.notification?.description,
+                        eventData?.notification?.type,
+                        7,
+                    );
+                    // Impostazione notifiche
+                    setLogs((prev) => {
+                        return prev
+                            ? [eventData.notification, ...prev]
+                            : [eventData.notification];
+                    });
+                }),
+            );
+
+            // Iscrizione evento stato
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'status', (eventData: any) => {
+                    // Impostazione dati
+                    setStatus(new Date(eventData.lastSeen));
+
+                    // Reset timeout precedente
+                    if (statusTimeout.current) {
+                        clearTimeout(statusTimeout.current);
+                    }
+
+                    // Impostazione timeout
+                    statusTimeout.current = setTimeout(() => {
+                        setStatus(null);
+                    }, 30000);
+                }),
+            );
+
+            // Iscrizione evento stato
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'error', (eventData: any) => {
+                    // Impostazione errore
+                    setError(eventData.message);
+                }),
+            );
+        }
+
+        return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+    }, [ws, deviceId]);
+
+    // Controllo id dispositivo
+    useEffect(() => {
+        if (!deviceId) {
+            // Reindirizzamento
+            navigator('/devices');
+
+            // Impostazione errore
+            setError('Id dispositivo mancante!');
+        }
+    }, [deviceId]);
 
     // Controllo dispositivo
     useEffect(() => {
@@ -179,7 +226,7 @@ function Dashboard() {
     // Controllo errore
     useEffect(() => {
         if (error) {
-            notify('ERRORE!', error, 'error');
+            notify('ERRORE!', error, 'error', 3);
         }
     }, [error]);
 

@@ -135,13 +135,30 @@ class SessionsRepository {
     }
 
     // Funzione aggiornamento sessioni
-    async updateMany(
+    async updateUserMany(
         userId: string | ObjectId,
         type: 'active' | 'revoked' | 'expired',
     ) {
         // Aggiornamento sessione database
         const sessions = await SessionsModel.updateMany(
             { userId },
+            {
+                status: type,
+            },
+        );
+
+        // Ritorno sessione
+        return sessions;
+    }
+
+    // Funzione aggiornamento sessioni
+    async updateDeviceMany(
+        deviceId: string | ObjectId,
+        type: 'active' | 'revoked' | 'expired',
+    ) {
+        // Aggiornamento sessione database
+        const sessions = await SessionsModel.updateMany(
+            { deviceId },
             {
                 status: type,
             },
