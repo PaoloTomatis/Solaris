@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getData } from '../../utils/v2/apiCrud.utils';
 import { useAuth } from '../../context/v2/Auth.context';
 import { useNotifications } from '../../context/global/Notifications.context';
+import { useWSConnection } from '../../context/v2/WSConnection.context';
 import Page from '../../components/global/Page.comp';
 import Device from '../../components/global/Device.comp';
 import BottomBar from '../../components/global/BottomBar.comp';
@@ -29,6 +30,8 @@ function Devices() {
     const [loading, setLoading] = useState(true);
     // Stato errore
     const [error, setError] = useState('');
+    // Iscrizione eventi
+    const ws = useWSConnection();
 
     // Caricamento pagina
     useEffect(() => {
@@ -51,46 +54,44 @@ function Devices() {
             }
         };
 
-        // Apertura WebSocket
-        const socket = new WebSocket(
-            `${import.meta.env.VITE_WS_URL}?token=${accessToken}&authType=user&v=2`,
-        );
-
-        // Controllo messaggi
-        socket.onmessage = (event) => {
-            // Dichiarazione dati evento
-            const eventData = JSON.parse(event.data);
-
-            // Controllo tipo evento
-            if (eventData.event == 'v2/status') {
-                // Impostazione dati
-                setDevices((prevDevices) =>
-                    prevDevices
-                        ? prevDevices.map((prevDevice) =>
-                              prevDevice.id == eventData?.deviceId
-                                  ? { ...prevDevice, status: true }
-                                  : prevDevice,
-                          )
-                        : null,
-                );
-            }
-        };
-
-        // Controllo errori
-        socket.onerror = () => {
-            setError('Errore comunicazione o connessione a websocket!');
-        };
-
         loadData();
-
-        // Chiusura connesione
-        return () => socket.close();
     }, []);
+
+    // Controllo ws
+    useEffect(() => {
+        if (!ws) return;
+
+        // Lista funzioni rimozione iscrizione
+        const unsubscribes: (() => void)[] = [];
+
+        // Controllo dispositivi
+        if (devices) {
+            // Iscrizione evento stato
+            devices.forEach((device) => {
+                unsubscribes.push(
+                    ws.subscribe(device.id, 'status', (eventData: any) => {
+                        // Impostazione dati
+                        setDevices((prevDevices) =>
+                            prevDevices
+                                ? prevDevices.map((prevDevice) =>
+                                      prevDevice.id == eventData?.deviceId
+                                          ? { ...prevDevice, status: true }
+                                          : prevDevice,
+                                  )
+                                : null,
+                        );
+                    }),
+                );
+            });
+        }
+
+        return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+    }, [ws, devices]);
 
     // Controllo errore
     useEffect(() => {
         if (error) {
-            notify('ERRORE!', error, 'error');
+            notify('ERRORE!', error, 'error', 3);
         }
     }, [error]);
 
