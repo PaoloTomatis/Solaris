@@ -45,7 +45,7 @@ async function usersLoginService(
     );
 
     // Invalidazione sessioni
-    await sessionsRepository.updateMany(user._id, 'revoked');
+    await sessionsRepository.updateUserMany(user._id, 'revoked');
 
     // Firma access token
     const accessToken = jwt.sign(
@@ -125,7 +125,7 @@ async function devicesLoginService(
     );
 
     // Invalidazione sessioni
-    await sessionsRepository.updateMany(device._id, 'revoked');
+    await sessionsRepository.updateDeviceMany(device._id, 'revoked');
 
     // Firma access token
     const accessToken = jwt.sign(minimalParsedDevice, process.env.JWT_ACCESS, {
