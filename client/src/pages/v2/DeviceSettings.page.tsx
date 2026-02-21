@@ -118,7 +118,7 @@ function DeviceSettings() {
     // Controllo errore
     useEffect(() => {
         if (error) {
-            notify('ERRORE!', error, 'error');
+            notify('ERRORE!', error, 'error', 3);
         }
     }, [error]);
 
@@ -305,6 +305,7 @@ function DeviceSettings() {
                                             error?.message ||
                                                 'Errore interno del server',
                                             'error',
+                                            3
                                         );
                                     }
                                 }
@@ -353,6 +354,7 @@ function DeviceSettings() {
                                         error?.message ||
                                             'Errore interno del server',
                                         'error',
+                                        3
                                     );
                                 }
                             },
@@ -390,6 +392,7 @@ function DeviceSettings() {
                                             error?.message ||
                                                 'Errore interno del server',
                                             'error',
+                                            3
                                         );
                                     }
                                 }
