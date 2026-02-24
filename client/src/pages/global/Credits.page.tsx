@@ -27,6 +27,9 @@ import PolicyIcon from '../../assets/icons/policy.svg?react';
 import ResetIcon from '../../assets/icons/reset.svg?react';
 import SaveIcon from '../../assets/icons/save.svg?react';
 import SettingsIcon from '../../assets/icons/settings.svg?react';
+import AccessibilityIcon from '../../assets/icons/accessibiity.svg?react';
+import ClockIcon from '../../assets/icons/clock.svg?react';
+import FlowerIcon from '../../assets/icons/flower.svg?react';
 import StatsIcon from '../../assets/icons/statistics.svg?react';
 import TemperatureIcon from '../../assets/icons/temperature.svg?react';
 import WarningIcon from '../../assets/icons/warning.svg?react';
@@ -67,6 +70,13 @@ function Credits() {
         { name: 'Salvataggio', img: SaveIcon, url: 'https://icons8.com/' },
         { name: 'Connessione', img: NetworkIcon, url: 'https://icons8.com/' },
         { name: 'Impostazioni', img: SettingsIcon, url: 'https://icons8.com/' },
+        {
+            name: 'Accessibilità',
+            img: AccessibilityIcon,
+            url: 'https://icons8.com/',
+        },
+        { name: 'Fiore', img: FlowerIcon, url: 'https://icons8.com/' },
+        { name: 'Orologio', img: ClockIcon, url: 'https://icons8.com/' },
         { name: 'Statistiche', img: StatsIcon, url: 'https://icons8.com/' },
         {
             name: 'Temperatura',
