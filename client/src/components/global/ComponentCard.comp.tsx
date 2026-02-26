@@ -1,6 +1,3 @@
-// Importazione moduli
-import React from 'react';
-
 // Componente card
 function ComponentCard({
     name,
@@ -9,11 +6,11 @@ function ComponentCard({
 }: {
     name: string;
     desc: string;
-    img?: React.ComponentType<{ className?: string }>;
+    img?: string;
 }) {
     return (
         <div className="flex flex-col items-center rounded-3xl bg-primary-bg border-[2px] border-primary-text py-4 px-2.5 w-[85%] max-w-[400px] justify-center">
-            {Img && <Img className="w-[100px]" />}
+            {Img && <img src={Img} alt={name} />}
             <div className="flex flex-col items-center justify-center">
                 <h3 className="text-primary-text text-medium font-semibold center">
                     {name}
