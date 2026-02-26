@@ -14,6 +14,12 @@ import ResetIcon from '../../assets/icons/reset.svg?react';
 import LinkIcon from '../../assets/icons/link.svg?react';
 import AccountIcon from '../../assets/icons/account.svg?react';
 import IrrigationIcon from '../../assets/icons/irrigation.svg?react';
+import Esp32Img from '../../assets/images/esp32.png';
+import PumpImg from '../../assets/images/pump.png';
+import Dht22Img from '../../assets/images/dht22.png';
+import BatteryImg from '../../assets/images/battery.png';
+import SoilHumiditySensorImg from '../../assets/images/soilHumditySensor.png';
+import PhotoresistorImg from '../../assets/images/photoresistor.png';
 
 // Pagina home
 function Home() {
@@ -42,32 +48,32 @@ function Home() {
         {
             name: 'ESP32',
             desc: 'Il cervello che gestisce tutti i sensori e gli attuatori: veloce e compatto',
-            img: NetworkIcon,
+            img: Esp32Img,
         },
         {
             name: 'Sensore Umidità Suolo',
             desc: "Sensore dell'umidità del suolo: preciso e non invasivo",
-            img: NetworkIcon,
+            img: SoilHumiditySensorImg,
         },
         {
             name: 'DHT22',
             desc: "Sensore di umidità e temperatura dell'aria",
-            img: NetworkIcon,
+            img: Dht22Img,
         },
         {
             name: 'Fotoresistenza',
             desc: "Sensore dell'esposizione solare: piccolo ed economico",
-            img: NetworkIcon,
+            img: PhotoresistorImg,
         },
         {
             name: 'Pompa',
             desc: "Protagonista dell'irrigazione automatica",
-            img: NetworkIcon,
+            img: PumpImg,
         },
         {
             name: 'Alimentazione',
             desc: 'Doppia alimentazione necessaria con batteria ricaricabile e cavo',
-            img: NetworkIcon,
+            img: BatteryImg,
         },
     ];
 
