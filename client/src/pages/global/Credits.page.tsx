@@ -27,7 +27,7 @@ import PolicyIcon from '../../assets/icons/policy.svg?react';
 import ResetIcon from '../../assets/icons/reset.svg?react';
 import SaveIcon from '../../assets/icons/save.svg?react';
 import SettingsIcon from '../../assets/icons/settings.svg?react';
-import AccessibilityIcon from '../../assets/icons/accessibiity.svg?react';
+import AccessibilityIcon from '../../assets/icons/accessibility.svg?react';
 import ClockIcon from '../../assets/icons/clock.svg?react';
 import FlowerIcon from '../../assets/icons/flower.svg?react';
 import StatsIcon from '../../assets/icons/statistics.svg?react';
