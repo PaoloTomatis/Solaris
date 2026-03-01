@@ -1,12 +1,12 @@
 // Importazione moduli
-import { model, Schema, type ObjectId } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
 // Tipo notifiche
 interface NotificationsType {
-    _id: ObjectId;
-    deviceId: ObjectId;
-    irrigationId?: ObjectId;
-    measurementId?: ObjectId;
+    _id: Types.ObjectId;
+    deviceId: Types.ObjectId;
+    irrigationId?: Types.ObjectId;
+    measurementId?: Types.ObjectId;
     title: string;
     description: string;
     type: 'error' | 'warning' | 'info' | 'success';
@@ -34,7 +34,7 @@ const NotificationsSchema = new Schema(
         },
         schemaVersion: { type: Number, default: 1 },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // Definizione indici

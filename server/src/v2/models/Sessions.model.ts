@@ -1,11 +1,11 @@
 // Importazione moduli
-import { model, Schema, type ObjectId } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
 // Tipo sessioni
 interface SessionsType {
-    _id: ObjectId;
-    userId?: ObjectId;
-    deviceId?: ObjectId;
+    _id: Types.ObjectId;
+    userId?: Types.ObjectId;
+    deviceId?: Types.ObjectId;
     refreshToken: string;
     ipAddress: string;
     userAgent: string;
@@ -42,7 +42,7 @@ const SessionsSchema = new Schema(
         },
         schemaVersion: { type: Number, default: 1 },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // Cancellazione automatica dopo 24h

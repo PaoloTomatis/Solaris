@@ -1,5 +1,5 @@
 // Importazione moduli
-import { model, Schema, type ObjectId } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 import devicesSettingsRepository from '../repositories/devicesSettings.repository.js';
 import measurementsRepository from '../repositories/measurements.repository.js';
 import irrigationsRepository from '../repositories/irrigations.repository.js';
@@ -7,8 +7,8 @@ import notificationsRepository from '../repositories/notifications.repository.js
 
 // Tipo dispositivi
 interface DevicesType {
-    _id: ObjectId;
-    userId: ObjectId;
+    _id: Types.ObjectId;
+    userId: Types.ObjectId;
     key: string;
     name: string;
     psw: string;

@@ -1,10 +1,10 @@
 // Importazione moduli
-import { model, Schema, type ObjectId } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
 // Tipo misurazioni
 interface MeasurementsType {
-    _id: ObjectId;
-    deviceId: ObjectId;
+    _id: Types.ObjectId;
+    deviceId: Types.ObjectId;
     temp: number;
     lum: number;
     humE: number;
@@ -30,7 +30,7 @@ const MeasurementsSchema = new Schema(
         schemaVersion: { type: Number, default: 1 },
         measuredAt: { type: Date, default: () => new Date() },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // Definizione indici
