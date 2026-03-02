@@ -40,11 +40,7 @@ async function getIrrigationsService(
     // Iterazione irrigazioni
     const parsedIrrigations = irrigations.map((irrigation) => {
         // Conversione irrigazione
-        return dataParser(
-            irrigation.toObject(),
-            ['schemaVersion', '__v'],
-            true,
-        );
+        return dataParser(irrigation, ['schemaVersion', '__v'], true);
     });
 
     // Ritorno irrigazioni
@@ -96,7 +92,7 @@ async function postIrrigationsService(
 
     // Conversione irrigazione
     const parsedIrrigation = dataParser(
-        irrigation.toObject(),
+        irrigation,
         ['schemaVersion', '__v'],
         true,
     );

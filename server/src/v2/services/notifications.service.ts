@@ -37,11 +37,7 @@ async function getNotificationsService(
     // Iterazione notifiche
     const parsedNotifications = notifications.map((notification) => {
         // Conversione notifica
-        return dataParser(
-            notification.toObject(),
-            ['schemaVersion', '__v'],
-            true,
-        );
+        return dataParser(notification, ['schemaVersion', '__v'], true);
     });
 
     // Ritorno irrigazioni
@@ -70,7 +66,7 @@ async function postNotificationsService(
 
     // Conversione notifica
     const parsedNotification = dataParser(
-        notification.toObject(),
+        notification,
         ['schemaVersion', '__v'],
         true,
     );
