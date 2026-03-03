@@ -1,14 +1,15 @@
 # Importazione moduli
 from machine import Pin, ADC, Timer, RTC, reset, PWM
 import usocket as sk
-from time import sleep, sleep_ms, ticks_ms, ticks_diff
+from time import sleep, sleep_ms, ticks_ms, ticks_diff, mktime, localtime
 import dht, network, json, ubinascii, urandom, urequests, struct, ntptime, utime
+import os
 
 # Dichiarazione stato dispositivo
 deviceState = {}
 
 # Impostazione flags
-deviceState["flags"] = {"measure": False, "irrigate": False, "irrigationInfo": None, "readingDht": False}
+deviceState["flags"] = {"measure": False, "irrigate": False, "irrigationInfo": None, "readingDht": False, "lastWarningNotification": None, "lastWifiAttempt": 0}
 
 # Classe errore critico
 class CriticalError(Exception):
@@ -22,6 +23,11 @@ class TransientError(Exception):
 
 # Funzione gestione richieste get
 def getHandler(url: str, name: str, token = None) :
+    # Controllo wifi
+    if not deviceState["utils"]["wifi"].isconnected():
+        print(f"Get request error: {name} wifi not connected\n")
+        return
+
     print(f"Get request: {name}...")
 
     # Controllo token
@@ -63,6 +69,11 @@ def getHandler(url: str, name: str, token = None) :
     
 # Funzione gestione richieste post
 def postHandler(url: str, payload: dict, name: str, token = None):
+    # Controllo wifi
+    if not deviceState["utils"]["wifi"].isconnected():
+        print(f"Get request error: {name} wifi not connected\n")
+        return None
+
     print(f"Post request: {name}...")
 
     # Controllo token
@@ -216,27 +227,42 @@ def syncTime():
     raise TransientError("Time sync failed after retries")
 
 # Funzione connessione wifi
-def connWifi():
+def connWifi(tentatives=10):
     try:
-        # Configurazione wifi
-        wlan = network.WLAN(network.STA_IF)
-        wlan.active(True)
+        if deviceState["utils"]["wifi"]:
+            # Definizione wlan
+            wlan = deviceState["utils"]["wifi"]
+            
+            # Controllo connessione
+            if wlan.isconnected():
+                return True
+
+            # Disconnessione
+            wlan.disconnect()
+            sleep(1)
+        else:
+            # Configurazione wifi
+            wlan = network.WLAN(network.STA_IF)
+            wlan.active(True)
+
+            # Impostazione wifi
+            deviceState["utils"]["wifi"] = wlan
 
         # Connessione wifi
         wlan.connect(deviceState["wifiInfo"]["ssid"], deviceState["wifiInfo"]["psw"])
         print("\nWifi connection...")
 
         # Tentativi connessione
-        for i in range(10):
+        for i in range(tentatives):
             # Controllo connessione
             if wlan.isconnected():
                 print("Wifi connection success")
                 return
 
             sleep(1)
-            print(f"Wifi tentative {i}")
+            print(f"Wifi tentative {i+1}")
         
-        raise Exception("Wifi connection failed")
+        print("Wifi connection failed")
     except Exception as e:
         raise CriticalError(e)
 
@@ -274,7 +300,7 @@ def sensorConfig():
 
     # Impostazione dati
     deviceState["sensors"] = {"pump":pump, "sensorIn":sensorIn, "sensorOut":sensorOut, "sensorLum":sensorLum}
-    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "tim2":tim2, "pwms":pwms, "dhtRead":0}
+    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "tim2":tim2, "pwms":pwms, "dhtRead":0, "wifi":None}
 
 # Funzione configurazione
 def config():
@@ -293,24 +319,33 @@ def config():
     # Effettuazione login
     loginData = login()
 
+    # Dichiarazione dispositivo
+    newDevice = ""
+
+    # Definizione token
+    deviceState["token"] = None
+
     # Controllo dati
     if loginData:
         # Impostazione token e nuove info dispositivo
         deviceState["token"] = loginData["accessToken"]
         newDevice = loginData["device"]
-    else:
+    elif deviceState["utils"]["wifi"].isconnected():
         # Ritorno errore
         raise Exception("Login failed")
 
     # Controllo nuove info dispositivo
-    if newDevice != "":
+    if newDevice:
         # Conversione dispositivo
         parsedInfo = {"id":newDevice["id"], "key":deviceState["info"]["key"], "psw":deviceState["info"]["psw"], "name": newDevice["name"], "prototypeModel":newDevice["prototypeModel"]}
         
         # Sovrascrittura file
-        with open("deviceInfo.json", "w") as infoFile:
+        with open("deviceInfo.tmp", "w") as infoFile:
             infoFile.write(json.dumps(parsedInfo))
             deviceState["info"] = parsedInfo
+
+        # Rinominazione file
+        os.rename("deviceInfo.tmp", "deviceInfo.json")
 
     # Richiesta impostazioni
     newSettings = getSettings()
@@ -321,20 +356,86 @@ def config():
         parsedSettings = json.dumps(newSettings)
         
         # Sovrascrittura file
-        with open("settings.json", "w") as settingsFile:
+        with open("settings.tmp", "w") as settingsFile:
             settingsFile.write(parsedSettings)
             deviceState["settings"] = newSettings
+
+        # Rinominazione file
+        os.rename("settings.tmp", "settings.json")
 
     # Connessione socket
     sock = connSocket()
 
     # Controllo socket
-    if not sock:
+    if not sock and deviceState["utils"]["wifi"].isconnected():
         # Ritorno errore
         raise Exception("Socket connection failed")
 
     # Impostazione connesione socket
     deviceState["sock"] = sock
+
+# Funzione configurazione
+def fullConfig():
+    # Configurazione sensori
+    sensorConfig()
+
+    # Impostazione colore
+    rgbColor("yellow")
+
+    # Configurazione generale
+    config()
+
+    # Controllo connessione wifi
+    if deviceState["utils"]["wifi"].isconnected():
+        loadSavedData()
+
+    # Impostazione loop misurazioni
+    deviceState["utils"]["tim1"].init(mode=Timer.PERIODIC, period=60000, callback=lambda t: measureFlag(True))
+
+    # Impostazione colore
+    rgbColor("green")
+
+# Funzione caricamento dati irrigazione e misurazione
+def loadSavedData():
+    try:
+        irrigations = []
+        measurements = []
+        
+        # Caricamento informazione misurazioni
+        with open('measurements.json', 'r') as measurementsFile:
+            measurements = json.load(measurementsFile)
+            
+        # Caricamento informazioni irrigazioni
+        with open('irrigations.json', 'r') as irrigationsFile:
+            irrigations = json.load(irrigationsFile)
+        
+        # Iterazione irrigazioni
+        for irrigation in irrigations:
+            # Invio Irrigazione
+            sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"])
+
+        # Iterazione misurazioni
+        for measurement in measurements:
+            # Invio misurazioni
+            sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"])
+
+
+        # Aggiornamento misurazioni
+        with open('measurements.tmp', 'w') as measurementsFile:
+            measurementsFile.write("[]")
+
+        # Rinominazione file
+        os.rename("measurements.tmp", "measurements.json")
+            
+        # Aggiornamento irrigazioni
+        with open('irrigations.tmp', 'w') as irrigationsFile:
+            irrigationsFile.write("[]")
+
+        # Rinominazione file
+        os.rename("irrigations.tmp", "irrigations.json")
+
+    except Exception as e:
+        raise CriticalError(e)
 
 # ---
 
@@ -347,7 +448,7 @@ def dhtMeasure():
 
     # rate limiter duro
     if ticks_diff(now, last) < MIN_INTERVAL:
-        return None
+        return None, None
 
     for _ in range(3):
         try:
@@ -405,37 +506,70 @@ def measurementsCheck(humI: float, humE: float, lum: float, temp: float):
 
 # Funzione controllo misurazioni sicure
 def secureMeasurementsCheck(temp: float, humE: float):
+    # Controllo ultima notifica
+    if deviceState["flags"]["lastWarningNotification"] and mktime(localtime()) - mktime(deviceState["flags"]["lastWarningNotification"]) < 3600:
+        return
+
     # Controllo temperatura
     if temp <= 2:
         # Invio avviso
         sendNotifications("TEMPERATURA BASSA", "La temperatura della tua serra è inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        # Impostazione ultima notifica
+        deviceState["flags"]["lastWarningNotification"] = localtime()
     elif temp >= 30:
         # Invio avviso
         sendNotifications("TEMPERATURA ALTA", "La temperatura della tua serra è superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
-        
+        # Impostazione ultima notifica
+        deviceState["flags"]["lastWarningNotification"] = localtime()
+
     # Controllo umidità esterna
     if humE <= 30:
         # Invio avviso
         sendNotifications("UMIDITA' BASSA", "L'umidità esterna della tua serra è inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        # Impostazione ultima notifica
+        deviceState["flags"]["lastWarningNotification"] = localtime()
     elif humE >= 85:
         # Invio avviso
         sendNotifications("UMIDITA' ALTA", "L'umidità esterna della tua serra è superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        # Impostazione ultima notifica
+        deviceState["flags"]["lastWarningNotification"] = localtime()
 
 # Funzione misurazione con controllo modalità
 def measurementsMode(humI: float, humE: float, lum: float, temp: float):
     # Dichiarazione tempo corrente
     currentTime = f'{deviceState["utils"]["rtc"].datetime()[0]:04d}-{deviceState["utils"]["rtc"].datetime()[1]:02d}-{deviceState["utils"]["rtc"].datetime()[2]:02d}T{deviceState["utils"]["rtc"].datetime()[4]:02d}:{deviceState["utils"]["rtc"].datetime()[5]:02d}:{deviceState["utils"]["rtc"].datetime()[6]:02d}'
 
+    # Stampo misurazioni
+    printMeasurement(humI, humE, temp, lum)
+
+    # Controllo connessione wifi
+    if not deviceState["utils"]["wifi"].isconnected():
+        # Dichiarazione misurazioni
+        measurements = []
+
+        # Caricamento misurazioni
+        with open('measurements.json', 'r') as measurementsFile:
+            measurements = json.load(measurementsFile)
+
+        # Controllo misurazioni
+        if len(measurements) > 10:
+            measurements.pop(0)
+
+        # Aggiornamento misurazioni
+        with open('measurements.tmp', 'w') as measurementsFile:
+            measurementsFile.write(json.dumps([{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":currentTime}] + measurements))
+
+        # Rinominazione file
+        os.rename("measurements.tmp", "measurements.json")
+    elif not deviceState["token"]:
+        raise CriticalError("Token is missing")
+
     # Controllo modalità config
-    if deviceState["settings"]["mode"] == "config" and deviceState["token"]:
-        # Stampo misurazioni
-        printMeasurement(humI, humE, temp, lum)
+    elif deviceState["settings"]["mode"] == "config":
         # Invio misurazioni
         sendMeasurements(humI, humE, temp, lum, currentTime)
     # Controllo modalità auto
-    elif deviceState["settings"]["mode"] == "auto" and deviceState["token"]:
-        # Stampo misurazioni
-        printMeasurement(humI, humE, temp, lum)
+    elif deviceState["settings"]["mode"] == "auto":
         # Controllo umidità minima
         if deviceState["settings"]["humIMin"] > humI:
             # Irrigazione
@@ -481,6 +615,11 @@ def measureFlag(value: bool):
 
 # Funzione connessione socket
 def connSocket():
+    # Controllo wifi
+    if not deviceState["utils"]["wifi"].isconnected():
+        print(f"WS connection error: wifi not connected\n")
+        return None
+
     try:
         print("\nWS connection...")
         
@@ -636,7 +775,7 @@ def irrigation(humI: float, date, irrigationTime: int, mode: str):
         rgbColor("cyan")
 
         # Accensione pompa
-        pumpOn(humI, date, irrigationTime, mode)
+        pumpOn(humI, date, min(irrigationTime, 120), mode)
         deviceState["utils"]["tim2"].init(mode=Timer.ONE_SHOT, period=irrigationTime * 1000, callback=lambda t: irrigateFlag(False))
     else:
         sendNotifications("ERRORE IRRIGAZIONE", "Non è stato possibile irrigare in quanto il tempo d'irrigazione era inferiore o uguale a 0 o il dispositivo stava già irrigando", "error")
@@ -650,6 +789,26 @@ def irrigationCheck(humI1: float, humI2: float, humE: float, lum: float, temp: f
     if humI2 <= humI1:
         # Invio notifica
         sendNotifications("ERRORE IRRIGAZIONE", f'Irrigazione di {irrigationTime}s del dispositivo {deviceState["info"]["name"]} non effettuata correttamente, controllare tanica d\'acqua!', "error")
+    elif not deviceState["utils"]["wifi"].isconnected():
+        # Dichiarazione irrigazioni
+        irrigations = []
+
+        # Caricamento irrigazioni
+        with open('irrigations.json', 'r') as irrigationsFile:
+            irrigations = json.load(irrigationsFile)
+
+        # Controllo irrigazioni
+        if len(irrigations) > 10:
+            irrigations.pop(0)
+
+        # Aggiornamento irrigazioni
+        with open('irrigations.tmp', 'w') as irrigationsFile:
+            irrigationsFile.write(json.dumps([{"humI1":humI1, "humI2":humI2, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations))
+
+        # Rinominazione file
+        os.rename("irrigations.tmp", "irrigations.json")
+    elif not deviceState["token"]:
+        raise CriticalError("Token is missing")
     else:
         # Invio Irrigazione
         sendIrrigations(date, irrigationTime, _type, humI1, humI2, humE, lum, temp)
@@ -765,9 +924,12 @@ def settingsEvent(event):
         parsedSettings = json.dumps(newSettings)
         
         # Sovrascrittura file
-        with open("settings.json", "w") as settingsFile:
+        with open("settings.tmp", "w") as settingsFile:
             settingsFile.write(parsedSettings)
             deviceState["settings"] = newSettings
+
+        # Rinominazione file
+        os.rename("settings.tmp", "settings.json")
 
     elif event["mode"] == "config" or event["mode"] == "safe":
 
@@ -775,9 +937,12 @@ def settingsEvent(event):
         parsedSettings = json.dumps(deviceState["settings"])
         
         # Sovrascrittura file
-        with open("settings.json", "w") as settingsFile:
+        with open("settings.tmp", "w") as settingsFile:
             settingsFile.write(parsedSettings)
             deviceState["settings"]["mode"] = event["mode"]
+
+        # Rinominazione file
+        os.rename("settings.tmp", "settings.json")
         
     else:
         print("Invalid mode request\n")
@@ -786,31 +951,37 @@ def settingsEvent(event):
 
 # Funzione principale
 def main():
-
-    # Configurazione sensori
-    sensorConfig()
-
-    # Impostazione colore
-    rgbColor("yellow")
-
-    # Configurazione generale
-    config()
-
-    # Impostazione loop misurazioni
-    deviceState["utils"]["tim1"].init(mode=Timer.PERIODIC, period=60000, callback=lambda t: measureFlag(True))
-
-    # Impostazione colore
-    rgbColor("green")
-
     # Loop
     while True:
+        
         # Controllo flag lettura dht
         if deviceState["flags"]["readingDht"]:
             sleep(1)
             continue
 
-        # Gestore connessione socket
-        socketHandler()
+        # Controllo wifi
+        if not deviceState["utils"]["wifi"].isconnected():
+            # Controllo connessione socket
+            if deviceState["sock"]:
+                # Chiusura connessione socket
+                deviceState["sock"].close()
+            deviceState["sock"] = None
+
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 15000:
+                # Connessione wifi
+                connWifi(3)
+                # Impostazione flag
+                deviceState["flags"]["lastWifiAttempt"] = ticks_ms()
+        elif not deviceState["sock"]:
+            # Connessione socket
+            deviceState["sock"] = connSocket()
+
+        # Controllo connessione socket
+        if deviceState["sock"]:
+            # Gestore connessione socket
+            socketHandler()
+            
         # Controllo flag misurazione
         if deviceState["flags"]["measure"] == True:
             # Impostazione flag
@@ -870,6 +1041,9 @@ def criticError(e):
 
 # Esecuzione script
 if __name__ == "__main__":
+    # Configurazione completa
+    fullConfig()
+
     while True:
         try:
             # Funzione pricipale
