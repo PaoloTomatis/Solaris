@@ -1,11 +1,11 @@
 // Importazione moduli
-import { model, Schema, type ObjectId } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 import usersSettingsRepository from '../repositories/usersSettings.repository.js';
 import devicesRepository from '../repositories/devices.repository.js';
 
 // Tipo utenti
 interface UsersType {
-    _id: ObjectId;
+    _id: Types.ObjectId;
     email: string;
     psw: string;
     role: 'user' | 'admin';
@@ -22,7 +22,7 @@ const UsersSchema = new Schema(
         role: { type: String, default: 'user', enum: ['user', 'admin'] },
         schemaVersion: { type: Number, default: 1 },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // Middleware creazione utente

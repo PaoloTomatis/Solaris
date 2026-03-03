@@ -46,11 +46,7 @@ async function jwtVerify(
         if (!user) throw new Error('Invalid authentication');
 
         // Conversione utente
-        const parsedUser = dataParser(
-            user.toObject(),
-            ['psw', 'schemaVersion'],
-            true,
-        );
+        const parsedUser = dataParser(user, ['psw', 'schemaVersion'], true);
 
         // Ritorno
         return parsedUser;
@@ -63,7 +59,7 @@ async function jwtVerify(
 
         // Conversione utente
         const parsedDevice = dataParser(
-            device.toObject(),
+            device,
             ['psw', 'key', 'schemaVersion'],
             true,
         );
@@ -142,4 +138,4 @@ async function jwtMiddlewareWS(ws: AuthenticatedWS, req: IncomingMessage) {
 }
 
 // Esportazione middleware
-export { jwtMiddlewareRest, jwtMiddlewareWS };
+export { jwtMiddlewareRest, jwtMiddlewareWS, jwtVerify };

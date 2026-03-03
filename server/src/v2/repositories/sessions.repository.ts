@@ -1,11 +1,11 @@
 // Importazione moduli
-import { type ObjectId, type FilterQuery } from 'mongoose';
+import { Types, type FilterQuery } from 'mongoose';
 import SessionsModel, { type SessionsType } from '../models/Sessions.model.js';
 
 // Tipo input sessioni
 interface SessionInput {
-    userId?: string | ObjectId;
-    deviceId?: string | ObjectId;
+    userId?: string | Types.ObjectId;
+    deviceId?: string | Types.ObjectId;
     refreshToken: string;
     ipAddress: string;
     userAgent: string;
@@ -19,11 +19,11 @@ class SessionsRepository {
     async findMany(payload: {
         status?: 'active' | 'revoked' | 'expired';
         refreshToken?: string;
-        userId?: string | ObjectId;
-        deviceId?: string | ObjectId;
+        userId?: string | Types.ObjectId;
+        deviceId?: string | Types.ObjectId;
     }) {
         // Richiesta sessione database
-        const sessions = await SessionsModel.find(payload);
+        const sessions = await SessionsModel.find(payload).lean();
 
         // Ritorno sessione
         return sessions;
@@ -31,7 +31,7 @@ class SessionsRepository {
 
     // Funzione richiesta sessioni da id utente
     async findManyByUserId(
-        userId: string | ObjectId,
+        userId: string | Types.ObjectId,
         type?: 'active' | 'revoked' | 'expired',
     ) {
         // Dichiarazione filtri
@@ -44,7 +44,7 @@ class SessionsRepository {
         if (type) filter.status = type;
 
         // Richiesta sessione database
-        const sessions = await SessionsModel.find(filter);
+        const sessions = await SessionsModel.find(filter).lean();
 
         // Ritorno sessione
         return sessions;
@@ -52,7 +52,7 @@ class SessionsRepository {
 
     // Funzione richiesta sessioni da id utente
     async findManyByDeviceId(
-        deviceId: string | ObjectId,
+        deviceId: string | Types.ObjectId,
         type?: 'active' | 'revoked' | 'expired',
     ) {
         // Dichiarazione filtri
@@ -65,7 +65,7 @@ class SessionsRepository {
         if (type) filter.status = type;
 
         // Richiesta sessione database
-        const sessions = await SessionsModel.find(filter);
+        const sessions = await SessionsModel.find(filter).lean();
 
         // Ritorno sessione
         return sessions;
@@ -82,7 +82,7 @@ class SessionsRepository {
         if (type) filter.status = type;
 
         // Richiesta sessione database
-        const sessions = await SessionsModel.find(filter);
+        const sessions = await SessionsModel.find(filter).lean();
 
         // Ritorno sessione
         return sessions;
@@ -90,7 +90,7 @@ class SessionsRepository {
 
     // Firma funzione per utente
     async createOne(payload: {
-        userId: string | ObjectId;
+        userId: string | Types.ObjectId;
         refreshToken: string;
         ipAddress: string;
         userAgent: string;
@@ -100,7 +100,7 @@ class SessionsRepository {
 
     // Firma funzione per dispositivo
     async createOne(payload: {
-        deviceId: string | ObjectId;
+        deviceId: string | Types.ObjectId;
         refreshToken: string;
         ipAddress: string;
         userAgent: string;
@@ -117,18 +117,18 @@ class SessionsRepository {
         await session.save();
 
         // Ritorno sessione
-        return session;
+        return session.toObject();
     }
 
     // Funzione creazione sessioni
     async updateOne(
         type: 'active' | 'revoked' | 'expired',
-        id: string | ObjectId,
+        id: string | Types.ObjectId,
     ) {
         // Aggiornamento sessione database
         const session = await SessionsModel.findByIdAndUpdate(id, {
             status: type,
-        });
+        }).lean();
 
         // Ritorno sessione
         return session;
@@ -136,7 +136,7 @@ class SessionsRepository {
 
     // Funzione aggiornamento sessioni
     async updateUserMany(
-        userId: string | ObjectId,
+        userId: string | Types.ObjectId,
         type: 'active' | 'revoked' | 'expired',
     ) {
         // Aggiornamento sessione database
@@ -145,7 +145,7 @@ class SessionsRepository {
             {
                 status: type,
             },
-        );
+        ).lean();
 
         // Ritorno sessione
         return sessions;
@@ -153,7 +153,7 @@ class SessionsRepository {
 
     // Funzione aggiornamento sessioni
     async updateDeviceMany(
-        deviceId: string | ObjectId,
+        deviceId: string | Types.ObjectId,
         type: 'active' | 'revoked' | 'expired',
     ) {
         // Aggiornamento sessione database
@@ -162,7 +162,7 @@ class SessionsRepository {
             {
                 status: type,
             },
-        );
+        ).lean();
 
         // Ritorno sessione
         return sessions;

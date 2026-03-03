@@ -1,5 +1,5 @@
 // Importazione moduli
-import type { ObjectId } from 'mongoose';
+import { Types } from 'mongoose';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import { PatchDevicesSettingsBodySchema } from '../schemas/DevicesSettings.schema.js';
 import z from 'zod';
@@ -7,9 +7,11 @@ import z from 'zod';
 // Respository impostazioni dispositivi
 class DeviceSettingsRepository {
     // Funzione ricevi impostazioni dispositivo
-    async findOne(deviceId: string | ObjectId) {
+    async findOne(deviceId: string | Types.ObjectId) {
         // Richiesta impostazioni dispositivo database
-        const deviceSettings = await DeviceSettingsModel.findOne({ deviceId });
+        const deviceSettings = await DeviceSettingsModel.findOne({
+            deviceId,
+        }).lean();
 
         // Ritorno impostazioni dispositivo
         return deviceSettings;
@@ -30,20 +32,20 @@ class DeviceSettingsRepository {
         await deviceSettings.save();
 
         // Ritorno impostazioni dispositivo
-        return deviceSettings;
+        return deviceSettings.toObject();
     }
 
     // Funzione modifica impostazioni dispositivo
     async updateOne(
         payload: z.infer<typeof PatchDevicesSettingsBodySchema>,
-        deviceId: string | ObjectId
+        deviceId: string | Types.ObjectId,
     ) {
         // Modifica impostazioni dispositivo database
         const deviceSettings = await DeviceSettingsModel.findOneAndUpdate(
             { deviceId },
             payload,
-            { new: true }
-        );
+            { new: true },
+        ).lean();
 
         // Ritorno impostazioni dispositivo
         return deviceSettings;
@@ -54,7 +56,7 @@ class DeviceSettingsRepository {
         // Modifica impostazioni dispositivo database
         const deviceSettings = await DeviceSettingsModel.findOneAndDelete({
             deviceId,
-        });
+        }).lean();
 
         // Ritorno impostazioni dispositivo
         return deviceSettings;

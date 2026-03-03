@@ -31,15 +31,11 @@ async function usersLoginService(
     if (!isPswValid) throw new Error('Invalid email or credentials');
 
     // Conversione utente
-    const parsedUser = dataParser(
-        user.toObject(),
-        ['psw', 'schemaVersion', '__v'],
-        true,
-    );
+    const parsedUser = dataParser(user, ['psw', 'schemaVersion', '__v'], true);
 
     // Conversione utente minimale
     const minimalParsedUser = dataParser(
-        user.toObject(),
+        user,
         ['email', 'psw', 'schemaVersion', 'updatedAt', 'createdAt', '__v'],
         true,
     );
@@ -102,14 +98,14 @@ async function devicesLoginService(
 
     // Conversione dispositivo
     const parsedDevice = dataParser(
-        device.toObject(),
+        device,
         ['key', 'psw', 'schemaVersion', '__v'],
         true,
     );
 
     // Conversione dispositivo minimale
     const minimalParsedDevice = dataParser(
-        device.toObject(),
+        device,
         [
             'key',
             'name',
@@ -172,11 +168,7 @@ async function usersRegisterService(
     const user = await usersRepository.createOne({ ...payload, psw: pswHash });
 
     // Conversione utente
-    const parsedUser = dataParser(
-        user.toObject(),
-        ['psw', 'schemaVersion', '__v'],
-        true,
-    );
+    const parsedUser = dataParser(user, ['psw', 'schemaVersion', '__v'], true);
 
     // Ritorno utente
     return parsedUser;
@@ -214,7 +206,7 @@ async function refreshService(
     if (user) {
         // Richiesta sessione database
         const [session] = await sessionsRepository.findMany({
-            userId: user.id,
+            userId: user._id,
             refreshToken,
             status: 'active',
         });
@@ -224,14 +216,14 @@ async function refreshService(
 
         // Conversione utente
         const parsedUser = dataParser(
-            user.toObject(),
+            user,
             ['psw', 'schemaVersion', '__v'],
             true,
         );
 
         // Conversione utente minimale
         const minimalParsedUser = dataParser(
-            user.toObject(),
+            user,
             ['email', 'psw', 'schemaVersion', 'updatedAt', 'createdAt', '__v'],
             true,
         );
@@ -259,7 +251,7 @@ async function refreshService(
 
         // Creazione sessione database
         await sessionsRepository.createOne({
-            userId: user.id,
+            userId: user._id,
             subject: 'user',
             refreshToken: newRefreshToken,
             ipAddress: info.ipAddress,
@@ -276,7 +268,7 @@ async function refreshService(
     } else if (device) {
         // Richiesta sessione database
         const [session] = await sessionsRepository.findMany({
-            deviceId: device.id,
+            deviceId: device._id,
             refreshToken,
             status: 'active',
         });
@@ -286,14 +278,14 @@ async function refreshService(
 
         // Conversione dispositivo
         const parsedDevice = dataParser(
-            device.toObject(),
+            device,
             ['key', 'psw', 'schemaVersion', '__v'],
             true,
         );
 
         // Conversione dispositivo minimale
         const minimalParsedDevice = dataParser(
-            device.toObject(),
+            device,
             [
                 'key',
                 'name',
@@ -331,7 +323,7 @@ async function refreshService(
 
         // Creazione sessione database
         await sessionsRepository.createOne({
-            deviceId: device.id,
+            deviceId: device._id,
             subject: 'device',
             refreshToken: newRefreshToken,
             ipAddress: info.ipAddress,

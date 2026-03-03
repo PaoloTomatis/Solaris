@@ -1,10 +1,10 @@
 // Importazione moduli
-import type { ObjectId } from 'mongoose';
+import type { Types } from 'mongoose';
 import type { WebSocket } from 'ws';
 
 // Interfaccia utente
 interface UserType {
-    id: string | ObjectId;
+    id: string | Types.ObjectId;
     email: string;
     role: 'user' | 'admin';
     updatedAt: Date;
@@ -13,8 +13,8 @@ interface UserType {
 
 // Interfaccia dispositivo
 interface DeviceType {
-    id: string | ObjectId;
-    userId?: string | ObjectId;
+    id: string | Types.ObjectId;
+    userId?: string | Types.ObjectId;
     name: string;
     prototypeModel: string;
     activatedAt: Date;

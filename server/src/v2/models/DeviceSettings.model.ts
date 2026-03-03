@@ -1,10 +1,10 @@
 // Importazione moduli
-import { model, Schema, type ObjectId } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
 // Tipo impostazioni dispositivi
 interface DevicesSettingsType {
-    _id: ObjectId;
-    deviceId: ObjectId;
+    _id: Types.ObjectId;
+    deviceId: Types.ObjectId;
     mode: 'config' | 'auto' | 'safe';
     humIMax?: number;
     humIMin?: number;
@@ -32,13 +32,13 @@ const DevicesSettingsSchema = new Schema(
         kInterval: { type: Number, min: 1 },
         schemaVersion: { type: Number, default: 1 },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // Esportazione modello impostazioni dispositivi
 export default model<DevicesSettingsType>(
     'DevicesSettings',
-    DevicesSettingsSchema
+    DevicesSettingsSchema,
 );
 // Esportazione tipo impostazioni dispositivi
 export type { DevicesSettingsType };

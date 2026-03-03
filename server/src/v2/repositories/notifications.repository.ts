@@ -2,7 +2,7 @@
 import NotificationsModel, {
     type NotificationsType,
 } from '../models/Notifications.model.js';
-import { type FilterQuery, type ObjectId } from 'mongoose';
+import { type FilterQuery, Types } from 'mongoose';
 import {
     GetNotificationsQuerySchema,
     PostNotificationsBodySchema,
@@ -29,7 +29,7 @@ class NotificationsRepository {
         if (payload.type) filter.type = payload.type;
 
         // Richiesta notifica database
-        const query = NotificationsModel.find(filter);
+        const query = NotificationsModel.find(filter).lean();
 
         // Controllo lunghezza sort
         if (payload.sort?.length) {
@@ -53,7 +53,7 @@ class NotificationsRepository {
     // Funzione creazione notifica
     async createOne(
         payload: z.infer<typeof PostNotificationsBodySchema>,
-        deviceId: string | ObjectId,
+        deviceId: string | Types.ObjectId,
     ) {
         // Creazione notifica
         const notification = new NotificationsModel({ ...payload, deviceId });
@@ -62,16 +62,18 @@ class NotificationsRepository {
         await notification.save();
 
         // Ritorno notifica
-        return notification;
+        return notification.toObject();
     }
 
     // Funzione eliminazione misurazioni
     async deleteManyByDevice(deviceId: string) {
         // Modifica dispositivi database
-        await NotificationsModel.deleteMany({ deviceId });
+        const notifications = await NotificationsModel.deleteMany({
+            deviceId,
+        }).lean();
 
-        // Ritorno nullo
-        return null;
+        // Ritorno notifiche
+        return notifications;
     }
 }
 

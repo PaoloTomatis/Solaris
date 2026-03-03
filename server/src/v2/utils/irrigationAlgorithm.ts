@@ -1,16 +1,63 @@
 // Importazione moduli
 import type { IrrigationsType } from '../models/Irrigations.model.js';
 
-// Funzione calcolo umidità
-function algorithmHumX(raw: IrrigationsType[], dataIndex: 0 | 1): number {
-    // Filtrazione dati
-    const dataDB: { humI: [number, number] }[] = raw
+// Funzione filtrazione dati umidità
+function filterHumData(raw: IrrigationsType[]): { humI: [number, number] }[] {
+    return raw
         .filter((data) => data.humIAfter > data.humIBefore)
         .map((data) => {
             return {
                 humI: [data.humIBefore, data.humIAfter],
             };
         });
+}
+
+// Funzione calcolo peso
+function calcWeight(posC: number, index: number) {
+    // Controllo posC
+    if (isNaN(posC) || posC <= 0) throw new Error('Irrigations data are wrong');
+
+    // Controllo index
+    if (isNaN(index) || index < 0)
+        throw new Error('Irrigations data are wrong');
+
+    // Calcolo peso
+    const weight = posC - Math.abs(posC - index) + 1;
+
+    return weight >= 0 ? weight : 0;
+}
+
+// Funzione calcolo totale
+function calcTot(dataSet: number[]) {
+    // Definizione totale
+    let tot = 0;
+
+    // Iterazione dati
+    dataSet.forEach((data) => (tot += data));
+
+    return tot;
+}
+
+// Funzione filtrazione dati intervallo
+function filterIntervalData(
+    raw: IrrigationsType[],
+): { humI: [number, number]; interval: number }[] {
+    return raw
+        .filter(
+            (data) => data.humIAfter > data.humIBefore && !isNaN(data.interval),
+        )
+        .map((data) => {
+            return {
+                humI: [data.humIBefore, data.humIAfter],
+                interval: data.interval,
+            };
+        });
+}
+
+// Funzione calcolo umidità
+function algorithmHumX(raw: IrrigationsType[], dataIndex: 0 | 1): number {
+    // Filtrazione dati
+    const dataDB = filterHumData(raw);
 
     // Controllo dati
     if (!dataDB || dataDB?.length < 10)
@@ -28,50 +75,34 @@ function algorithmHumX(raw: IrrigationsType[], dataIndex: 0 | 1): number {
 
     // Calcolo pesi
     dataSet = dataSet.map((data, index) => {
-        return { data, weight: posC - Math.abs(posC - index) + 1 };
+        return { data, weight: calcWeight(posC, index) };
     });
 
-    // Dichiarazione media e peso massimo
-    let media = 0;
-    let weightMax = 0;
+    // Calcolo media
+    let media = calcTot(dataSet.map((data) => data.data * data.weight));
 
-    // Calcolo media e peso massimo
-    dataSet.forEach((data) => {
-        media += data.data * data.weight;
-        weightMax += data.weight;
-    });
-    media = media / weightMax;
+    // Calcolo peso massimo
+    let weightMax = calcTot(
+        dataSet.map((data) => {
+            return data.weight;
+        }),
+    );
 
-    return media;
+    return media / weightMax;
 }
 
 // Funzione calcolo intervallo
 function algorithmInterval(raw: IrrigationsType[]): number {
     // Filtrazione dati
-    const dataDB: { humI: [number, number]; interval: number }[] = raw
-        .filter(
-            (data) => data.humIAfter > data.humIBefore && !isNaN(data.interval),
-        )
-        .map((data) => {
-            return {
-                humI: [data.humIBefore, data.humIAfter],
-                interval: data.interval,
-            };
-        });
+    const dataDB = filterIntervalData(raw);
 
     // Controllo dati
     if (!dataDB || dataDB?.length < 10)
         throw new Error('Irrigations data are less than 10');
 
     // Dichiarazione media
-    let mediaInt = 0;
-    let mediaHum = 0;
-
-    // Calcolo medie
-    dataDB.forEach((data) => {
-        mediaInt += data.interval;
-        mediaHum += data.humI[1] - data.humI[0];
-    });
+    let mediaInt = calcTot(dataDB.map((data) => data.interval));
+    let mediaHum = calcTot(dataDB.map((data) => data.humI[1] - data.humI[0]));
 
     return mediaInt / dataDB.length / (mediaHum / dataDB.length);
 }
@@ -83,6 +114,10 @@ function algorithmUpdateKInterval(
     humIMax: number,
     kInterval: number,
 ): number {
+    // Controllo dati
+    if (humIBefore < 0 || humIAfter < 0 || humIMax < 0)
+        throw new Error('Irrigations data are wrong');
+
     // Calcolo errore relativo
     const error = (humIMax - humIAfter) / (humIMax - humIBefore);
 
@@ -93,12 +128,20 @@ function algorithmUpdateKInterval(
     const intervalMax = (kInterval * 110) / 100;
     const intervalMin = (kInterval * 90) / 100;
 
-    // Controllo nuovo interval
-    if (newInterval > intervalMax || newInterval < intervalMin)
-        throw new Error('Irrigations data are wrong');
-
-    return newInterval;
+    return newInterval > intervalMax
+        ? intervalMax
+        : newInterval < intervalMin
+          ? intervalMin
+          : newInterval;
 }
 
 // Esportazione funzioni
-export { algorithmInterval, algorithmHumX, algorithmUpdateKInterval };
+export {
+    algorithmInterval,
+    algorithmHumX,
+    algorithmUpdateKInterval,
+    filterHumData,
+    filterIntervalData,
+    calcTot,
+    calcWeight,
+};

@@ -31,7 +31,7 @@ async function getDeviceService(deviceId: string, user?: UserType) {
 
     // Conversione dispositivo
     const parsedDevice = dataParser(
-        device.toObject(),
+        device,
         ['key', 'psw', 'schemaVersion', '__v'],
         true,
     );
@@ -49,16 +49,12 @@ async function getDevicesService(
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta dispositivi
-    const devices = await devicesRepository.findManySafe(payload, user);
+    const devices = await devicesRepository.findManySafe(payload);
 
     // Iterazione dispositivi
     const parsedDevices = devices.map((device) => {
         // Conversione dispositivo
-        return dataParser(
-            device.toObject(),
-            ['key', 'psw', 'schemaVersion', '__v'],
-            true,
-        );
+        return dataParser(device, ['key', 'psw', 'schemaVersion', '__v'], true);
     });
 
     // Ritorno dispositivi
@@ -93,7 +89,7 @@ async function postDevicesService(
 
     // Conversione dispositivo
     const parsedDevice = dataParser(
-        device.toObject(),
+        device,
         ['key', 'psw', 'schemaVersion', '__v'],
         true,
     );
@@ -121,7 +117,7 @@ async function patchDevicesActivateService(
         );
 
     // Modifica dispositivo
-    const newDevice = await devicesRepository.updateOne(device.id, {
+    const newDevice = await devicesRepository.updateOne(device._id, {
         userId: user.id,
         name,
     });
@@ -131,7 +127,7 @@ async function patchDevicesActivateService(
 
     // Conversione dispositivo
     const parsedDevice = dataParser(
-        newDevice.toObject(),
+        newDevice,
         ['key', 'psw', 'schemaVersion', '__v'],
         true,
     );
@@ -164,7 +160,7 @@ async function patchDevicesService(
 
     // Conversione dispositivo
     const parsedDevice = dataParser(
-        newDevice.toObject(),
+        newDevice,
         ['key', 'psw', 'schemaVersion', '__v'],
         true,
     );
@@ -190,7 +186,7 @@ async function deleteDevicesService(deviceId: string, user?: UserType) {
 
     // Conversione dispositivo
     const parsedDevice = dataParser(
-        oldDevice.toObject(),
+        oldDevice,
         ['key', 'psw', 'schemaVersion', '__v'],
         true,
     );

@@ -1,10 +1,10 @@
 // Importazione moduli
-import { model, Schema, type ObjectId } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
 // Tipo impostazioni utenti
 interface UsersSettingsType {
-    _id: ObjectId;
-    userId: ObjectId;
+    _id: Types.ObjectId;
+    userId: Types.ObjectId;
     styleMode: 'light' | 'dark';
     units: 'metric' | 'imperial';
     schemaVersion: number;
@@ -28,7 +28,7 @@ const UsersSettingsSchema = new Schema(
         },
         schemaVersion: { type: Number, default: 1 },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // Esportazione modello impostazioni utenti

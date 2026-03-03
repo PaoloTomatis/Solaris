@@ -1,16 +1,15 @@
 // Importazione moduli
-import type { ObjectId, UpdateQuery, FilterQuery } from 'mongoose';
+import { Types, type UpdateQuery, type FilterQuery } from 'mongoose';
 import DevicesModel, { type DevicesType } from '../models/Devices.model.js';
 import type { GetDevicesQuerySchema } from '../schemas/Devices.schema.js';
 import z from 'zod';
-import type { UserType } from '../types/types.js';
 
 // Respository dispositivi
 class DevicesRepository {
     // Funzione ricevi dispositivo da id
-    async findOneById(id: string | ObjectId) {
+    async findOneById(id: string | Types.ObjectId) {
         // Richiesta dispositivo database
-        const device = await DevicesModel.findById(id);
+        const device = await DevicesModel.findById(id).lean();
 
         // Ritorno dispositivo
         return device;
@@ -19,26 +18,23 @@ class DevicesRepository {
     // Funzione ricevi dispositivo da key
     async findOneByKey(key: string) {
         // Richiesta dispositivo database
-        const device = await DevicesModel.findOne({ key });
+        const device = await DevicesModel.findOne({ key }).lean();
 
         // Ritorno dispositivo
         return device;
     }
 
     // Funzione ricevi dispositivo sicura
-    async findOneSafe(id: string, userId: string | ObjectId) {
+    async findOneSafe(id: string, userId: string | Types.ObjectId) {
         // Richiesta dispositivo database
-        const device = await DevicesModel.findOne({ _id: id, userId });
+        const device = await DevicesModel.findOne({ _id: id, userId }).lean();
 
         // Ritorno dispositivo
         return device;
     }
 
     // Funzione ricevi dispositivi
-    async findManySafe(
-        payload: z.infer<typeof GetDevicesQuerySchema>,
-        user: UserType,
-    ) {
+    async findManySafe(payload: z.infer<typeof GetDevicesQuerySchema>) {
         // Dichiarazione filtri
         const filter: FilterQuery<DevicesType> = {
             deviceId: payload.deviceId,
@@ -52,7 +48,7 @@ class DevicesRepository {
         }
 
         // Richiesta irrigazione database
-        const query = DevicesModel.find(filter);
+        const query = DevicesModel.find(filter).lean();
 
         // Controllo lunghezza sort
         if (payload.sort?.length) {
@@ -67,10 +63,10 @@ class DevicesRepository {
         query.limit(payload.limit);
 
         // Esecuzione query
-        const irrigations = await query;
+        const devices = await query;
 
         // Ritorno irrigazione
-        return irrigations;
+        return devices;
     }
 
     // Funzione creazione dispositivo
@@ -82,16 +78,19 @@ class DevicesRepository {
         await device.save();
 
         // Ritorno dispositivo
-        return device;
+        return device.toObject();
     }
 
     // Funzione modifica dispositivo
-    async updateOne(id: string, payload: UpdateQuery<DevicesType>) {
+    async updateOne(
+        id: string | Types.ObjectId,
+        payload: UpdateQuery<DevicesType>,
+    ) {
         // Modifica dispositivo database
         const device = await DevicesModel.findByIdAndUpdate(id, payload, {
             new: true,
             runValidators: true,
-        });
+        }).lean();
 
         // Ritorno dispositivo
         return device;
@@ -100,7 +99,7 @@ class DevicesRepository {
     // Funzione modifica dispositivo sicura
     async updateOneSafe(
         id: string,
-        userId: string | ObjectId,
+        userId: string | Types.ObjectId,
         payload: UpdateQuery<DevicesType>,
     ) {
         // Modifica dispositivo database
@@ -111,7 +110,7 @@ class DevicesRepository {
                 new: true,
                 runValidators: true,
             },
-        );
+        ).lean();
 
         // Ritorno dispositivo
         return device;
@@ -120,12 +119,12 @@ class DevicesRepository {
     // Funzione modifica dispositivo
     async updateManyByUser(userId: string, payload: UpdateQuery<DevicesType>) {
         // Modifica dispositivi database
-        await DevicesModel.updateMany({ userId }, payload, {
+        const devices = await DevicesModel.updateMany({ userId }, payload, {
             runValidators: true,
-        });
+        }).lean();
 
-        // Ritorno nullo
-        return null;
+        // Ritorno dispositivi
+        return devices;
     }
 
     // Funzione elimina dispositivo
@@ -133,21 +132,21 @@ class DevicesRepository {
         // Eliminazione dispositivo database
         const device = await DevicesModel.findByIdAndDelete(id, {
             runValidators: true,
-        });
+        }).lean();
 
         // Ritorno dispositivo
         return device;
     }
 
     // Funzione elimina dispositivo sicura
-    async deleteOneSafe(id: string, userId: string | ObjectId) {
+    async deleteOneSafe(id: string, userId: string | Types.ObjectId) {
         // Eliminazione dispositivo database
         const device = await DevicesModel.findOneAndDelete(
             { _id: id, userId },
             {
                 runValidators: true,
             },
-        );
+        ).lean();
 
         // Ritorno dispositivo
         return device;

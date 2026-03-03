@@ -2,7 +2,7 @@
 import MeasurementsModel, {
     type MeasurementsType,
 } from '../models/Measurements.model.js';
-import { type FilterQuery, type ObjectId } from 'mongoose';
+import { type FilterQuery, Types } from 'mongoose';
 import {
     GetMeasurementsQuerySchema,
     PostMeasurementsBodySchema,
@@ -26,7 +26,7 @@ class MeasurementsRepository {
         }
 
         // Richiesta misurazione database
-        const query = MeasurementsModel.find(filter);
+        const query = MeasurementsModel.find(filter).lean();
 
         // Controllo lunghezza sort
         if (payload.sort?.length) {
@@ -50,7 +50,7 @@ class MeasurementsRepository {
     // Funzione creazione misurazione
     async createOne(
         payload: z.infer<typeof PostMeasurementsBodySchema>,
-        deviceId: string | ObjectId,
+        deviceId: string | Types.ObjectId,
     ) {
         // Creazione misurazione
         const measurement = new MeasurementsModel({ ...payload, deviceId });
@@ -59,13 +59,13 @@ class MeasurementsRepository {
         await measurement.save();
 
         // Ritorno misurazione
-        return measurement;
+        return measurement.toObject();
     }
 
     // Funzione eliminazione misurazioni
     async deleteManyByDevice(deviceId: string) {
         // Modifica dispositivi database
-        await MeasurementsModel.deleteMany({ deviceId });
+        await MeasurementsModel.deleteMany({ deviceId }).lean();
 
         // Ritorno nullo
         return null;

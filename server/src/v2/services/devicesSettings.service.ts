@@ -41,7 +41,7 @@ async function getDevicesSettingsService(
 
     // Conversione impostazioni dispositivo
     const parsedDeviceSettings = dataParser(
-        deviceSettings.toObject(),
+        deviceSettings,
         ['__v', 'schemaVersion'],
         true,
     );
@@ -72,7 +72,7 @@ async function getMeSettingsService(device?: DeviceType) {
 
     // Conversione impostazioni dispositivo
     const parsedDeviceSettings = dataParser(
-        deviceSettings.toObject(),
+        deviceSettings,
         ['__v', 'schemaVersion'],
         true,
     );
@@ -129,7 +129,7 @@ async function patchDevicesSettingsService(
 
     // Conversione impostazioni dispositivo
     const parsedDeviceSettings = dataParser(
-        deviceSettings.toObject(),
+        deviceSettings,
         ['__v', 'schemaVersion'],
         true,
     );

@@ -2,7 +2,7 @@
 import IrrigationsModel, {
     type IrrigationsType,
 } from '../models/Irrigations.model.js';
-import type { FilterQuery, ObjectId } from 'mongoose';
+import { type FilterQuery, Types } from 'mongoose';
 import {
     PostIrrigationsBodySchema,
     GetIrrigationsQuerySchema,
@@ -29,7 +29,7 @@ class IrrigationsRepository {
         if (payload.type) filter.type = payload.type;
 
         // Richiesta irrigazione database
-        const query = IrrigationsModel.find(filter);
+        const query = IrrigationsModel.find(filter).lean();
 
         // Controllo lunghezza sort
         if (payload.sort?.length) {
@@ -53,7 +53,7 @@ class IrrigationsRepository {
     // Funzione creazione irrigazione
     async createOne(
         payload: z.infer<typeof PostIrrigationsBodySchema>,
-        deviceId: string | ObjectId,
+        deviceId: string | Types.ObjectId,
     ) {
         // Creazione irrigazione
         const irrigation = new IrrigationsModel({ ...payload, deviceId });
@@ -62,13 +62,13 @@ class IrrigationsRepository {
         await irrigation.save();
 
         // Ritorno irrigazione
-        return irrigation;
+        return irrigation.toObject();
     }
 
     // Funzione eliminazione misurazioni
     async deleteManyByDevice(deviceId: string) {
         // Modifica dispositivi database
-        await IrrigationsModel.deleteMany({ deviceId });
+        await IrrigationsModel.deleteMany({ deviceId }).lean();
 
         // Ritorno nullo
         return null;

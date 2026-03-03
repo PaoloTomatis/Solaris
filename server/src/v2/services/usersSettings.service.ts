@@ -18,7 +18,7 @@ async function getMeSettingsService(user?: UserType) {
 
     // Conversione impostazioni utente
     const parsedUserSettings = dataParser(
-        userSettings.toObject(),
+        userSettings,
         ['__v', 'schemaVersion'],
         true,
     );
@@ -46,7 +46,7 @@ async function patchMeSettingsService(
 
     // Conversione impostazioni utente
     const parsedUserSettings = dataParser(
-        userSettings.toObject(),
+        userSettings,
         ['__v', 'schemaVersion'],
         true,
     );

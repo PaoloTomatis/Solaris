@@ -37,11 +37,7 @@ async function getMeasurementsService(
     // Iterazione misurazioni
     const parsedMeasurements = measurements.map((measurement) => {
         // Conversione misurazione
-        return dataParser(
-            measurement.toObject(),
-            ['schemaVersion', '__v'],
-            true,
-        );
+        return dataParser(measurement, ['schemaVersion', '__v'], true);
     });
 
     // Ritorno misurazioni
@@ -70,7 +66,7 @@ async function postMeasurementsService(
 
     // Conversione misurazione
     const parsedMeasurement = dataParser(
-        measurement.toObject(),
+        measurement,
         ['schemaVersion', '__v'],
         true,
     );

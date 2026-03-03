@@ -25,7 +25,7 @@ async function deleteMeService(user?: UserType) {
 
     // Conversione utente
     const parsedUser = dataParser(
-        oldUser.toObject(),
+        oldUser,
         ['psw', 'schemaVersion', '__v'],
         true,
     );

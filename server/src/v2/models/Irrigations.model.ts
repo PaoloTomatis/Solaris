@@ -1,10 +1,10 @@
 // Importazione moduli
-import { model, Schema, type ObjectId } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
 // Tipo irrigazioni
 interface IrrigationsType {
-    _id: ObjectId;
-    deviceId: ObjectId;
+    _id: Types.ObjectId;
+    deviceId: Types.ObjectId;
     temp: number;
     lum: number;
     humE: number;
@@ -22,7 +22,7 @@ interface IrrigationsType {
 const IrrigationsSchema = new Schema(
     {
         deviceId: {
-            type: Schema.Types.ObjectId,
+            type: Types.ObjectId,
             ref: 'Devices',
             required: true,
         },
@@ -36,7 +36,7 @@ const IrrigationsSchema = new Schema(
         schemaVersion: { type: Number, default: 1 },
         irrigatedAt: { type: Date, default: () => new Date() },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // Definizione indici
