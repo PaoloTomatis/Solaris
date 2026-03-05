@@ -115,7 +115,7 @@ function Calibrations() {
                 <div className="flex flex-col items-center justify-center">
                     <HumidityIIcon className="w-[100px] text-decoration fill-current" />
                     <div className="flex items-center justify-center gap-[50px]">
-                        {sensors1.map((sensor) => {
+                        {sensors1.map((sensor, idx) => {
                             return (
                                 <Calibration
                                     code={sensor.code}
@@ -130,6 +130,7 @@ function Calibrations() {
                                             : undefined
                                     }
                                     rules={sensor.rules}
+                                    key={idx}
                                 />
                             );
                         })}
@@ -138,7 +139,7 @@ function Calibrations() {
                 <div className="flex flex-col items-center justify-center">
                     <LuminosityIcon className="w-[100px] text-decoration fill-current" />
                     <div className="flex items-center justify-center gap-[50px]">
-                        {sensors2.map((sensor) => {
+                        {sensors2.map((sensor, idx) => {
                             return (
                                 <Calibration
                                     code={sensor.code}
@@ -153,6 +154,7 @@ function Calibrations() {
                                             : undefined
                                     }
                                     rules={sensor.rules}
+                                    key={idx}
                                 />
                             );
                         })}
