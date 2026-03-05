@@ -9,6 +9,7 @@ import Log from '../pages/v2/Logs.page';
 import Measurements from '../pages/v2/Measurements.page';
 import Irrigations from '../pages/v2/Irrigations.page';
 import Stats from '../pages/global/Stats.page';
+import Calibrations from '../pages/v2/Calibrations.page';
 import Page404 from '../pages/global/Page404.page';
 import Credits from '../pages/global/Credits.page';
 import UserSettings from '../pages/v2/UserSettings.page';
@@ -94,6 +95,14 @@ const pagesv2 = [
                 element: (
                     <ProtectedRoute>
                         <Stats />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/dashboard/:id/calibration',
+                element: (
+                    <ProtectedRoute>
+                        <Calibrations />
                     </ProtectedRoute>
                 ),
             },
