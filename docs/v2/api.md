@@ -232,6 +232,15 @@
         - Autenticazione --> ✔️
         - Protocollo --> http
 
+    - **_POST_ /devices-settings/:deviceId/calibration**:
+        - Autore --> user
+        - Params --> `:deviceId`
+        - Body --> `{ sensor, type }`
+        - Output --> `null`
+        - Note --> l'utente deve possedere il dispositivo
+        - Autenticazione --> ✔️
+        - Protocollo --> http
+
     - **_PATCH_ /devices-settings/:deviceId**:
         - Autore --> user
         - Params --> `:deviceId`
@@ -245,6 +254,13 @@
         - Ricevente --> device
         - Body --> `{ event, mode, info }`
         - Note --> inviato a seguito di una modifica delle impostazioni del dispositivo (solo se attivo in quel momento)
+        - Autenticazione --> ✔️
+        - Protocollo --> ws
+
+    - **OUTPUT v2/calibration**:
+        - Ricevente --> device
+        - Body --> `{ sensor, type }`
+        - Note --> inviato a seguito di una richiesta di calibrazione di un sensore del dispositivo (solo se attivo in quel momento)
         - Autenticazione --> ✔️
         - Protocollo --> ws
 
