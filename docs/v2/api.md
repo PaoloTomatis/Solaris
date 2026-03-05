@@ -235,7 +235,7 @@
     - **_POST_ /devices-settings/:deviceId/calibration**:
         - Autore --> user
         - Params --> `:deviceId`
-        - Body --> `{ sensor, type }`
+        - Body --> `{ sensor }`
         - Output --> `null`
         - Note --> l'utente deve possedere il dispositivo
         - Autenticazione --> ✔️
@@ -259,7 +259,7 @@
 
     - **OUTPUT v2/calibration**:
         - Ricevente --> device
-        - Body --> `{ sensor, type }`
+        - Body --> `{ sensor }`
         - Note --> inviato a seguito di una richiesta di calibrazione di un sensore del dispositivo (solo se attivo in quel momento)
         - Autenticazione --> ✔️
         - Protocollo --> ws
