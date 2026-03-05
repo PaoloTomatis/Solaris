@@ -8,6 +8,10 @@ interface DevicesSettingsType {
     mode: 'config' | 'auto' | 'safe';
     humIMax?: number;
     humIMin?: number;
+    sensorHumIMin?: number;
+    sensorHumIMax?: number;
+    sensorLumMin?: number;
+    sensorLumMax?: number;
     kInterval?: number;
     schemaVersion: number;
     updatedAt: Date;
@@ -27,8 +31,12 @@ const DevicesSettingsSchema = new Schema(
             default: 'config',
             enum: ['config', 'auto', 'safe'],
         },
-        humIMax: { type: Number, min: 0 },
-        humIMin: { type: Number, min: 0 },
+        humIMax: { type: Number, min: 0, max: 100 },
+        humIMin: { type: Number, min: 0, max: 100 },
+        sensorHumIMin: { type: Number, min: 0, max: 100 },
+        sensorHumIMax: { type: Number, min: 0, max: 100 },
+        sensorLumMax: { type: Number, min: 0, max: 100 },
+        sensorLumMin: { type: Number, min: 0, max: 100 },
         kInterval: { type: Number, min: 1 },
         schemaVersion: { type: Number, default: 1 },
     },
