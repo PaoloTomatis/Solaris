@@ -3,8 +3,11 @@ import type { DeviceType, UserType } from '../types/types.js';
 import z from 'zod';
 import devicesSettingsRepository from '../repositories/devicesSettings.repository.js';
 import type {
+    PatchCalibrationBodySchema,
     PatchDevicesSettingsBodySchema,
     PatchDevicesSettingsParamsSchema,
+    PostCalibrationBodySchema,
+    PostCalibrationParamsSchema,
 } from '../schemas/DevicesSettings.schema.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import usersRepository from '../repositories/users.repository.js';
@@ -81,13 +84,35 @@ async function getMeSettingsService(device?: DeviceType) {
     return parsedDeviceSettings;
 }
 
+// Servizio post /device-settings/:deviceId/calibration
+async function postCalibrationService(
+    payload: z.infer<typeof PostCalibrationBodySchema>,
+    { deviceId }: z.infer<typeof PostCalibrationParamsSchema>,
+    user?: UserType,
+) {
+    // Controllo utente
+    if (!user) throw new Error('Invalid authentication');
+
+    // Richiesta dispositivo database
+    const device = await devicesRepository.findOneSafe(deviceId, user.id);
+
+    // Controllo dispositivo
+    if (!device)
+        throw new Error(
+            'The device does not exists or is owned by an other user',
+        );
+
+    // Ritorno dati
+    return payload;
+}
+
 // Servizio patch /device-settings/:deviceId
 async function patchDevicesSettingsService(
     payload: z.infer<typeof PatchDevicesSettingsBodySchema>,
     { deviceId }: z.infer<typeof PatchDevicesSettingsParamsSchema>,
     user?: UserType,
 ) {
-    // Controllo dispositivo
+    // Controllo utente
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta dispositivo database
@@ -138,9 +163,48 @@ async function patchDevicesSettingsService(
     return parsedDeviceSettings;
 }
 
+// Servizio patch /device-settings/calibration
+async function patchCalibrationService(
+    payload: z.infer<typeof PatchCalibrationBodySchema>,
+    device?: DeviceType,
+) {
+    // Controllo dispositivo
+    if (!device) throw new Error('Invalid authentication');
+
+    // Controllo id utente
+    if (!device.userId) throw new Error('The device must be owned by a user');
+
+    // Richiesta utente database
+    const user = await usersRepository.findOneById(device.userId);
+
+    // Controllo utente
+    if (!user) throw new Error('The device must be owned by a user');
+
+    // Modifica impostazioni dispositivo
+    const deviceSettings = await devicesSettingsRepository.updateOne(
+        { [payload.sensor]: payload.measurement },
+        device.id,
+    );
+
+    // Controllo impostazioni dispositivo
+    if (!deviceSettings) throw new Error('Update of device settings failed');
+
+    // Conversione impostazioni dispositivo
+    const parsedDeviceSettings = dataParser(
+        deviceSettings,
+        ['__v', 'schemaVersion'],
+        true,
+    );
+
+    // Ritorno impostazioni dispositivo
+    return parsedDeviceSettings;
+}
+
 // Esportazione servizi
 export {
     getDevicesSettingsService,
     getMeSettingsService,
+    postCalibrationService,
     patchDevicesSettingsService,
+    patchCalibrationService,
 };
