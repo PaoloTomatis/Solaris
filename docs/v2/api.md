@@ -241,6 +241,13 @@
         - Autenticazione --> ✔️
         - Protocollo --> http
 
+    - **_PATCH_ /devices-settings/calibration**:
+        - Autore --> device
+        - Body --> `{ sensor, measurement }`
+        - Output --> `null`
+        - Autenticazione --> ✔️
+        - Protocollo --> http
+
     - **_PATCH_ /devices-settings/:deviceId**:
         - Autore --> user
         - Params --> `:deviceId`
