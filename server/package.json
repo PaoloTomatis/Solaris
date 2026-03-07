@@ -20,9 +20,9 @@
     },
     "scripts": {
         "build": "tsc",
-        "start": "node dist/server.js",
+        "start": "node dist/src/server.js",
         "build:watch": "tsc --watch --preserveWatchOutput",
-        "server:watch": "nodemon --watch dist --delay 1 --exec \"node dist/server.js\"",
+        "server:watch": "nodemon --watch dist --delay 1 --exec \"node dist/src/server.js\"",
         "dev": "npm run build && concurrently -n BUILD,SERVER -c red,cyan \"npm run build:watch\" \"npm run server:watch\"",
         "test:watch": "vitest --config ./tests/vitest.config.ts",
         "test:run": "vitest run --config ./tests/vitest.config.ts",
