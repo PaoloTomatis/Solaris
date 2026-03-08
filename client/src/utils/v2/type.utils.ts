@@ -76,6 +76,10 @@ interface DeviceSettings {
     mode: 'config' | 'auto' | 'safe';
     humIMax: number;
     humIMin: number;
+    sensorHumIMin: number;
+    sensorHumIMax: number;
+    sensorLumMin: number;
+    sensorLumMax: number;
     kInterval: number;
     updatedAt: Date;
     createdAt: Date;

@@ -16,6 +16,7 @@ import type {
 import { useAuth } from '../../context/v2/Auth.context';
 import { getData, getOneData } from '../../utils/v2/apiCrud.utils';
 import { useNotifications } from '../../context/global/Notifications.context';
+import { useWSConnection } from '../../context/v2/WSConnection.context';
 // Importazione immagini
 import LogoIcon from '../../assets/images/logo.svg?react';
 import SignalIcon from '../../assets/icons/network-status.svg?react';
@@ -31,7 +32,7 @@ import ControlsIcon from '../../assets/icons/joystick.svg?react';
 import DashboardIcon from '../../assets/icons/dashboard.svg?react';
 import MeasurementIcon from '../../assets/icons/measurement.svg?react';
 import IrrigationIcon from '../../assets/icons/irrigation.svg?react';
-import { useWSConnection } from '../../context/v2/WSConnection.context';
+import CalibrationIcon from '../../assets/icons/calibration.svg?react';
 
 // Pagina dashboard
 function Dashboard() {
@@ -392,9 +393,16 @@ function Dashboard() {
                         icon={StatsIcon}
                     />
                     <Info
+                        url={`/dashboard/${deviceId}/calibration`}
+                        name="Calibrazione"
+                        icon={CalibrationIcon}
+                        type={status ? 'normal' : 'disabled'}
+                    />
+                    <Info
                         url={`/dashboard/${deviceId}/controls`}
                         name="Controlli Manuali"
                         icon={ControlsIcon}
+                        type={status ? 'normal' : 'disabled'}
                     />
                 </div>
             </div>

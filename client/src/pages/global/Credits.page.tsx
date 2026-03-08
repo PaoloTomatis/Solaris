@@ -35,6 +35,7 @@ import TemperatureIcon from '../../assets/icons/temperature.svg?react';
 import WarningIcon from '../../assets/icons/warning.svg?react';
 import IrrigationIcon from '../../assets/icons/irrigation.svg?react';
 import MeasurementIcon from '../../assets/icons/measurement.svg?react';
+import CalibrationIcon from '../../assets/icons/calibration.svg?react';
 
 // Pagina crediti
 function Credits() {
@@ -70,6 +71,11 @@ function Credits() {
         { name: 'Salvataggio', img: SaveIcon, url: 'https://icons8.com/' },
         { name: 'Connessione', img: NetworkIcon, url: 'https://icons8.com/' },
         { name: 'Impostazioni', img: SettingsIcon, url: 'https://icons8.com/' },
+        {
+            name: 'Calibrazione',
+            img: CalibrationIcon,
+            url: 'https://icons8.com/',
+        },
         {
             name: 'Accessibilità',
             img: AccessibilityIcon,

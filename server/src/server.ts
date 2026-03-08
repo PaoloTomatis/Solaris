@@ -217,7 +217,7 @@ app.use('/v1/api', jwtMiddlewareRestV1, apiRouterV1);
 // Rotta autenticazione
 app.use('/v2/auth', authRouterV2);
 
-// Rotta api v2 (utilizzo autenticazione v1 solo per testing)
+// Rotta api v2
 app.use('/v2/api', jwtMiddlewareRestV2, apiRouterV2);
 
 // Rotta 404

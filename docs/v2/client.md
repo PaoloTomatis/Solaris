@@ -141,6 +141,15 @@
     - Protetto --> ✔️
     - Note --> in produzione
 
+- **Calibration**
+    - Url --> `/dashboard/:id/calibration`
+    - Protetto --> ✔️
+    - Note --> mostra e permette di modificare le calibrazioni dei sensori del dispositivo
+    - Chiamate API
+        1. `GET /api/v2/devices-settings` --> al caricamento
+        2. `GET /api/v2/devices` --> al caricamento
+        3. `POST /api/v2/devices-settings/:id/calibration` --> pulsante
+
 - **Errore 404**
     - Url --> `/*`
     - Protetto --> ❌

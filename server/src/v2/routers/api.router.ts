@@ -5,7 +5,7 @@ import devicesRouter from './devices.router.js';
 import irrigationsRouter from './irrigations.router.js';
 import measurementsRouter from './measurements.router.js';
 import notificationsRouter from './notifications.router.js';
-import deviceSettingsRouter from './devicesSettings.router.js';
+import devicesSettingsRouter from './devicesSettings.router.js';
 
 // Dichiarazione router
 const apiRouter = Router();
@@ -17,7 +17,7 @@ apiRouter
     .use('/irrigations', irrigationsRouter)
     .use('/measurements', measurementsRouter)
     .use('/notifications', notificationsRouter)
-    .use('/devices-settings', deviceSettingsRouter);
+    .use('/devices-settings', devicesSettingsRouter);
 
 // Esportazione router
 export default apiRouter;

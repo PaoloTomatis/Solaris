@@ -71,7 +71,7 @@ def getHandler(url: str, name: str, token = None) :
 def postHandler(url: str, payload: dict, name: str, token = None):
     # Controllo wifi
     if not deviceState["utils"]["wifi"].isconnected():
-        print(f"Get request error: {name} wifi not connected\n")
+        print(f"Post request error: {name} wifi not connected\n")
         return None
 
     print(f"Post request: {name}...")
@@ -115,6 +115,54 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         print(f"Post request error: {name}", e, "\n")
         return None
 
+# Funzione gestione richieste patch
+def patchHandler(url: str, payload: dict, name: str, token = None):
+    # Controllo wifi
+    if not deviceState["utils"]["wifi"].isconnected():
+        print(f"Patch request error: {name} wifi not connected\n")
+        return None
+
+    print(f"Patch request: {name}...")
+
+    # Controllo token
+    if token:
+        # Dichiarazione headers
+        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}", "user-agent":"esp32 - Solaris Vega"}
+    else:
+        # Dichiarazione headers
+        headers = {"Content-Type": "application/json", "user-agent":"esp32 - Solaris Vega"}
+
+    # Dichiarazione dati risposta
+    resData = None
+    
+    # Gestione errori
+    try:        
+        # Effettuazione richiesta
+        response = urequests.patch(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers
+        )
+        
+        # Controllo richiesta
+        if response.text:
+            resData = json.loads(response.text)
+            if response.status_code != 200:
+                raise Exception(resData["message"])
+        else:
+            raise Exception()
+        
+        # Chiusura richiesta
+        response.close()
+
+        print(f"Patch request success: {name}\n")
+        
+        # Ritorno dati
+        return resData["data"]
+    except Exception as e:
+        print(f"Patch request error: {name}", e, "\n")
+        return None
+
 # Funzione invio avvisi
 def sendNotifications (title: str, description: str, _type: str, loadingData=False):
     try:
@@ -126,23 +174,15 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
     except Exception as e:
         # Controllo caricamento dati
         if not loadingData:
-            # Dichiarazione notifiche
-            notifications = []
-
             # Caricamento notifiche
-            with open('notifications.json', 'r') as notificationsFile:
-                notifications = json.load(notificationsFile)
+            notifications = readFile("notifications")
 
             # Controllo notifiche
             if len(notifications) > 10:
                 notifications.pop(0)
 
             # Aggiornamento notifiche
-            with open('notifications.tmp', 'w') as notificationsFile:
-                notificationsFile.write(json.dumps([{"title":title, "description":description, "type":_type}] + notifications))
-
-            # Rinominazione file
-            os.rename("notifications.tmp", "notifications.json")
+            writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications)
         else:
             raise CriticalError(e)
 
@@ -157,23 +197,15 @@ def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, h
     except Exception as e:
         # Controllo caricamento dati
         if not loadingData:
-            # Dichiarazione irrigazioni
-            irrigations = []
-
             # Caricamento irrigazioni
-            with open('irrigations.json', 'r') as irrigationsFile:
-                irrigations = json.load(irrigationsFile)
+            irrigations = readFile("irrigations")
 
             # Controllo irrigazioni
             if len(irrigations) > 10:
                 irrigations.pop(0)
 
             # Aggiornamento irrigazioni
-            with open('irrigations.tmp', 'w') as irrigationsFile:
-                irrigationsFile.write(json.dumps([{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations))
-
-            # Rinominazione file
-            os.rename("irrigations.tmp", "irrigations.json")
+            writeFile("irrigations", [{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations)
         else:
             raise CriticalError(e)
 
@@ -188,23 +220,15 @@ def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, l
     except Exception as e:
         # Controllo caricamento dati
         if not loadingData:
-            # Dichiarazione irrigazioni
-            measurements = []
-
             # Caricamento irrigazioni
-            with open('measurements.json', 'r') as measurementsFile:
-                measurements = json.load(measurementsFile)
+            measurements = readFile("measurements")
 
             # Controllo irrigazioni
             if len(measurements) > 10:
                 measurements.pop(0)
 
             # Aggiornamento irrigazioni
-            with open('measurements.tmp', 'w') as measurementsFile:
-                measurementsFile.write(json.dumps([{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements))
-
-            # Rinominazione file
-            os.rename("measurements.tmp", "measurements.json")
+            writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements)
         else:
             raise CriticalError(e)
 
@@ -239,6 +263,27 @@ def mapRange(x, in_min, in_max, out_min, out_max):
 
 # ---
 
+# Funzione lettura file
+def readFile(path: str):
+    # Dichiarazione dati file
+    fileData = None
+
+    # Caricamento dati
+    with open(f'{path}.json', 'r') as file:
+        fileData = json.load(file)
+
+    # Ritorno dati
+    return fileData
+
+# Funzione scrittura file
+def writeFile(path: str, data):
+    # Aggiornamento misurazioni
+    with open(f'{path}.tmp', 'w') as file:
+        file.write(json.dumps(data))
+
+    # Rinominazione file
+    os.rename(f'{path}.tmp', f'{path}.json')
+
 # Funzione caricamento dati
 def loadData():
     try:
@@ -248,20 +293,16 @@ def loadData():
         deviceInfo = {}
         
         # Caricamento informazione wifi
-        with open('wifiInfo.json', 'r') as wifiFile:
-            wifiInfo = json.load(wifiFile)
+        wifiInfo = readFile("wifiInfo")
             
         # Caricamento informazioni connessioni
-        with open('serverInfo.json', 'r') as apiFile:
-            serverInfo = json.load(apiFile)
+        serverInfo = readFile("serverInfo")
             
         # Caricamento impostazioni
-        with open('settings.json', 'r') as settingsFile:
-            settings = json.load(settingsFile)
+        settings = readFile("settings")
             
         # Caricamento informazioni
-        with open('deviceInfo.json', 'r') as deviceFile:
-            deviceInfo = json.load(deviceFile)
+        deviceInfo = readFile("deviceInfo")
             
         # Ritorno dati
         return [wifiInfo, serverInfo, settings, deviceInfo]
@@ -382,28 +423,17 @@ def authenticationConfig():
             parsedInfo = {"id":newDevice["id"], "key":deviceState["info"]["key"], "psw":deviceState["info"]["psw"], "name": newDevice["name"], "prototypeModel":newDevice["prototypeModel"]}
             
             # Sovrascrittura file
-            with open("deviceInfo.tmp", "w") as infoFile:
-                infoFile.write(json.dumps(parsedInfo))
-                deviceState["info"] = parsedInfo
-
-            # Rinominazione file
-            os.rename("deviceInfo.tmp", "deviceInfo.json")
+            writeFile("deviceInfo", parsedInfo)
+            deviceState["info"] = parsedInfo
 
         # Richiesta impostazioni
         newSettings = getSettings()
 
         # Controllo impostazioni
         if newSettings:
-            # Conversione impostazioni
-            parsedSettings = json.dumps(newSettings)
-            
             # Sovrascrittura file
-            with open("settings.tmp", "w") as settingsFile:
-                settingsFile.write(parsedSettings)
-                deviceState["settings"] = newSettings
-
-            # Rinominazione file
-            os.rename("settings.tmp", "settings.json")
+            writeFile("settings", newSettings)
+            deviceState["settings"] = newSettings
 
         # Connessione socket
         connSocket()
@@ -453,22 +483,15 @@ def fullConfig():
 
 # Funzione caricamento dati irrigazione e misurazione
 def loadSavedData():
-    try:
-        irrigations = []
-        measurements = []
-        notifications = []
-        
+    try:        
         # Caricamento informazione misurazioni
-        with open('measurements.json', 'r') as measurementsFile:
-            measurements = json.load(measurementsFile)
+        measurements = readFile("measurements")
             
         # Caricamento informazioni irrigazioni
-        with open('irrigations.json', 'r') as irrigationsFile:
-            irrigations = json.load(irrigationsFile)
+        irrigations = readFile("irrigations")
 
         # Caricamento informazione notifiche
-        with open('notifications.json', 'r') as notificationsFile:
-            notifications = json.load(notificationsFile)
+        notifications = readFile("notifications")
         
         # Iterazione irrigazioni
         for irrigation in irrigations:
@@ -485,26 +508,15 @@ def loadSavedData():
             # Invio notifiche
             sendNotifications(notification["title"], notification["description"], notification["type"], True)
 
-        # Aggiornamento misurazioni
-        with open('measurements.tmp', 'w') as measurementsFile:
-            measurementsFile.write("[]")
 
-        # Rinominazione file
-        os.rename("measurements.tmp", "measurements.json")
+        # Aggiornamento misurazioni
+        writeFile("measurements", [])
             
         # Aggiornamento irrigazioni
-        with open('irrigations.tmp', 'w') as irrigationsFile:
-            irrigationsFile.write("[]")
-
-        # Rinominazione file
-        os.rename("irrigations.tmp", "irrigations.json")
+        writeFile("irrigations", [])
 
         # Aggiornamento notifiche
-        with open('notifications.tmp', 'w') as notificationsFile:
-            notificationsFile.write("[]")
-
-        # Rinominazione file
-        os.rename("notifications.tmp", "notifications.json")
+        writeFile("notifications", [])
 
     except Exception as e:
         raise CriticalError(e)
@@ -542,6 +554,34 @@ def dhtMeasure():
             sleep_ms(2500)
 
     return None, None
+
+# Funzione misurazione sensorIn
+def sensorInMeasure():
+    # Misurazione normale
+    raw = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
+
+    # Controllo calibrazione
+    if "sensorHumIMin" in deviceState["settings"] and "sensorHumIMax" in deviceState["settings"]:
+        dry = deviceState["settings"]["sensorHumIMin"]
+        wet = deviceState["settings"]["sensorHumIMax"]
+        parsed = (dry - raw) / (dry - wet) * 100
+        return min(100, max(parsed, 0))
+    else:
+        return raw
+
+# Funzione misurazione sensorLum
+def sensorLumMeasure():
+    # Misurazione normale
+    raw = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+
+    # Controllo calibrazione
+    if "sensorLumMin" in deviceState["settings"] and "sensorLumMax" in deviceState["settings"]:
+        dry = deviceState["settings"]["sensorLumMin"]
+        wet = deviceState["settings"]["sensorLumMax"]
+        parsed = (dry - raw) / (dry - wet) * 100
+        return min(100, max(parsed, 0))
+    else:
+        return raw
 
 # Funzione calcolo misurazioni
 def measure(sensor, n=10, delay_ms=10):
@@ -616,23 +656,15 @@ def measurementsMode(humI: float, humE: float, lum: float, temp: float):
 
     # Controllo connessione wifi
     if not deviceState["utils"]["wifi"].isconnected() or not deviceState["token"]:
-        # Dichiarazione misurazioni
-        measurements = []
-
         # Caricamento misurazioni
-        with open('measurements.json', 'r') as measurementsFile:
-            measurements = json.load(measurementsFile)
+        measurements = readFile("measurements")
 
         # Controllo misurazioni
         if len(measurements) > 10:
             measurements.pop(0)
 
         # Aggiornamento misurazioni
-        with open('measurements.tmp', 'w') as measurementsFile:
-            measurementsFile.write(json.dumps([{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":currentTime}] + measurements))
-
-        # Rinominazione file
-        os.rename("measurements.tmp", "measurements.json")
+        writeFile("measurements",[{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":currentTime}] + measurements)
 
     # Controllo modalità config
     elif deviceState["settings"]["mode"] == "config":
@@ -659,8 +691,8 @@ def measurements():
     try:
         # Misurazioni
         humE, temp = dhtMeasure()
-        humI = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
-        lum = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+        humI = sensorInMeasure()
+        lum = sensorLumMeasure()
     except Exception as e:
         raise TransientError(e)
 
@@ -813,6 +845,8 @@ def socketHandler():
             irrigationEvent(currentTime, event)
         elif event["event"] == "v2/mode" and "mode" in event:
             settingsEvent(event)
+        elif event["event"] == "v2/calibration" and "sensor" in event:
+            calibrationEvent(event)
     
 
     # Invio stato
@@ -831,7 +865,7 @@ def irrigationAuto(date, humI1: float):
 # Funzione irrigazione manuale
 def irrigationConfig(date, irrigationTime: int):
     # Misurazione umidità
-    humI1 = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
+    humI1 = sensorInMeasure()
 
     # Irrigazione
     irrigation(humI1, date, irrigationTime, "config")
@@ -861,23 +895,15 @@ def irrigationCheck(humI1: float, humI2: float, humE: float, lum: float, temp: f
         # Invio notifica
         sendNotifications("ERRORE IRRIGAZIONE", f'Irrigazione di {irrigationTime}s del dispositivo {deviceState["info"]["name"]} non effettuata correttamente, controllare tanica d\'acqua!', "error")
     elif not deviceState["utils"]["wifi"].isconnected() or not deviceState["token"]:
-        # Dichiarazione irrigazioni
-        irrigations = []
-
         # Caricamento irrigazioni
-        with open('irrigations.json', 'r') as irrigationsFile:
-            irrigations = json.load(irrigationsFile)
+        irrigations = readFile("irrigations")
 
         # Controllo irrigazioni
         if len(irrigations) > 10:
             irrigations.pop(0)
 
         # Aggiornamento irrigazioni
-        with open('irrigations.tmp', 'w') as irrigationsFile:
-            irrigationsFile.write(json.dumps([{"humI1":humI1, "humI2":humI2, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations))
-
-        # Rinominazione file
-        os.rename("irrigations.tmp", "irrigations.json")
+        writeFile("irrigations", [{"humI1":humI1, "humI2":humI2, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations)
     else:
         # Invio Irrigazione
         sendIrrigations(date, irrigationTime, _type, humI1, humI2, humE, lum, temp)
@@ -891,8 +917,8 @@ def pumpOff (humI1: float, date, irrigationTime: int, _type: str):
     
     # Misurazioni
     humE, temp = dhtMeasure()
-    humI2 = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
-    lum = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+    humI2 = sensorInMeasure()
+    lum = sensorLumMeasure()
 
     # Controllo misurazioni
     measurementsCheck(humI2, humE, lum, temp)
@@ -983,38 +1009,69 @@ def settingsEvent(event):
     # Controllo modalità
     if event["mode"] == "auto" and "info" in event:
         
-        print(f'New mode: {event["mode"].upper()}')
         print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
 
-        # Nuove impostazioni
-        newSettings = {"humIMax": event["info"]["humIMax"], "humIMin": event["info"]["humIMin"], "kInterval": event["info"]["kInterval"], "mode": event["mode"]}
-            
-        # Conversione info
-        parsedSettings = json.dumps(newSettings)
-        
+        # Creazione nuove impostazioni
+        newSettings = deviceState["settings"].copy()
+        newSettings["humIMax"] = event["info"]["humIMax"]
+        newSettings["humIMin"] = event["info"]["humIMin"]
+        newSettings["kInterval"] = event["info"]["kInterval"]
+        newSettings["mode"] = event["mode"]
+                   
         # Sovrascrittura file
-        with open("settings.tmp", "w") as settingsFile:
-            settingsFile.write(parsedSettings)
-            deviceState["settings"] = newSettings
-
-        # Rinominazione file
-        os.rename("settings.tmp", "settings.json")
+        writeFile("settings", newSettings)
+        deviceState["settings"] = newSettings
 
     elif event["mode"] == "config" or event["mode"] == "safe":
 
-        # Conversione info
-        parsedSettings = json.dumps(deviceState["settings"])
-        
-        # Sovrascrittura file
-        with open("settings.tmp", "w") as settingsFile:
-            settingsFile.write(parsedSettings)
-            deviceState["settings"]["mode"] = event["mode"]
+        # Creazione nuove impostazioni
+        newSettings = deviceState["settings"].copy()
+        newSettings["mode"] = event["mode"]
 
-        # Rinominazione file
-        os.rename("settings.tmp", "settings.json")
+        # Sovrascrittura file
+        writeFile("settings", newSettings)
+        deviceState["settings"] = newSettings
         
     else:
         print("Invalid mode request\n")
+
+# Funzione impostazioni
+def calibrationEvent(event):
+    print(f'Calibration: {event["sensor"]}')
+
+    # Controllo sensore
+    if event["sensor"] == "sensorHumIMin" or event["sensor"] == "sensorHumIMax":
+        # Misurazione
+        measurement = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
+
+        print(f"{measurement}%")
+
+        # Dichiarazione payload
+        payload = {"sensor":event["sensor"], "measurement":measurement}
+
+        # Invio calibrazione
+        newSettings = patchHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration?authType=device', payload, "calibration", deviceState["token"])
+
+        # Aggiornamento impostazioni
+        deviceState["settings"] = newSettings
+
+    elif event["sensor"] == "sensorLumMin" or event["sensor"] == "sensorLumMax":
+        # Misurazione
+        measurement = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+
+        print(f"{measurement}%")
+
+        # Dichiarazione payload
+        payload = {"sensor":event["sensor"], "measurement":measurement}
+
+        # Invio calibrazione
+        newSettings = patchHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration?authType=device', payload, "calibration", deviceState["token"])
+
+        # Aggiornamento impostazioni
+        deviceState["settings"] = newSettings
+
+    else:
+        print("Invalid sensor request\n")
 
 # ---
 
