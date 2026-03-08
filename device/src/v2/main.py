@@ -564,7 +564,8 @@ def sensorInMeasure():
     if "sensorHumIMin" in deviceState["settings"] and "sensorHumIMax" in deviceState["settings"]:
         dry = deviceState["settings"]["sensorHumIMin"]
         wet = deviceState["settings"]["sensorHumIMax"]
-        return (dry - raw) / (dry - wet) * 100
+        parsed = (dry - raw) / (dry - wet) * 100
+        return min(100, max(parsed, 0))
     else:
         return raw
 
@@ -577,7 +578,8 @@ def sensorLumMeasure():
     if "sensorLumMin" in deviceState["settings"] and "sensorLumMax" in deviceState["settings"]:
         dry = deviceState["settings"]["sensorLumMin"]
         wet = deviceState["settings"]["sensorLumMax"]
-        return (dry - raw) / (dry - wet) * 100
+        parsed = (dry - raw) / (dry - wet) * 100
+        return min(100, max(parsed, 0))
     else:
         return raw
 
@@ -1042,6 +1044,8 @@ def calibrationEvent(event):
         # Misurazione
         measurement = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
 
+        print(f"{measurement}%")
+
         # Dichiarazione payload
         payload = {"sensor":event["sensor"], "measurement":measurement}
 
@@ -1054,6 +1058,8 @@ def calibrationEvent(event):
     elif event["sensor"] == "sensorLumMin" or event["sensor"] == "sensorLumMax":
         # Misurazione
         measurement = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+
+        print(f"{measurement}%")
 
         # Dichiarazione payload
         payload = {"sensor":event["sensor"], "measurement":measurement}
