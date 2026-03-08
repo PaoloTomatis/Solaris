@@ -71,7 +71,7 @@ def getHandler(url: str, name: str, token = None) :
 def postHandler(url: str, payload: dict, name: str, token = None):
     # Controllo wifi
     if not deviceState["utils"]["wifi"].isconnected():
-        print(f"Get request error: {name} wifi not connected\n")
+        print(f"Post request error: {name} wifi not connected\n")
         return None
 
     print(f"Post request: {name}...")
@@ -113,6 +113,54 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         return resData["data"]
     except Exception as e:
         print(f"Post request error: {name}", e, "\n")
+        return None
+
+# Funzione gestione richieste patch
+def patchHandler(url: str, payload: dict, name: str, token = None):
+    # Controllo wifi
+    if not deviceState["utils"]["wifi"].isconnected():
+        print(f"Patch request error: {name} wifi not connected\n")
+        return None
+
+    print(f"Patch request: {name}...")
+
+    # Controllo token
+    if token:
+        # Dichiarazione headers
+        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}", "user-agent":"esp32 - Solaris Vega"}
+    else:
+        # Dichiarazione headers
+        headers = {"Content-Type": "application/json", "user-agent":"esp32 - Solaris Vega"}
+
+    # Dichiarazione dati risposta
+    resData = None
+    
+    # Gestione errori
+    try:        
+        # Effettuazione richiesta
+        response = urequests.patch(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers
+        )
+        
+        # Controllo richiesta
+        if response.text:
+            resData = json.loads(response.text)
+            if response.status_code != 200:
+                raise Exception(resData["message"])
+        else:
+            raise Exception()
+        
+        # Chiusura richiesta
+        response.close()
+
+        print(f"Patch request success: {name}\n")
+        
+        # Ritorno dati
+        return resData["data"]
+    except Exception as e:
+        print(f"Patch request error: {name}", e, "\n")
         return None
 
 # Funzione invio avvisi
@@ -507,6 +555,32 @@ def dhtMeasure():
 
     return None, None
 
+# Funzione misurazione sensorIn
+def sensorInMeasure():
+    # Misurazione normale
+    raw = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
+
+    # Controllo calibrazione
+    if "sensorHumIMin" in deviceState["settings"] and "sensorHumIMax" in deviceState["settings"]:
+        dry = deviceState["settings"]["sensorHumIMin"]
+        wet = deviceState["settings"]["sensorHumIMax"]
+        return (dry - raw) / (dry - wet) * 100
+    else:
+        return raw
+
+# Funzione misurazione sensorLum
+def sensorLumMeasure():
+    # Misurazione normale
+    raw = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+
+    # Controllo calibrazione
+    if "sensorLumMin" in deviceState["settings"] and "sensorLumMax" in deviceState["settings"]:
+        dry = deviceState["settings"]["sensorLumMin"]
+        wet = deviceState["settings"]["sensorLumMax"]
+        return (dry - raw) / (dry - wet) * 100
+    else:
+        return raw
+
 # Funzione calcolo misurazioni
 def measure(sensor, n=10, delay_ms=10):
     # Calcolo somma letture
@@ -615,8 +689,8 @@ def measurements():
     try:
         # Misurazioni
         humE, temp = dhtMeasure()
-        humI = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
-        lum = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+        humI = sensorInMeasure()
+        lum = sensorLumMeasure()
     except Exception as e:
         raise TransientError(e)
 
@@ -769,6 +843,8 @@ def socketHandler():
             irrigationEvent(currentTime, event)
         elif event["event"] == "v2/mode" and "mode" in event:
             settingsEvent(event)
+        elif event["event"] == "v2/calibration" and "sensor" in event:
+            calibrationEvent(event)
     
 
     # Invio stato
@@ -787,7 +863,7 @@ def irrigationAuto(date, humI1: float):
 # Funzione irrigazione manuale
 def irrigationConfig(date, irrigationTime: int):
     # Misurazione umidità
-    humI1 = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
+    humI1 = sensorInMeasure()
 
     # Irrigazione
     irrigation(humI1, date, irrigationTime, "config")
@@ -839,8 +915,8 @@ def pumpOff (humI1: float, date, irrigationTime: int, _type: str):
     
     # Misurazioni
     humE, temp = dhtMeasure()
-    humI2 = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
-    lum = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+    humI2 = sensorInMeasure()
+    lum = sensorLumMeasure()
 
     # Controllo misurazioni
     measurementsCheck(humI2, humE, lum, temp)
@@ -931,11 +1007,14 @@ def settingsEvent(event):
     # Controllo modalità
     if event["mode"] == "auto" and "info" in event:
         
-        print(f'New mode: {event["mode"].upper()}')
         print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
 
-        # Nuove impostazioni
-        newSettings = {"humIMax": event["info"]["humIMax"], "humIMin": event["info"]["humIMin"], "kInterval": event["info"]["kInterval"], "mode": event["mode"]}
+        # Creazione nuove impostazioni
+        newSettings = deviceState["settings"].copy()
+        newSettings["humIMax"] = event["info"]["humIMax"]
+        newSettings["humIMin"] = event["info"]["humIMin"]
+        newSettings["kInterval"] = event["info"]["kInterval"]
+        newSettings["mode"] = event["mode"]
                    
         # Sovrascrittura file
         writeFile("settings", newSettings)
@@ -943,10 +1022,9 @@ def settingsEvent(event):
 
     elif event["mode"] == "config" or event["mode"] == "safe":
 
-        print(f'New mode: {event["mode"].upper()}')
-
-        # Nuove impostazioni
-        newSettings = {"mode": event["mode"]}
+        # Creazione nuove impostazioni
+        newSettings = deviceState["settings"].copy()
+        newSettings["mode"] = event["mode"]
 
         # Sovrascrittura file
         writeFile("settings", newSettings)
@@ -954,6 +1032,40 @@ def settingsEvent(event):
         
     else:
         print("Invalid mode request\n")
+
+# Funzione impostazioni
+def calibrationEvent(event):
+    print(f'Calibration: {event["sensor"]}')
+
+    # Controllo sensore
+    if event["sensor"] == "sensorHumIMin" or event["sensor"] == "sensorHumIMax":
+        # Misurazione
+        measurement = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
+
+        # Dichiarazione payload
+        payload = {"sensor":event["sensor"], "measurement":measurement}
+
+        # Invio calibrazione
+        newSettings = patchHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration?authType=device', payload, "calibration", deviceState["token"])
+
+        # Aggiornamento impostazioni
+        deviceState["settings"] = newSettings
+
+    elif event["sensor"] == "sensorLumMin" or event["sensor"] == "sensorLumMax":
+        # Misurazione
+        measurement = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+
+        # Dichiarazione payload
+        payload = {"sensor":event["sensor"], "measurement":measurement}
+
+        # Invio calibrazione
+        newSettings = patchHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration?authType=device', payload, "calibration", deviceState["token"])
+
+        # Aggiornamento impostazioni
+        deviceState["settings"] = newSettings
+
+    else:
+        print("Invalid sensor request\n")
 
 # ---
 
