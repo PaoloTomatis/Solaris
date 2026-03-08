@@ -396,11 +396,13 @@ function Dashboard() {
                         url={`/dashboard/${deviceId}/calibration`}
                         name="Calibrazione"
                         icon={CalibrationIcon}
+                        type={status ? 'normal' : 'disabled'}
                     />
                     <Info
                         url={`/dashboard/${deviceId}/controls`}
                         name="Controlli Manuali"
                         icon={ControlsIcon}
+                        type={status ? 'normal' : 'disabled'}
                     />
                 </div>
             </div>

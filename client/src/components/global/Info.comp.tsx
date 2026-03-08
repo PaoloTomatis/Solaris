@@ -28,9 +28,11 @@ function Info({
                         ? 'cursor-pointer'
                         : 'cursor-not-allowed'
                 }`}
-                to={url}
+                to={type !== 'disabled' ? url : ''}
             >
-                <div className="hover:scale-105 flex items-center justify-between w-[90%] max-w-[400px] min-h-[8vh] transition-all">
+                <div
+                    className={`${type !== 'disabled' && 'hover:scale-105'} flex items-center justify-between w-[90%] max-w-[400px] min-h-[8vh] transition-all`}
+                >
                     <Icon
                         className={`fill-current w-[30px] aspect-square ${
                             type == 'error'

@@ -1,14 +1,15 @@
 // Importazione moduli
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/v2/Auth.context';
 import { useNotifications } from '../../context/global/Notifications.context';
+import { useWSConnection } from '../../context/v2/WSConnection.context';
 import BottomBar from '../../components/global/BottomBar.comp';
 import TopBar from '../../components/global/TopBar.comp';
 import Page from '../../components/global/Page.comp';
 import Loading from '../../components/global/Loading.comp';
 import Calibration from '../../components/v2/Calibration.comp';
-import { getData, getOneData } from '../../utils/v2/apiCrud.utils';
+import { getData } from '../../utils/v2/apiCrud.utils';
 import type { DeviceSettings } from '../../utils/v2/type.utils';
 // Importazione immagini
 import LuminosityIcon from '../../assets/icons/luminosity.svg?react';
@@ -28,6 +29,12 @@ function Calibrations() {
     const [loading, setLoading] = useState(false);
     // Stato tempo irrigazione
     const [settings, setSettings] = useState<DeviceSettings | null>(null);
+    // Stato dispositivo
+    const [status, setStatus] = useState<boolean>(false);
+    // Gestore connessione ws
+    const ws = useWSConnection();
+    // Stato timeout
+    const statusTimeout = useRef<NodeJS.Timeout | null>(null);
     // Lista sensori 1
     const sensors1: {
         name: string;
@@ -77,11 +84,6 @@ function Calibrations() {
                         `devices-settings/${deviceId}`,
                         setSettings,
                     );
-                    await getOneData(
-                        accessToken,
-                        `devices/${deviceId}`,
-                        setSettings,
-                    );
                 }
             } catch (error: any) {
                 setError(error.message);
@@ -91,7 +93,53 @@ function Calibrations() {
         };
 
         loadData();
+
+        // Ritorno
+        return () => {
+            if (statusTimeout.current) {
+                clearTimeout(statusTimeout.current);
+            }
+        };
     }, []);
+
+    // Controllo ws
+    useEffect(() => {
+        if (!ws) return;
+
+        // Lista funzioni rimozione iscrizione
+        const unsubscribes: (() => void)[] = [];
+
+        // Controllo id dispositivo
+        if (deviceId) {
+            // Iscrizione evento stato
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'status', () => {
+                    // Impostazione dati
+                    setStatus(true);
+
+                    // Reset timeout precedente
+                    if (statusTimeout.current) {
+                        clearTimeout(statusTimeout.current);
+                    }
+
+                    // Impostazione timeout
+                    statusTimeout.current = setTimeout(() => {
+                        setStatus(false);
+                    }, 30000);
+                }),
+            );
+
+            // Iscrizione evento stato
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'error', (eventData: any) => {
+                    // Impostazione errore
+                    setError(eventData.message);
+                }),
+            );
+        }
+
+        return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+    }, [ws, deviceId]);
 
     // Controllo errore
     useEffect(() => {
@@ -131,6 +179,7 @@ function Calibrations() {
                                     }
                                     rules={sensor.rules}
                                     key={idx}
+                                    type={status ? 'normal' : 'disabled'}
                                 />
                             );
                         })}
@@ -155,6 +204,7 @@ function Calibrations() {
                                     }
                                     rules={sensor.rules}
                                     key={idx}
+                                    type={status ? 'normal' : 'disabled'}
                                 />
                             );
                         })}
