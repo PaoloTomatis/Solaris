@@ -78,6 +78,43 @@ function Controls() {
 
         // Controllo id dispositivo
         if (deviceId) {
+            // Iscrizione evento notifiche
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'notifications', (eventData: any) => {
+                    // Invio notifica
+                    notify(
+                        eventData?.notification?.title,
+                        eventData?.notification?.description,
+                        eventData?.notification?.type,
+                        7,
+                    );
+                }),
+            );
+
+            // Iscrizione evento irrigazioni
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'irrigations', (eventData: any) => {
+                    // Invio notifica
+                    notify(
+                        `IRRIGAZIONE ${eventData?.irrigation?.type == 'auto' ? 'AUTOMATICA' : 'MANUALE'}`,
+                        `Intervallo: ${eventData?.irrigation?.interval}sec | Umidità Interna: ${eventData?.irrigation?.humIBefore?.toFixed(1)}% --> ${eventData?.irrigation?.humIAfter.toFixed(1)}% | Luminosità: ${eventData?.irrigation?.lum?.toFixed(1)}% | Umidità Esterna: ${eventData?.irrigation?.humE}% | Temperatura: ${eventData?.irrigation?.temp}°C`,
+                        'success',
+                    );
+                }),
+            );
+
+            // Iscrizione evento misurazioni
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'measurements', (eventData: any) => {
+                    // Invio notifica
+                    notify(
+                        'MISURAZIONE',
+                        `Umidità Interna: ${eventData?.measurement?.humI?.toFixed(1)}% | Luminosità: ${eventData?.measurement?.lum?.toFixed(1)}% | Umidità Esterna: ${eventData?.measurement?.humE}% | Temperatura: ${eventData?.measurement?.temp}°C`,
+                        'success',
+                    );
+                }),
+            );
+
             // Iscrizione evento stato
             unsubscribes.push(
                 ws.subscribe(deviceId, 'status', () => {
@@ -96,7 +133,7 @@ function Controls() {
                 }),
             );
 
-            // Iscrizione evento stato
+            // Iscrizione evento errore
             unsubscribes.push(
                 ws.subscribe(deviceId, 'error', (eventData: any) => {
                     // Impostazione errore
@@ -120,6 +157,59 @@ function Controls() {
         return <Loading />;
     }
 
+    // Controllo stato
+    if (!status) {
+        return (
+            <Page className="justify-center">
+                {/* Titolo */}
+                <h1 className="text-primary-text text-medium font-bold leading-1">
+                    DISPOSITIVO NON CONNESSO
+                </h1>
+                {/* Descrizione */}
+                <p className="text-secondary-text text-small mt-3 w-[95%] max-w-[500px] text-center">
+                    Il dispositivo non è attualmente disponibile e non può
+                    ricevere dei comandi, prova a resettarlo o riprova più tardi
+                </p>
+                {/* Pulsante */}
+                <Button
+                    link={`/dashboard/${deviceId}`}
+                    className="mt-[20px] bg-primary max-w-max"
+                >
+                    Torna alla Dashboard
+                </Button>
+                {/* Barra inferiore */}
+                <BottomBar />
+            </Page>
+        );
+    }
+
+    // Controllo impostazioni
+    if (settings?.mode !== 'config') {
+        return (
+            <Page className="justify-center">
+                {/* Titolo */}
+                <h1 className="text-primary-text text-medium font-bold leading-1">
+                    DISPOSITIVO non CONTROLLABILE
+                </h1>
+                {/* Descrizione */}
+                <p className="text-secondary-text text-small mt-3 w-[95%] max-w-[500px] text-center">
+                    Il dispositivo non è in modalità configurazione e questo non
+                    gli permette di ricevere comandi, prova a cambiare
+                    impostazioni e riprova più tardi
+                </p>
+                {/* Pulsante */}
+                <Button
+                    link={`/dashboard/${deviceId}/settings`}
+                    className="mt-[20px] bg-primary max-w-max"
+                >
+                    Aggiorna le Impostazioni
+                </Button>
+                {/* Barra inferiore */}
+                <BottomBar />
+            </Page>
+        );
+    }
+
     return (
         // Pagina
         <Page className="pt-[15vh] gap-5">
@@ -138,39 +228,28 @@ function Controls() {
                         Variazione Umidità:
                     </InputCont>
                     <Button
-                        type={status ? 'info' : 'error'}
-                        onClick={
-                            status
-                                ? async () => {
-                                      // Gestione errori
-                                      try {
-                                          // Controllo token
-                                          if (accessToken) {
-                                              await postData(
-                                                  'irrigations/execute',
-                                                  'api',
-                                                  accessToken,
-                                                  {
-                                                      humI: irrigationInput,
-                                                      deviceId,
-                                                  },
-                                              );
-                                          }
-                                      } catch (error: any) {
-                                          setError(error.message);
-                                      } finally {
-                                          setLoading(false);
-                                      }
-                                  }
-                                : () => {
-                                      notify(
-                                          'DISPOSITIVO INATTIVO',
-                                          'Il dispositivo è al momento irrangiungibile e non può ricevere comandi',
-                                          'error',
-                                      );
-                                  }
-                        }
-                        className="mt-[10px] max-w-max"
+                        onClick={async () => {
+                            // Gestione errori
+                            try {
+                                // Controllo token
+                                if (accessToken) {
+                                    await postData(
+                                        'irrigations/execute',
+                                        'api',
+                                        accessToken,
+                                        {
+                                            humI: irrigationInput,
+                                            deviceId,
+                                        },
+                                    );
+                                }
+                            } catch (error: any) {
+                                setError(error.message);
+                            } finally {
+                                setLoading(false);
+                            }
+                        }}
+                        className="mt-[10px] bg-primary max-w-max"
                     >
                         Avvia Irrigazione
                     </Button>
@@ -185,39 +264,28 @@ function Controls() {
                         Tempo Irrigazione:
                     </InputCont>
                     <Button
-                        type={status ? 'info' : 'error'}
-                        onClick={
-                            status
-                                ? async () => {
-                                      // Gestione errori
-                                      try {
-                                          // Controllo token
-                                          if (accessToken) {
-                                              await postData(
-                                                  'irrigations/execute',
-                                                  'api',
-                                                  accessToken,
-                                                  {
-                                                      interval: irrigationInput,
-                                                      deviceId,
-                                                  },
-                                              );
-                                          }
-                                      } catch (error: any) {
-                                          setError(error.message);
-                                      } finally {
-                                          setLoading(false);
-                                      }
-                                  }
-                                : () => {
-                                      notify(
-                                          'DISPOSITIVO INATTIVO',
-                                          'Il dispositivo è al momento irrangiungibile e non può ricevere comandi',
-                                          'error',
-                                      );
-                                  }
-                        }
-                        className="mt-[10px] max-w-max"
+                        onClick={async () => {
+                            // Gestione errori
+                            try {
+                                // Controllo token
+                                if (accessToken) {
+                                    await postData(
+                                        'irrigations/execute',
+                                        'api',
+                                        accessToken,
+                                        {
+                                            interval: irrigationInput,
+                                            deviceId,
+                                        },
+                                    );
+                                }
+                            } catch (error: any) {
+                                setError(error.message);
+                            } finally {
+                                setLoading(false);
+                            }
+                        }}
+                        className="mt-[10px] bg-primary max-w-max"
                     >
                         Avvia Irrigazione
                     </Button>
