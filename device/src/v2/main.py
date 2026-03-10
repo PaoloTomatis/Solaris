@@ -826,6 +826,9 @@ def wsRecv(sock, timeout=2):
         # Nessun messaggio o errore di timeout
         if "ETIMEDOUT" in str(e) or "timeout" in str(e):
             return None
+        if "ENOTCONN" in str(e) or "ECONNRESET" in str(e):
+            deviceState["utils"]["sock"] = None
+            return None
         else:
             raise TransientError(e)
             return None
@@ -1007,7 +1010,7 @@ def settingsEvent(event):
     print(f'New mode: {event["mode"].upper()}')
 
     # Controllo modalità
-    if event["mode"] == "auto" and "info" in event:
+    if (event["mode"] == "auto" or event["mode"] == "config") and "info" in event:
         
         print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
 

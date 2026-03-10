@@ -55,12 +55,16 @@ function filterIntervalData(
 }
 
 // Funzione calcolo umidità
-function algorithmHumX(raw: IrrigationsType[], dataIndex: 0 | 1): number {
+function algorithmHumX(
+    raw: IrrigationsType[],
+    dataIndex: 0 | 1,
+    check = true,
+): number {
     // Filtrazione dati
     const dataDB = filterHumData(raw);
 
     // Controllo dati
-    if (!dataDB || dataDB?.length < 10)
+    if (check && (!dataDB || dataDB?.length < 10))
         throw new Error('Irrigations data are less than 10');
 
     // Dichiarazione set dati
@@ -92,12 +96,12 @@ function algorithmHumX(raw: IrrigationsType[], dataIndex: 0 | 1): number {
 }
 
 // Funzione calcolo intervallo
-function algorithmInterval(raw: IrrigationsType[]): number {
+function algorithmInterval(raw: IrrigationsType[], check = true): number {
     // Filtrazione dati
     const dataDB = filterIntervalData(raw);
 
     // Controllo dati
-    if (!dataDB || dataDB?.length < 10)
+    if (check && (!dataDB || dataDB?.length < 10))
         throw new Error('Irrigations data are less than 10');
 
     // Dichiarazione media

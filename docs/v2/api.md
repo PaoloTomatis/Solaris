@@ -100,7 +100,7 @@
 
     - **_POST_ /irrigations/execute**:
         - Autore --> user
-        - Body --> `{ interval, deviceId }`
+        - Body --> `{ interval, humI, deviceId }`
         - Output --> `null`
         - Note --> il dispositivo deve essere posseduto dall'utente e deve essere in modalità configurazione
         - Autenticazione --> ✔️

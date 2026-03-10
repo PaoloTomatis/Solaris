@@ -4,13 +4,14 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/v2/Auth.context';
 import { useNotifications } from '../../context/global/Notifications.context';
 import { useWSConnection } from '../../context/v2/WSConnection.context';
+import { getData } from '../../utils/v2/apiCrud.utils';
+import type { DeviceSettings } from '../../utils/v2/type.utils';
 import BottomBar from '../../components/global/BottomBar.comp';
 import TopBar from '../../components/global/TopBar.comp';
 import Page from '../../components/global/Page.comp';
 import Loading from '../../components/global/Loading.comp';
 import Calibration from '../../components/v2/Calibration.comp';
-import { getData } from '../../utils/v2/apiCrud.utils';
-import type { DeviceSettings } from '../../utils/v2/type.utils';
+import Button from '../../components/global/Button.comp';
 // Importazione immagini
 import LuminosityIcon from '../../assets/icons/luminosity.svg?react';
 import HumidityIIcon from '../../assets/icons/humidityI.svg?react';
@@ -35,6 +36,7 @@ function Calibrations() {
     const ws = useWSConnection();
     // Stato timeout
     const statusTimeout = useRef<NodeJS.Timeout | null>(null);
+
     // Lista sensori 1
     const sensors1: {
         name: string;
@@ -111,6 +113,43 @@ function Calibrations() {
 
         // Controllo id dispositivo
         if (deviceId) {
+            // Iscrizione evento notifiche
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'notifications', (eventData: any) => {
+                    // Invio notifica
+                    notify(
+                        eventData?.notification?.title,
+                        eventData?.notification?.description,
+                        eventData?.notification?.type,
+                        7,
+                    );
+                }),
+            );
+
+            // Iscrizione evento irrigazioni
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'irrigations', (eventData: any) => {
+                    // Invio notifica
+                    notify(
+                        `IRRIGAZIONE ${eventData?.irrigation?.type == 'auto' ? 'AUTOMATICA' : 'MANUALE'}`,
+                        `Intervallo: ${eventData?.irrigation?.interval}sec | Umidità Interna: ${eventData?.irrigation?.humIBefore?.toFixed(1)}% --> ${eventData?.irrigation?.humIAfter.toFixed(1)}% | Luminosità: ${eventData?.irrigation?.lum?.toFixed(1)}% | Umidità Esterna: ${eventData?.irrigation?.humE}% | Temperatura: ${eventData?.irrigation?.temp}°C`,
+                        'success',
+                    );
+                }),
+            );
+
+            // Iscrizione evento misurazioni
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'measurements', (eventData: any) => {
+                    // Invio notifica
+                    notify(
+                        'MISURAZIONE',
+                        `Umidità Interna: ${eventData?.measurement?.humI?.toFixed(1)}% | Luminosità: ${eventData?.measurement?.lum?.toFixed(1)}% | Umidità Esterna: ${eventData?.measurement?.humE}% | Temperatura: ${eventData?.measurement?.temp}°C`,
+                        'success',
+                    );
+                }),
+            );
+
             // Iscrizione evento stato
             unsubscribes.push(
                 ws.subscribe(deviceId, 'status', () => {
@@ -148,6 +187,32 @@ function Calibrations() {
         }
     }, [error]);
 
+    // Controllo stato
+    if (!status) {
+        return (
+            <Page className="justify-center">
+                {/* Titolo */}
+                <h1 className="text-primary-text text-medium font-bold leading-1">
+                    DISPOSITIVO NON CONNESSO
+                </h1>
+                {/* Descrizione */}
+                <p className="text-secondary-text text-small mt-3 w-[95%] max-w-[500px] text-center">
+                    Il dispositivo non è attualmente disponibile e non può
+                    ricevere dei comandi, prova a resettarlo o riprova più tardi
+                </p>
+                {/* Pulsante */}
+                <Button
+                    link={`/dashboard/${deviceId}`}
+                    className="mt-[20px] bg-primary max-w-max"
+                >
+                    Torna alla Dashboard
+                </Button>
+                {/* Barra inferiore */}
+                <BottomBar />
+            </Page>
+        );
+    }
+
     // Controllo caricamento
     if (loading) {
         return <Loading />;
@@ -179,7 +244,6 @@ function Calibrations() {
                                     }
                                     rules={sensor.rules}
                                     key={idx}
-                                    type={status ? 'normal' : 'disabled'}
                                 />
                             );
                         })}
@@ -204,7 +268,6 @@ function Calibrations() {
                                     }
                                     rules={sensor.rules}
                                     key={idx}
-                                    type={status ? 'normal' : 'disabled'}
                                 />
                             );
                         })}

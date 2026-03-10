@@ -4,6 +4,7 @@ const errorsList = [
     { message: 'Irrigations data are wrong', code: 400 },
     { message: 'The device must be owned by a user', code: 400 },
     { message: "The device mustn't be in automatic or safe mode", code: 400 },
+    { message: "KInterval hasn't been computed yet", code: 400 },
     { message: 'Invalid authentication', code: 401 },
     { message: 'Invalid email or credentials', code: 401 },
     {

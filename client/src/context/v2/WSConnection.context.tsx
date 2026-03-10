@@ -4,6 +4,7 @@ import {
     useContext,
     useEffect,
     useRef,
+    useState,
     type ReactNode,
 } from 'react';
 import { useAuth } from './Auth.context';
@@ -45,21 +46,23 @@ export function WSConnectionProvider({ children }: { children: ReactNode }) {
     // Riferimento socket
     const socket = useRef<WebSocket | null>(null);
     // Stato connessione
-    const status = useRef<'open' | 'closed' | 'errored' | 'connecting'>(
-        'closed',
-    );
+    const [status, setStatus] = useState<
+        'open' | 'closed' | 'errored' | 'connecting'
+    >('closed');
     // Riferimento listener
     const listeners = useRef<Listener[]>([]);
     // Riferimento tentativi
-    const tentatives = useRef<number>(0);
+    const tentativesTimeout = useRef<NodeJS.Timeout | null>(null);
+    // Stato riconnesione
+    const [reconnect, setReconnect] = useState<boolean>(false);
 
     // Funzione connessione ws
     function connectWS() {
         // Impostazione stato
-        status.current = 'connecting';
+        setStatus('connecting');
 
         // Controllo connessione
-        if (socket.current) {
+        if (socket.current && socket.current.readyState === WebSocket.OPEN) {
             // Chiusura connessione
             socket.current.close();
         }
@@ -72,7 +75,7 @@ export function WSConnectionProvider({ children }: { children: ReactNode }) {
         // Gestione apertura
         socket.current.onopen = () => {
             // Impostazione stato
-            status.current = 'open';
+            setStatus('open');
         };
 
         // Gestione errori
@@ -82,8 +85,9 @@ export function WSConnectionProvider({ children }: { children: ReactNode }) {
                 'ERRORE CONNESSIONE WS',
                 'Errore comunicazione o connessione a websocket!',
             );
+
             // Impostazione stato
-            status.current = 'errored';
+            setStatus('errored');
         };
 
         // Funzione chiamata callback
@@ -145,7 +149,16 @@ export function WSConnectionProvider({ children }: { children: ReactNode }) {
         // Gestione chiusura
         socket.current.onclose = () => {
             // Impostazione stato
-            status.current = 'closed';
+            setStatus('closed');
+
+            // Controllo timeout connessione
+            if (!tentativesTimeout.current) {
+                // Timeout tentativi
+                tentativesTimeout.current = setTimeout(() => {
+                    setReconnect(true);
+                    tentativesTimeout.current = null;
+                }, 15000);
+            }
         };
     }
 
@@ -190,30 +203,43 @@ export function WSConnectionProvider({ children }: { children: ReactNode }) {
 
     // Controllo stato
     useEffect(() => {
-        if (
-            (status.current == 'closed' || status.current == 'errored') &&
-            tentatives.current <= 5 &&
-            accessToken
-        ) {
+        if (reconnect == true && accessToken) {
             // Connessione ws
             connectWS();
-            // Aggiornamento tentativi
-            tentatives.current += 1;
-        }
 
+            // Impostazione riconnessione
+            setReconnect(false);
+        }
+    }, [accessToken, reconnect]);
+
+    // Caricamento componente
+    useEffect(() => {
         return () => {
             // Controllo connessione
             if (socket.current) {
                 // Chiusura connessione
                 socket.current.close();
+
+                // Controllo timeout
+                if (tentativesTimeout.current) {
+                    // Reset timeout
+                    clearTimeout(tentativesTimeout.current);
+                }
             }
         };
-    }, [status, accessToken]);
+    }, []);
+
+    // Controllo token
+    useEffect(() => {
+        // Controllo token
+        if (accessToken) {
+            // Connessione ws
+            connectWS();
+        }
+    }, [accessToken]);
 
     return (
-        <WSConnectionContext.Provider
-            value={{ status: status.current, subscribe }}
-        >
+        <WSConnectionContext.Provider value={{ status, subscribe }}>
             {children}
         </WSConnectionContext.Provider>
     );
