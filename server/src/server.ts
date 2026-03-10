@@ -222,13 +222,7 @@ app.use('/v2/api', jwtMiddlewareRestV2, apiRouterV2);
 
 // Rotta 404
 app.use((req: Request, res: Response) => {
-    return resHandlerV1(
-        res,
-        404,
-        null,
-        'Pagina non trovata o disponibile!',
-        false,
-    );
+    return resHandlerV1(res, 404, null, 'Page not found or unavailable', false);
 });
 
 // Middleware errori
