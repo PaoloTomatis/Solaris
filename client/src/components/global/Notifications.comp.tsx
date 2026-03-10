@@ -1,5 +1,3 @@
-// Importazione moduli
-import React from 'react';
 // Importazione immagini
 import CloseIcon from '../../assets/icons/close.svg?react';
 
@@ -13,7 +11,7 @@ function Notifications({
     tit: string;
     desc: string;
     type: 'info' | 'error' | 'warning' | 'success';
-    setVisible: React.Dispatch<React.SetStateAction<boolean>>;
+    setVisible: (value: boolean) => void;
 }) {
     return (
         // Contenitore principale

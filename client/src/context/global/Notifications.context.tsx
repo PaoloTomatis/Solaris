@@ -72,7 +72,12 @@ function NotificationsProvider({ children }: { children: ReactNode }) {
                 <Notifications
                     tit={notifications?.title || ''}
                     desc={notifications?.desc || ''}
-                    setVisible={setShow}
+                    setVisible={(value: boolean) => {
+                        setShow(value);
+                        if (!value) {
+                            setNotifications(null);
+                        }
+                    }}
                     type={notifications?.type || 'info'}
                 />
             ) : (
