@@ -10,7 +10,11 @@ import type { UserType, DeviceType } from '../types/types.js';
 import devicesRepository from '../repositories/devices.repository.js';
 import irrigationsRepository from '../repositories/irrigations.repository.js';
 import dataParser from '../utils/dataParser.js';
-import { algorithmUpdateKInterval } from '../utils/irrigationAlgorithm.js';
+import {
+    algorithmUpdateKInterval,
+    algorithmHumX,
+    algorithmInterval,
+} from '../utils/irrigationAlgorithm.js';
 import devicesSettingsRepository from '../repositories/devicesSettings.repository.js';
 import type { DevicesSettingsType } from '../models/DeviceSettings.model.js';
 
@@ -67,11 +71,41 @@ async function postIrrigationsService(
     // Controllo impostazioni
     if (!settings) throw new Error('Device settings not found');
 
+    // Controllo tipo, humIMax, humIMin e kInterval
+    if (
+        irrigation.type == 'config' &&
+        !settings.humIMin &&
+        !settings.humIMax &&
+        !settings.kInterval
+    ) {
+        // Richiesta irrigazioni database
+        const irrigations = await irrigationsRepository.findMany({
+            deviceId: device.id as string,
+            limit: 20,
+            sort: [{ field: 'irrigatedAt', order: 'desc' }],
+        });
+
+        // Calcolo algoritmo
+        const humIMin = algorithmHumX(irrigations, 0, false);
+        const humIMax = algorithmHumX(irrigations, 1, false);
+        const kInterval = algorithmInterval(irrigations, false);
+
+        // Modifica impostazioni dispositivo
+        const deviceSettings = await devicesSettingsRepository.updateOne(
+            { ...payload, humIMin, humIMax, kInterval },
+            device.id,
+        );
+
+        // Controllo impostazioni dispositivo
+        if (!deviceSettings)
+            throw new Error('Update of device settings failed');
+    }
+
     // Inizializzazione nuove impostazioni
     let newSettings: DevicesSettingsType | null = null;
 
-    // Controllo tipo, humIMax e kInterval
-    if (payload.type == 'auto' && settings.humIMax && settings.kInterval) {
+    // Controllo humIMax e kInterval
+    if (settings.humIMax && settings.kInterval) {
         // Calcolo impostazioni
         const newKInterval = algorithmUpdateKInterval(
             payload.humIBefore,
@@ -131,8 +165,22 @@ async function postIrrigationsExecuteService(
     if (settings.mode == 'auto' || settings.mode == 'safe')
         throw new Error("The device mustn't be in automatic or safe mode");
 
-    // Ritorno nullo
-    return null;
+    // Dichiarazione intervallo
+    let interval = payload.interval;
+
+    // Controllo humI e kInterval
+    if (!settings.kInterval && payload.humI)
+        throw new Error("KInterval hasn't been computed yet");
+
+    // Controllo humI
+    if (payload.humI) {
+        interval = Number(
+            (payload.humI * (settings?.kInterval as number)).toFixed(0),
+        );
+    }
+
+    // Ritorno intervallo
+    return interval;
 }
 
 // Servizio delete /irrigations

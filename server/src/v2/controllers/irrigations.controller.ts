@@ -58,7 +58,7 @@ async function postIrrigationsController(
             // Invio impostazioni ws
             emitToRoom(`DEVICE-${req.device.id}`, {
                 event: 'v2/mode',
-                mode: 'auto',
+                mode: newSettings.mode,
                 info: {
                     humIMin: newSettings.humIMin,
                     humIMax: newSettings.humIMax,
@@ -92,12 +92,15 @@ async function postIrrigationsExecuteController(
         const parsedBody = PostIrrigationsExecuteBodySchema.parse(req.body);
 
         // Chiamata servizio
-        await postIrrigationsExecuteService(parsedBody, req.user);
+        const interval = await postIrrigationsExecuteService(
+            parsedBody,
+            req.user,
+        );
 
         // Invio irrigazione ws
         emitToRoom(`DEVICE-${parsedBody.deviceId}`, {
             event: 'v2/irrigation',
-            interval: parsedBody.interval,
+            interval,
         });
 
         // Risposta

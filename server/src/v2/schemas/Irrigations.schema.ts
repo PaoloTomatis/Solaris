@@ -36,12 +36,23 @@ const GetIrrigationsQuerySchema = z
     });
 
 // Schema body post /irrigations/execute
-const PostIrrigationsExecuteBodySchema = z.object({
-    deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
-        error: 'Invalid deviceId',
-    }),
-    interval: z.number().int().positive(),
-});
+const PostIrrigationsExecuteBodySchema = z
+    .object({
+        deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
+            error: 'Invalid deviceId',
+        }),
+        interval: z.number().int().positive().nullable().optional(),
+        humI: z.number().min(1).max(100).nullable().optional(),
+    })
+    .refine(
+        (val) => {
+            return !(val.interval && val.humI) && (val.interval || val.humI);
+        },
+        {
+            error: 'Invalid interval or humI',
+            path: ['humI', 'interval'],
+        },
+    );
 
 // Schema body post /irrigations
 const PostIrrigationsBodySchema = z.object({
