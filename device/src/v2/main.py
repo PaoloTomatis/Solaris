@@ -1010,7 +1010,7 @@ def settingsEvent(event):
     print(f'New mode: {event["mode"].upper()}')
 
     # Controllo modalità
-    if event["mode"] == "auto" and "info" in event:
+    if (event["mode"] == "auto" or event["mode"] == "config") and "info" in event:
         
         print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
 
