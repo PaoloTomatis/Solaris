@@ -826,6 +826,9 @@ def wsRecv(sock, timeout=2):
         # Nessun messaggio o errore di timeout
         if "ETIMEDOUT" in str(e) or "timeout" in str(e):
             return None
+        if "ENOTCONN" in str(e) or "ECONNRESET" in str(e):
+            deviceState["utils"]["sock"] = None
+            return None
         else:
             raise TransientError(e)
             return None
