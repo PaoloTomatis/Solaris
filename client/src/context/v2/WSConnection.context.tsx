@@ -30,6 +30,7 @@ interface Listener {
         irrigations: ((eventData: any) => void)[];
         notifications: ((eventData: any) => void)[];
         status: ((eventData: any) => void)[];
+        calibration: ((eventData: any) => void)[];
         error: ((eventData: any) => void)[];
     };
 }
@@ -140,6 +141,10 @@ export function WSConnectionProvider({ children }: { children: ReactNode }) {
             } else if (eventData.event == 'v2/status') {
                 // Chiamata callbacks
                 eventCallbacks(eventData.deviceId, 'status', eventData);
+            } else if (eventData.event == 'v2/calibration') {
+                console.log('RICEZIONE EVENTO CALIBRAZIONE');
+                // Chiamata callbacks
+                eventCallbacks(eventData.deviceId, 'calibration', eventData);
             } else if (eventData.event == 'error') {
                 // Chiamata callbacks
                 eventCallbacks(eventData.deviceId, 'error', eventData);
@@ -182,6 +187,7 @@ export function WSConnectionProvider({ children }: { children: ReactNode }) {
                     measurements: [],
                     irrigations: [],
                     notifications: [],
+                    calibration: [],
                     status: [],
                     error: [],
                 },
