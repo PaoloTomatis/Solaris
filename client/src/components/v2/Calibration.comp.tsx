@@ -44,7 +44,7 @@ function Calibration({
                                 // Controllo token
                                 if (accessToken) {
                                     await postData(
-                                        `devices-settings/${deviceId}/calibration`,
+                                        `devices-settings/${deviceId}/calibration/execute`,
                                         'api',
                                         accessToken,
                                         { sensor: code },

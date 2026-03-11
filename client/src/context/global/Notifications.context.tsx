@@ -60,7 +60,7 @@ function NotificationsProvider({ children }: { children: ReactNode }) {
         title: string,
         desc?: string,
         type?: 'info' | 'error' | 'warning' | 'success',
-        maxDuration?: number,
+        maxDuration = 5,
     ) {
         setNotifications({ title, desc, type, maxDuration });
         setShow(true);

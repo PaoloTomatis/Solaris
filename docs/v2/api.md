@@ -232,7 +232,7 @@
         - Autenticazione --> ✔️
         - Protocollo --> http
 
-    - **_POST_ /devices-settings/:deviceId/calibration**:
+    - **_POST_ /devices-settings/:deviceId/calibration/execute**:
         - Autore --> user
         - Params --> `:deviceId`
         - Body --> `{ sensor }`
@@ -241,7 +241,7 @@
         - Autenticazione --> ✔️
         - Protocollo --> http
 
-    - **_PATCH_ /devices-settings/calibration**:
+    - **_POST_ /devices-settings/calibration/data**:
         - Autore --> device
         - Body --> `{ sensor, measurement }`
         - Output --> `null`
@@ -267,6 +267,13 @@
     - **OUTPUT v2/calibration**:
         - Ricevente --> device
         - Body --> `{ sensor }`
+        - Note --> inviato a seguito di una richiesta di calibrazione di un sensore del dispositivo (solo se attivo in quel momento)
+        - Autenticazione --> ✔️
+        - Protocollo --> ws
+
+    - **OUTPUT v2/calibration**:
+        - Ricevente --> user
+        - Body --> `{ sensor, measurement, deviceId }`
         - Note --> inviato a seguito di una richiesta di calibrazione di un sensore del dispositivo (solo se attivo in quel momento)
         - Autenticazione --> ✔️
         - Protocollo --> ws

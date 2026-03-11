@@ -6,7 +6,6 @@
 - Stack tecnologico: React (frontend), Node.js + Express (backend), MongoDB (database)
 - Autenticazione: JWT
 - Versione iniziale: v1.0
-- Output previsto: tracker allenamenti e gestione dati utenti
 
 ## Obiettivi
 
@@ -76,6 +75,6 @@
     - **main** — versione stabile
     - **feature/** — sviluppo funzionalità
 - Testing:
-    - in fase di implementazione
+    - sviluppo futuro
 - Deploy:
     - in fase di implementazione

@@ -25,8 +25,8 @@ const PatchDevicesSettingsBodySchema = z
         },
     );
 
-// Schema body patch /device-settings/:deviceId
-const PatchCalibrationBodySchema = z.object({
+// Schema body post /device-settings/:deviceId/calibration/data
+const PostCalibrationDataBodySchema = z.object({
     sensor: z.enum([
         'sensorHumIMin',
         'sensorHumIMax',
@@ -36,8 +36,8 @@ const PatchCalibrationBodySchema = z.object({
     measurement: z.number().min(0).max(100),
 });
 
-// Schema body post /device-settings/:deviceId/calibration
-const PostCalibrationBodySchema = z.object({
+// Schema body post /device-settings/:deviceId/calibration/execute
+const PostCalibrationExecuteBodySchema = z.object({
     sensor: z.enum([
         'sensorHumIMin',
         'sensorHumIMax',
@@ -55,9 +55,9 @@ const PatchDevicesSettingsParamsSchema = GetDevicesSettingsParamsSchema;
 // Esportazione schemi
 export {
     GetDevicesSettingsParamsSchema,
-    PostCalibrationBodySchema,
+    PostCalibrationExecuteBodySchema,
     PostCalibrationParamsSchema,
     PatchDevicesSettingsBodySchema,
     PatchDevicesSettingsParamsSchema,
-    PatchCalibrationBodySchema,
+    PostCalibrationDataBodySchema,
 };

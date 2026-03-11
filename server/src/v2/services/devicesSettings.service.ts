@@ -3,10 +3,10 @@ import type { DeviceType, UserType } from '../types/types.js';
 import z from 'zod';
 import devicesSettingsRepository from '../repositories/devicesSettings.repository.js';
 import type {
-    PatchCalibrationBodySchema,
+    PostCalibrationDataBodySchema,
     PatchDevicesSettingsBodySchema,
     PatchDevicesSettingsParamsSchema,
-    PostCalibrationBodySchema,
+    PostCalibrationExecuteBodySchema,
     PostCalibrationParamsSchema,
 } from '../schemas/DevicesSettings.schema.js';
 import devicesRepository from '../repositories/devices.repository.js';
@@ -84,9 +84,9 @@ async function getMeSettingsService(device?: DeviceType) {
     return parsedDeviceSettings;
 }
 
-// Servizio post /device-settings/:deviceId/calibration
-async function postCalibrationService(
-    payload: z.infer<typeof PostCalibrationBodySchema>,
+// Servizio post /device-settings/:deviceId/calibration/execute
+async function postCalibrationExecuteService(
+    payload: z.infer<typeof PostCalibrationExecuteBodySchema>,
     { deviceId }: z.infer<typeof PostCalibrationParamsSchema>,
     user?: UserType,
 ) {
@@ -163,9 +163,9 @@ async function patchDevicesSettingsService(
     return parsedDeviceSettings;
 }
 
-// Servizio patch /device-settings/calibration
-async function patchCalibrationService(
-    payload: z.infer<typeof PatchCalibrationBodySchema>,
+// Servizio post /device-settings/:deviceId/calibration/data
+async function postCalibrationDataService(
+    payload: z.infer<typeof PostCalibrationDataBodySchema>,
     device?: DeviceType,
 ) {
     // Controllo dispositivo
@@ -204,7 +204,7 @@ async function patchCalibrationService(
 export {
     getDevicesSettingsService,
     getMeSettingsService,
-    postCalibrationService,
+    postCalibrationExecuteService,
     patchDevicesSettingsService,
-    patchCalibrationService,
+    postCalibrationDataService,
 };

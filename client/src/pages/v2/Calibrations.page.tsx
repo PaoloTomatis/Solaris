@@ -144,7 +144,7 @@ function Calibrations() {
                     // Invio notifica
                     notify(
                         'MISURAZIONE',
-                        `Umidità Interna: ${eventData?.measurement?.humI?.toFixed(1)}% | Luminosità: ${eventData?.measurement?.lum?.toFixed(1)}% | Umidità Esterna: ${eventData?.measurement?.humE}% | Temperatura: ${eventData?.measurement?.temp}°C`,
+                        `Umidità Interna: ${eventData?.measurements?.humI?.toFixed(1)}% | Luminosità: ${eventData?.measurements?.lum?.toFixed(1)}% | Umidità Esterna: ${eventData?.measurements?.humE}% | Temperatura: ${eventData?.measurements?.temp}°C`,
                         'success',
                     );
                 }),
@@ -168,7 +168,22 @@ function Calibrations() {
                 }),
             );
 
-            // Iscrizione evento stato
+            // Iscrizione evento calibrazione
+            unsubscribes.push(
+                ws.subscribe(deviceId, 'calibration', (eventData: any) => {
+                    // Impostazione impostazioni dispositivo
+                    setSettings((prev) => {
+                        return prev
+                            ? {
+                                  ...prev,
+                                  [eventData.sensor]: eventData.measurement,
+                              }
+                            : null;
+                    });
+                }),
+            );
+
+            // Iscrizione evento errore
             unsubscribes.push(
                 ws.subscribe(deviceId, 'error', (eventData: any) => {
                     // Impostazione errore

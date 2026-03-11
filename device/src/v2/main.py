@@ -114,55 +114,7 @@ def postHandler(url: str, payload: dict, name: str, token = None):
     except Exception as e:
         print(f"Post request error: {name}", e, "\n")
         return None
-
-# Funzione gestione richieste patch
-def patchHandler(url: str, payload: dict, name: str, token = None):
-    # Controllo wifi
-    if not deviceState["utils"]["wifi"].isconnected():
-        print(f"Patch request error: {name} wifi not connected\n")
-        return None
-
-    print(f"Patch request: {name}...")
-
-    # Controllo token
-    if token:
-        # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}", "user-agent":"esp32 - Solaris Vega"}
-    else:
-        # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "user-agent":"esp32 - Solaris Vega"}
-
-    # Dichiarazione dati risposta
-    resData = None
-    
-    # Gestione errori
-    try:        
-        # Effettuazione richiesta
-        response = urequests.patch(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers
-        )
-        
-        # Controllo richiesta
-        if response.text:
-            resData = json.loads(response.text)
-            if response.status_code != 200:
-                raise Exception(resData["message"])
-        else:
-            raise Exception()
-        
-        # Chiusura richiesta
-        response.close()
-
-        print(f"Patch request success: {name}\n")
-        
-        # Ritorno dati
-        return resData["data"]
-    except Exception as e:
-        print(f"Patch request error: {name}", e, "\n")
-        return None
-
+       
 # Funzione invio avvisi
 def sendNotifications (title: str, description: str, _type: str, loadingData=False):
     try:
@@ -1053,7 +1005,7 @@ def calibrationEvent(event):
         payload = {"sensor":event["sensor"], "measurement":measurement}
 
         # Invio calibrazione
-        newSettings = patchHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration?authType=device', payload, "calibration", deviceState["token"])
+        newSettings = postHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration/data?authType=device', payload, "calibration", deviceState["token"])
 
         # Aggiornamento impostazioni
         deviceState["settings"] = newSettings
@@ -1068,7 +1020,7 @@ def calibrationEvent(event):
         payload = {"sensor":event["sensor"], "measurement":measurement}
 
         # Invio calibrazione
-        newSettings = patchHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration?authType=device', payload, "calibration", deviceState["token"])
+        newSettings = postHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration/data?authType=device', payload, "calibration", deviceState["token"])
 
         # Aggiornamento impostazioni
         deviceState["settings"] = newSettings

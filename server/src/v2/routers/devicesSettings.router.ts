@@ -2,9 +2,9 @@
 import { Router } from 'express';
 import {
     getDevicesSettingsController,
-    patchCalibrationController,
+    postCalibrationDataController,
     patchDevicesSettingsController,
-    postCalibrationController,
+    postCalibrationExecuteController,
 } from '../controllers/devicesSettings.controller.js';
 
 // Dichiarazione router
@@ -13,8 +13,8 @@ const devicesSettingsRouter = Router();
 // Definizione rotte
 devicesSettingsRouter
     .get('/:deviceId', getDevicesSettingsController)
-    .post('/:deviceId/calibration', postCalibrationController)
-    .patch('/calibration', patchCalibrationController)
+    .post('/:deviceId/calibration/execute', postCalibrationExecuteController)
+    .post('/calibration/data', postCalibrationDataController)
     .patch('/:deviceId', patchDevicesSettingsController);
 
 // Esportazione router

@@ -5,14 +5,14 @@ import {
     getMeSettingsService,
     getDevicesSettingsService,
     patchDevicesSettingsService,
-    postCalibrationService,
-    patchCalibrationService,
+    postCalibrationExecuteService,
+    postCalibrationDataService,
 } from '../services/devicesSettings.service.js';
 import {
     GetDevicesSettingsParamsSchema,
-    PatchCalibrationBodySchema,
+    PostCalibrationDataBodySchema,
     PatchDevicesSettingsBodySchema,
-    PostCalibrationBodySchema,
+    PostCalibrationExecuteBodySchema,
     PostCalibrationParamsSchema,
 } from '../schemas/DevicesSettings.schema.js';
 import { PatchDevicesParamsSchema } from '../schemas/Devices.schema.js';
@@ -60,8 +60,8 @@ async function getDevicesSettingsController(
     }
 }
 
-// Controller post /device-settings/:deviceId/calibration
-async function postCalibrationController(
+// Controller post /device-settings/:deviceId/calibration/execute
+async function postCalibrationExecuteController(
     req: Request,
     res: Response,
     next: NextFunction,
@@ -69,13 +69,13 @@ async function postCalibrationController(
     // Gestione errori
     try {
         // Validazione body
-        const parsedBody = PostCalibrationBodySchema.parse(req.body);
+        const parsedBody = PostCalibrationExecuteBodySchema.parse(req.body);
 
         // Validazione parametri
         const parsedParams = PostCalibrationParamsSchema.parse(req.params);
 
         // Chiamata servizio
-        const payload = await postCalibrationService(
+        const payload = await postCalibrationExecuteService(
             parsedBody,
             parsedParams,
             req.user,
@@ -129,8 +129,8 @@ async function patchDevicesSettingsController(
     }
 }
 
-// Controller patch /device-settings/calibration
-async function patchCalibrationController(
+// Controller post /device-settings/:deviceId/calibration/data
+async function postCalibrationDataController(
     req: Request,
     res: Response,
     next: NextFunction,
@@ -138,10 +138,10 @@ async function patchCalibrationController(
     // Gestione errori
     try {
         // Validazione body
-        const parsedBody = PatchCalibrationBodySchema.parse(req.body);
+        const parsedBody = PostCalibrationDataBodySchema.parse(req.body);
 
         // Chiamata servizio
-        const deviceSettings = await patchCalibrationService(
+        const deviceSettings = await postCalibrationDataService(
             parsedBody,
             req.device,
         );
@@ -151,6 +151,14 @@ async function patchCalibrationController(
             event: 'v2/mode',
             mode: deviceSettings.mode,
             info: deviceSettings,
+        });
+
+        // Invio calibrazione ws
+        emitToRoom(`USER-${req.device.userId}`, {
+            event: 'v2/calibration',
+            sensor: parsedBody.sensor,
+            measurement: parsedBody.measurement,
+            deviceId: req.device.id,
         });
 
         // Risposta
@@ -164,7 +172,7 @@ async function patchCalibrationController(
 export {
     getMeSettingsController,
     getDevicesSettingsController,
-    postCalibrationController,
+    postCalibrationExecuteController,
     patchDevicesSettingsController,
-    patchCalibrationController,
+    postCalibrationDataController,
 };
