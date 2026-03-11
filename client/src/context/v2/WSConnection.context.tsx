@@ -142,7 +142,6 @@ export function WSConnectionProvider({ children }: { children: ReactNode }) {
                 // Chiamata callbacks
                 eventCallbacks(eventData.deviceId, 'status', eventData);
             } else if (eventData.event == 'v2/calibration') {
-                console.log('RICEZIONE EVENTO CALIBRAZIONE');
                 // Chiamata callbacks
                 eventCallbacks(eventData.deviceId, 'calibration', eventData);
             } else if (eventData.event == 'error') {

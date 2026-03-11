@@ -171,8 +171,6 @@ function Calibrations() {
             // Iscrizione evento calibrazione
             unsubscribes.push(
                 ws.subscribe(deviceId, 'calibration', (eventData: any) => {
-                    console.log('CALIBRAZIONE');
-                    console.log(eventData);
                     // Impostazione impostazioni dispositivo
                     setSettings((prev) => {
                         return prev
