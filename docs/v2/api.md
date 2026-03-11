@@ -271,6 +271,13 @@
         - Autenticazione --> ✔️
         - Protocollo --> ws
 
+    - **OUTPUT v2/calibration**:
+        - Ricevente --> user
+        - Body --> `{ sensor, measurement, deviceId }`
+        - Note --> inviato a seguito di una richiesta di calibrazione di un sensore del dispositivo (solo se attivo in quel momento)
+        - Autenticazione --> ✔️
+        - Protocollo --> ws
+
 - **Authentication**
     - **_POST_ /user-login**:
         - Autore --> user
