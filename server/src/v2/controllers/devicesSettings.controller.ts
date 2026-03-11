@@ -153,6 +153,14 @@ async function patchCalibrationController(
             info: deviceSettings,
         });
 
+        // Invio calibrazione ws
+        emitToRoom(`USER-${req.device.userId}`, {
+            event: 'v2/calibration',
+            sensor: parsedBody.sensor,
+            measurement: parsedBody.measurement,
+            deviceId: req.device.id,
+        });
+
         // Risposta
         resHandler(res, true, 200, deviceSettings);
     } catch (error) {
