@@ -124,14 +124,14 @@
 ## Sicurezza
 
 - Autenticazione dispositivo --> JWT
-- Criptografia comunicazioni --> in fase di implementazione
-- Protezione accesso fisico --> in fase di implementazione
-- Validazione firmware --> in fase di implementazione
+- Criptografia comunicazioni --> sviluppo futuro
+- Protezione accesso fisico --> sviluppo futuro
+- Validazione firmware --> sviluppo futuro
 
 ## Supporto e Manutenzione
 
 - Diagnostica remota --> ❌
 - Log dispositivo --> ✔️
 - Reset hardware --> pulsante
-- Calibrazione sensori --> in fase di implementazione
-- Intervalli manutenzione --> in fase di implementazione
+- Calibrazione sensori --> ✔️
+- Intervalli manutenzione --> sviluppo futuro

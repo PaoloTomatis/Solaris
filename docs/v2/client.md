@@ -158,7 +158,7 @@
 ## UI / UX
 
 - Responsive --> ❌ (fisso per mobile)
-- Accessibilità --> in fase di implementazione
+- Accessibilità --> sviluppo futuro
 - Feedback utente:
     - Loading states
     - Error messages
@@ -167,7 +167,7 @@
 
 ## Testing
 
-- Unit test --> in fase di implementazione
-- UI test --> in fase di implementazione
-- End-to-end --> in fase di implementazione
-- Coverage minimo --> in fase di implementazione
+- Unit test --> sviluppo futuro
+- UI test --> sviluppo futuro
+- End-to-end --> sviluppo futuro
+- Coverage minimo --> sviluppo futuro
