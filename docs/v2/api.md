@@ -232,7 +232,7 @@
         - Autenticazione --> ✔️
         - Protocollo --> http
 
-    - **_POST_ /devices-settings/:deviceId/calibration**:
+    - **_POST_ /devices-settings/:deviceId/calibration/execute**:
         - Autore --> user
         - Params --> `:deviceId`
         - Body --> `{ sensor }`
@@ -241,7 +241,7 @@
         - Autenticazione --> ✔️
         - Protocollo --> http
 
-    - **_PATCH_ /devices-settings/calibration**:
+    - **_POST_ /devices-settings/calibration/data**:
         - Autore --> device
         - Body --> `{ sensor, measurement }`
         - Output --> `null`
