@@ -9,7 +9,7 @@ import os
 deviceState = {}
 
 # Impostazione flags
-deviceState["flags"] = {"measure": False, "irrigate": False, "irrigationInfo": None, "readingDht": False, "lastWarningNotification": None, "lastWifiAttempt": 0, "lastSockAttempt": 0, "lastAuthAttempt": 0}
+deviceState["flags"] = {"measure": False, "irrigate": False, "irrigationMeasure": False, "irrigationInfo": None, "readingDht": False, "lastWarningNotification": None, "lastWifiAttempt": 0, "lastSockAttempt": 0, "lastAuthAttempt": 0}
 
 # Classe errore critico
 class CriticalError(Exception):
@@ -348,12 +348,15 @@ def sensorConfig():
     # Creazione timer
     tim2 = Timer(1)
 
+        # Creazione timer
+    tim3 = Timer(2)
+
     # Creazione orario
     rtc = RTC()
 
     # Impostazione dati
     deviceState["sensors"] = {"pump":pump, "sensorIn":sensorIn, "sensorOut":sensorOut, "sensorLum":sensorLum}
-    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "tim2":tim2, "pwms":pwms, "dhtRead":0, "wifi":None, "sock":None}
+    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "tim2":tim2, "tim3":tim3, "pwms":pwms, "dhtRead":0, "wifi":None, "sock":None}
 
 # Funzione autenticazione
 def authenticationConfig():
@@ -428,7 +431,7 @@ def fullConfig():
         loadSavedData()
 
     # Impostazione loop misurazioni
-    deviceState["utils"]["tim1"].init(mode=Timer.PERIODIC, period=60000, callback=lambda t: measureFlag(True))
+    deviceState["utils"]["tim1"].init(mode=Timer.PERIODIC, period=60000, callback=lambda t: updateFlag("measure", True))
 
     # Impostazione colore
     rgbColor("green")
@@ -660,11 +663,6 @@ def measurements():
     # Impostazione colore
     rgbColor("green")
 
-# Funzione impostazione flag
-def measureFlag(value: bool):
-    # Impostazione valore
-    deviceState["flags"]["measure"] = value
-
 # ---
 
 # Funzione connessione socket
@@ -836,7 +834,9 @@ def irrigation(humI: float, date, irrigationTime: int, mode: str):
 
         # Accensione pompa
         pumpOn(humI, date, min(irrigationTime, 120), mode)
-        deviceState["utils"]["tim2"].init(mode=Timer.ONE_SHOT, period=irrigationTime * 1000, callback=lambda t: irrigateFlag(False))
+
+        # Impostazione timer irrigazione
+        deviceState["utils"]["tim2"].init(mode=Timer.ONE_SHOT, period=irrigationTime * 1000, callback=lambda t: updateFlag("irrigate", False))
     else:
         sendNotifications("ERRORE IRRIGAZIONE", "Non è stato possibile irrigare in quanto il tempo d'irrigazione era inferiore o uguale a 0 o il dispositivo stava già irrigando", "error")
 
@@ -867,22 +867,42 @@ def irrigationCheck(humI1: float, humI2: float, humE: float, lum: float, temp: f
     rgbColor("green")
 
 # Funzione spegnimento pompa
-def pumpOff (humI1: float, date, irrigationTime: int, _type: str):
+def pumpOff ():
     deviceState["sensors"]["pump"].off()
-    
-    # Misurazioni
-    humE, temp = dhtMeasure()
-    humI2 = sensorInMeasure()
-    lum = sensorLumMeasure()
 
-    # Controllo misurazioni
-    measurementsCheck(humI2, humE, lum, temp)
-    
-    # Controllo irrigazione
-    irrigationCheck(humI1, humI2, humE, lum, temp, date, irrigationTime, _type)
+    # Impostazione timer misurazione irrigazione
+    deviceState["utils"]["tim3"].init(mode=Timer.ONE_SHOT, period=30 * 1000, callback=lambda t: updateFlag("irrigationMeasure", True))
 
-    # Impostazione informazioni
-    deviceState["flags"]["irrigationInfo"] = None
+# Funzione misurazione irrigazione
+def irrigationMeasurements():
+    # Controllo informazioni
+    if deviceState["flags"]["irrigationInfo"] is not None:
+        # Informazioni irrigazione
+        humI, date, irrigationTime, _type = deviceState["flags"]["irrigationInfo"]
+
+        # Controllo dati
+        if humI is not None and date is not None and irrigationTime is not None and _type is not None:
+            # Misurazioni
+            humE, temp = dhtMeasure()
+            humI2 = sensorInMeasure()
+            lum = sensorLumMeasure()
+
+            # Controllo misurazioni
+            measurementsCheck(humI2, humE, lum, temp)
+
+            # Controllo irrigazione
+            irrigationCheck(humI1, humI2, humE, lum, temp, date, irrigationTime, _type)
+
+            # Impostazione informazioni
+            deviceState["flags"]["irrigationInfo"] = None
+
+            # Impostazione flag
+            deviceState["flags"]["irrigationsMeasure"] = False
+
+            # Impostazione colore
+            rgbColor("green")
+    else:
+        raise TransientError("Irrigation failed")
 
 # Funzione accensione pompa
 def pumpOn(humI: float, date, irrigationTime: int, _type: str):
@@ -904,9 +924,9 @@ def irrigationEvent(date, event: dict):
     irrigationConfig(date, event["interval"])
 
 # Funzione impostazione flag
-def irrigateFlag(value: bool):
+def updateFlag(flag: str, value: bool):
     # Impostazione valore
-    deviceState["flags"]["irrigate"] = value
+    deviceState["flags"][flag] = value
 
 
 # ---
@@ -1089,26 +1109,23 @@ def main():
         # Controllo flag misurazione
         if deviceState["flags"]["measure"] == True:
             # Impostazione flag
-            measureFlag(False)
+            updateFlag("measure", False)
 
             # Misurazione
             measurements()
 
         # Controllo flag irrigazione
         if deviceState["flags"]["irrigate"] == False:
-            # Controllo informazioni
-            if deviceState["flags"]["irrigationInfo"] is not None:
-            
-                # Informazioni irrigazione
-                humI, date, irrigationTime, _type = deviceState["flags"]["irrigationInfo"]
+            # Spegnimento pompa
+            pumpOff()
 
-                # Controllo dati
-                if humI is not None and date is not None and irrigationTime is not None and _type is not None:
-                    # Spegnimento pompa
-                    pumpOff(humI, date, irrigationTime, _type)
+        # Controllo flag misurazione irrigazione
+        if deviceState["flags"]["irrigationMeasure"] == True:
+            # Impostazione flag
+            updateFlag("irrigationMeasure", False)
 
-                    # Impostazione colore
-                    rgbColor("green")
+            # Misurazione irrigazione
+            irrigationMeasurements()
 
         sleep(1)
 
