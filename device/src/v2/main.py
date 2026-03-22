@@ -9,7 +9,7 @@ import os
 deviceState = {}
 
 # Impostazione flags
-deviceState["flags"] = {"measure": False, "irrigate": False, "irrigationInfo": None, "readingDht": False, "lastWarningNotification": None, "lastWifiAttempt": 0, "lastSockAttempt": 0, "lastAuthAttempt": 0}
+deviceState["flags"] = {"irrigate": False, "irrigationInfo": None, "readingDht": False, "lastStatusSend": 0, "lastWarningNotification": 0, "lastWifiAttempt": 0, "lastSockAttempt": 0, "lastAuthAttempt": 0, "unsavedData": False, "lastMeasurement": 0, "irrigationStartTime": None, "irrigationDuration": None, "irrigationMeasureTime": None}
 
 # Classe errore critico
 class CriticalError(Exception):
@@ -40,6 +40,9 @@ def getHandler(url: str, name: str, token = None) :
     
     # Dichiarazione dati risposta
     resData = None
+
+    # Inizializzazione risposta
+    response = None
     
     # Gestione errori
     try:
@@ -64,6 +67,10 @@ def getHandler(url: str, name: str, token = None) :
         # Ritorno dati
         return resData["data"]
     except Exception as e:
+        if response:
+            # Chiusura richiesta
+            response.close()
+
         print(f"Get request error: {name}",e, "\n")
         return None
     
@@ -86,6 +93,9 @@ def postHandler(url: str, payload: dict, name: str, token = None):
 
     # Dichiarazione dati risposta
     resData = None
+
+    # Inizializzazione risposta
+    response = None
     
     # Gestione errori
     try:        
@@ -112,6 +122,10 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         # Ritorno dati
         return resData["data"]
     except Exception as e:
+        if response:
+            # Chiusura richiesta
+            response.close()
+            
         print(f"Post request error: {name}", e, "\n")
         return None
        
@@ -134,7 +148,7 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
                 notifications.pop(0)
 
             # Aggiornamento notifiche
-            writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications)
+            writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications, True)
         else:
             raise CriticalError(e)
 
@@ -157,7 +171,7 @@ def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, h
                 irrigations.pop(0)
 
             # Aggiornamento irrigazioni
-            writeFile("irrigations", [{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations)
+            writeFile("irrigations", [{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations, True)
         else:
             raise CriticalError(e)
 
@@ -180,7 +194,7 @@ def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, l
                 measurements.pop(0)
 
             # Aggiornamento irrigazioni
-            writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements)
+            writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements, True)
         else:
             raise CriticalError(e)
 
@@ -228,13 +242,18 @@ def readFile(path: str):
     return fileData
 
 # Funzione scrittura file
-def writeFile(path: str, data):
+def writeFile(path: str, data, unsaved = False):
     # Aggiornamento misurazioni
     with open(f'{path}.tmp', 'w') as file:
         file.write(json.dumps(data))
 
     # Rinominazione file
     os.rename(f'{path}.tmp', f'{path}.json')
+
+    # Controllo salvataggio
+    if unsaved:
+        # Impostazione flag
+        updateFlag("unsavedData", True)
 
 # Funzione caricamento dati
 def loadData():
@@ -288,6 +307,7 @@ def connWifi(tentatives=10):
             
             # Controllo connessione
             if wlan.isconnected():
+                print("Wifi connection success")
                 return True
 
             # Disconnessione
@@ -310,7 +330,7 @@ def connWifi(tentatives=10):
             # Controllo connessione
             if wlan.isconnected():
                 print("Wifi connection success")
-                return
+                return True
 
             sleep(1)
             print(f"Wifi tentative {i+1}")
@@ -345,15 +365,12 @@ def sensorConfig():
     # Creazione timer
     tim1 = Timer(0)
 
-    # Creazione timer
-    tim2 = Timer(1)
-
     # Creazione orario
     rtc = RTC()
 
     # Impostazione dati
     deviceState["sensors"] = {"pump":pump, "sensorIn":sensorIn, "sensorOut":sensorOut, "sensorLum":sensorLum}
-    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "tim2":tim2, "pwms":pwms, "dhtRead":0, "wifi":None, "sock":None}
+    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "pwms":pwms, "dhtRead":0, "wifi":None, "sock":None}
 
 # Funzione autenticazione
 def authenticationConfig():
@@ -412,7 +429,7 @@ def config():
     # Autenticazione
     authenticationConfig()
 
-# Funzione configurazione
+# Funzione configurazione totale
 def fullConfig():
     # Configurazione sensori
     sensorConfig()
@@ -424,11 +441,8 @@ def fullConfig():
     config()
 
     # Controllo connessione wifi
-    if deviceState["utils"]["wifi"].isconnected():
+    if deviceState["utils"]["wifi"].isconnected() and deviceState["token"]:
         loadSavedData()
-
-    # Impostazione loop misurazioni
-    deviceState["utils"]["tim1"].init(mode=Timer.PERIODIC, period=60000, callback=lambda t: measureFlag(True))
 
     # Impostazione colore
     rgbColor("green")
@@ -488,7 +502,7 @@ def dhtMeasure():
 
     for _ in range(3):
         try:
-            deviceState["flags"]["readingDht"] = True
+            updateFlag("readingDht", True)
             sleep_ms(50)
 
             deviceState["sensors"]["sensorOut"].measure()
@@ -497,12 +511,12 @@ def dhtMeasure():
             t = deviceState["sensors"]["sensorOut"].temperature()
 
             deviceState["utils"]["dhtRead"] = ticks_ms()
-            deviceState["flags"]["readingDht"] = False
+            updateFlag("readingDht", False)
 
             return h, t
 
         except OSError:
-            deviceState["flags"]["readingDht"] = False
+            updateFlag("readingDht", False)
             sleep_ms(2500)
 
     return None, None
@@ -579,24 +593,24 @@ def secureMeasurementsCheck(temp: float, humE: float):
         # Invio avviso
         sendNotifications("TEMPERATURA BASSA", "La temperatura della tua serra è inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         # Impostazione ultima notifica
-        deviceState["flags"]["lastWarningNotification"] = localtime()
+        updateFlag("lastWarningNotification", localtime())
     elif temp >= 30:
         # Invio avviso
         sendNotifications("TEMPERATURA ALTA", "La temperatura della tua serra è superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         # Impostazione ultima notifica
-        deviceState["flags"]["lastWarningNotification"] = localtime()
+        updateFlag("lastWarningNotification", localtime())
 
     # Controllo umidità esterna
     if humE <= 30:
         # Invio avviso
         sendNotifications("UMIDITA' BASSA", "L'umidità esterna della tua serra è inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         # Impostazione ultima notifica
-        deviceState["flags"]["lastWarningNotification"] = localtime()
+        updateFlag("lastWarningNotification", localtime())
     elif humE >= 85:
         # Invio avviso
         sendNotifications("UMIDITA' ALTA", "L'umidità esterna della tua serra è superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         # Impostazione ultima notifica
-        deviceState["flags"]["lastWarningNotification"] = localtime()
+        updateFlag("lastWarningNotification", localtime())
 
 # Funzione misurazione con controllo modalità
 def measurementsMode(humI: float, humE: float, lum: float, temp: float):
@@ -616,7 +630,7 @@ def measurementsMode(humI: float, humE: float, lum: float, temp: float):
             measurements.pop(0)
 
         # Aggiornamento misurazioni
-        writeFile("measurements",[{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":currentTime}] + measurements)
+        writeFile("measurements",[{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":currentTime}] + measurements, True)
 
     # Controllo modalità config
     elif deviceState["settings"]["mode"] == "config":
@@ -636,6 +650,9 @@ def measurementsMode(humI: float, humE: float, lum: float, temp: float):
 def measurements():
     # Impostazione colore
     rgbColor("yellow")
+
+    # Modifica flag
+    updateFlag("lastMeasurement", ticks_ms())
 
     # Dichiarazione tempo corrente
     currentTime = f'{deviceState["utils"]["rtc"].datetime()[0]:04d}-{deviceState["utils"]["rtc"].datetime()[1]:02d}-{deviceState["utils"]["rtc"].datetime()[2]:02d}T{deviceState["utils"]["rtc"].datetime()[4]:02d}:{deviceState["utils"]["rtc"].datetime()[5]:02d}:{deviceState["utils"]["rtc"].datetime()[6]:02d}'
@@ -659,11 +676,6 @@ def measurements():
 
     # Impostazione colore
     rgbColor("green")
-
-# Funzione impostazione flag
-def measureFlag(value: bool):
-    # Impostazione valore
-    deviceState["flags"]["measure"] = value
 
 # ---
 
@@ -803,9 +815,10 @@ def socketHandler():
         elif event["event"] == "v2/calibration" and "sensor" in event:
             calibrationEvent(event)
     
-
-    # Invio stato
-    wsSend(deviceState["utils"]["sock"], json.dumps({"event": "v2/status", "data":{"lastSeen":currentTime}}))
+    # Controllo ultimo invio
+    if ticks_diff(ticks_ms(), deviceState["flags"]["lastStatusSend"]) > 5000:
+        # Invio stato
+        wsSend(deviceState["utils"]["sock"], json.dumps({"event": "v2/status", "data":{"lastSeen":currentTime}}))
 
 # ---
 
@@ -827,6 +840,9 @@ def irrigationConfig(date, irrigationTime: int):
 
 # Funzione irrigazione
 def irrigation(humI: float, date, irrigationTime: int, mode: str):
+    # Impostazione durata irrigazione
+    irrigationTime = min(irrigationTime, 120)
+
     # Controllo tempo irrigazione
     if irrigationTime > 0 and deviceState["flags"]["irrigate"] != True:
         print(f"Irrigation for {irrigationTime}s")
@@ -835,8 +851,14 @@ def irrigation(humI: float, date, irrigationTime: int, mode: str):
         rgbColor("cyan")
 
         # Accensione pompa
-        pumpOn(humI, date, min(irrigationTime, 120), mode)
-        deviceState["utils"]["tim2"].init(mode=Timer.ONE_SHOT, period=irrigationTime * 1000, callback=lambda t: irrigateFlag(False))
+        pumpOn(humI, date, irrigationTime, mode)
+
+        # Impostazione timer irrigazione
+        updateFlag("irrigationStartTime", ticks_ms())
+        updateFlag("irrigationDuration", irrigationTime * 1000)
+
+        # Impostazione timer fallback
+        deviceState["utils"]["tim1"].init(period = irrigationTime*1000 + 2000, mode = Timer.ONE_SHOT, callback = lambda t: deviceState["sensors"]["pump"].off())
     else:
         sendNotifications("ERRORE IRRIGAZIONE", "Non è stato possibile irrigare in quanto il tempo d'irrigazione era inferiore o uguale a 0 o il dispositivo stava già irrigando", "error")
 
@@ -858,7 +880,7 @@ def irrigationCheck(humI1: float, humI2: float, humE: float, lum: float, temp: f
             irrigations.pop(0)
 
         # Aggiornamento irrigazioni
-        writeFile("irrigations", [{"humI1":humI1, "humI2":humI2, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations)
+        writeFile("irrigations", [{"humI1":humI1, "humI2":humI2, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations, True)
     else:
         # Invio Irrigazione
         sendIrrigations(date, irrigationTime, _type, humI1, humI2, humE, lum, temp)
@@ -867,30 +889,56 @@ def irrigationCheck(humI1: float, humI2: float, humE: float, lum: float, temp: f
     rgbColor("green")
 
 # Funzione spegnimento pompa
-def pumpOff (humI1: float, date, irrigationTime: int, _type: str):
+def pumpOff ():
     deviceState["sensors"]["pump"].off()
-    
-    # Misurazioni
-    humE, temp = dhtMeasure()
-    humI2 = sensorInMeasure()
-    lum = sensorLumMeasure()
 
-    # Controllo misurazioni
-    measurementsCheck(humI2, humE, lum, temp)
-    
-    # Controllo irrigazione
-    irrigationCheck(humI1, humI2, humE, lum, temp, date, irrigationTime, _type)
+    # Impostazione flag
+    updateFlag("irrigationStartTime", None)
+    updateFlag("irrigationDuration", None)
 
-    # Impostazione informazioni
-    deviceState["flags"]["irrigationInfo"] = None
+    # Impostazione timer misurazione irrigazione
+    updateFlag("irrigationMeasureTime", ticks_ms() + 30000)
+
+# Funzione misurazione irrigazione
+def irrigationMeasurements():
+    # Controllo informazioni
+    if deviceState["flags"]["irrigationInfo"] is not None:
+        # Informazioni irrigazione
+        humI, date, irrigationTime, _type = deviceState["flags"]["irrigationInfo"]
+
+        # Controllo dati
+        if humI is not None and date is not None and irrigationTime is not None and _type is not None:
+            # Impostazione colore
+            rgbColor("cyan")
+            
+            # Misurazioni
+            humE, temp = dhtMeasure()
+            humI2 = sensorInMeasure()
+            lum = sensorLumMeasure()
+
+            # Controllo misurazioni
+            measurementsCheck(humI2, humE, lum, temp)
+
+            # Controllo irrigazione
+            irrigationCheck(humI, humI2, humE, lum, temp, date, irrigationTime, _type)
+
+            # Impostazione informazioni
+            updateFlag("irrigationInfo", None)
+
+            # Impostazione colore
+            rgbColor("green")
+        else:
+            raise CriticalError("Irrigation failed")
+    else:
+        raise CriticalError("Irrigation failed")
 
 # Funzione accensione pompa
 def pumpOn(humI: float, date, irrigationTime: int, _type: str):
     # Impostazione informazioni
-    deviceState["flags"]["irrigationInfo"] = humI, date, irrigationTime, _type
+    updateFlag("irrigationInfo", (humI, date, irrigationTime, _type))
 
     # Impostazione flag
-    deviceState["flags"]["irrigate"] = True
+    updateFlag("irrigate", True)
 
     # Accensione pompa
     deviceState["sensors"]["pump"].on()
@@ -904,9 +952,9 @@ def irrigationEvent(date, event: dict):
     irrigationConfig(date, event["interval"])
 
 # Funzione impostazione flag
-def irrigateFlag(value: bool):
+def updateFlag(flag: str, value: bool):
     # Impostazione valore
-    deviceState["flags"]["irrigate"] = value
+    deviceState["flags"][flag] = value
 
 
 # ---
@@ -1040,6 +1088,16 @@ def main():
             sleep(1)
             continue
 
+        # Controllo flag irrigazione
+        if deviceState["flags"]["irrigationStartTime"] is not None and deviceState["flags"]["irrigationDuration"] is not None:
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["irrigationStartTime"]) >= deviceState["flags"]["irrigationDuration"] and deviceState["flags"]["irrigate"] == True:
+                # Aggiornamento flag
+                updateFlag("irrigate", False)
+
+                # Spegnimento pompa
+                pumpOff()
+
         # Controllo wifi
         if not deviceState["utils"]["wifi"].isconnected():
             # Controllo connessione socket
@@ -1055,7 +1113,8 @@ def main():
                 # Connessione wifi
                 connWifi(3)
                 # Impostazione flag
-                deviceState["flags"]["lastWifiAttempt"] = ticks_ms()
+                updateFlag("lastWifiAttempt", ticks_ms())
+
                 # Impostazione colore
                 rgbColor("green")
         elif not deviceState["token"]:
@@ -1066,7 +1125,8 @@ def main():
                 # Autenticatione
                 authenticationConfig()
                 # Impostazione flag
-                deviceState["flags"]["lastAuthAttempt"] = ticks_ms()
+                updateFlag("lastAuthAttempt", ticks_ms())
+
                 # Impostazione colore
                 rgbColor("green")
         elif not deviceState["utils"]["sock"]:
@@ -1077,7 +1137,7 @@ def main():
                 # Connessione socket
                 connSocket()
                 # Impostazione flag
-                deviceState["flags"]["lastSockAttempt"] = ticks_ms()
+                updateFlag("lastSockAttempt", ticks_ms())
                 # Impostazione colore
                 rgbColor("green")
 
@@ -1086,29 +1146,28 @@ def main():
             # Gestore connessione socket
             socketHandler()
             
-        # Controllo flag misurazione
-        if deviceState["flags"]["measure"] == True:
-            # Impostazione flag
-            measureFlag(False)
-
+        # Controllo misurazione
+        if ticks_diff(ticks_ms(), deviceState["flags"]["lastMeasurement"]) > 300000:
             # Misurazione
             measurements()
 
-        # Controllo flag irrigazione
-        if deviceState["flags"]["irrigate"] == False:
-            # Controllo informazioni
-            if deviceState["flags"]["irrigationInfo"] is not None:
-            
-                # Informazioni irrigazione
-                humI, date, irrigationTime, _type = deviceState["flags"]["irrigationInfo"]
+        # Controllo flag misurazione irrigazione
+        if deviceState["flags"]["irrigationMeasureTime"] is not None:
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["irrigationMeasureTime"]) >= 0:
+                # Impostazione flag
+                updateFlag("irrigationMeasureTime", None)
 
-                # Controllo dati
-                if humI is not None and date is not None and irrigationTime is not None and _type is not None:
-                    # Spegnimento pompa
-                    pumpOff(humI, date, irrigationTime, _type)
+                # Misurazione irrigazione
+                irrigationMeasurements()
 
-                    # Impostazione colore
-                    rgbColor("green")
+        # Controllo salvataggi
+        if deviceState["flags"]["unsavedData"] == True and deviceState["token"] and deviceState["utils"]["wifi"].isconnected():
+            # Caricamento dati
+            loadSavedData()
+
+            # Impostazione flag
+            updateFlag("unsavedData", False)
 
         sleep(1)
 
