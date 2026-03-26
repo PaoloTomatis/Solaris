@@ -13,6 +13,7 @@ interface DevicesSettingsType {
     sensorLumMin?: number;
     sensorLumMax?: number;
     kInterval?: number;
+    firmwareVersion: string;
     schemaVersion: number;
     updatedAt: Date;
     createdAt: Date;
@@ -38,6 +39,11 @@ const DevicesSettingsSchema = new Schema(
         sensorLumMax: { type: Number, min: 0, max: 100 },
         sensorLumMin: { type: Number, min: 0, max: 100 },
         kInterval: { type: Number, min: 1 },
+        firmwareVersion: {
+            type: String,
+            required: true,
+            ref: 'DevicesVersions',
+        },
         schemaVersion: { type: Number, default: 1 },
     },
     { timestamps: true },

@@ -4,6 +4,7 @@ import devicesSettingsRepository from '../repositories/devicesSettings.repositor
 import measurementsRepository from '../repositories/measurements.repository.js';
 import irrigationsRepository from '../repositories/irrigations.repository.js';
 import notificationsRepository from '../repositories/notifications.repository.js';
+import devicesVersionsRepository from '../repositories/devicesVersions.repository.js';
 
 // Tipo dispositivi
 interface DevicesType {
@@ -35,8 +36,17 @@ const DevicesSchema = new Schema(
 
 // Middleware creazione dispositivo
 DevicesSchema.post('save', async (doc, next) => {
+    // Richiesta ultima versione
+    const versions = await devicesVersionsRepository.findMany({
+        channel: 'stable',
+        prototypeModel: doc.prototypeModel,
+    });
+
     // Creazione impostazioni dispositivo database
-    await devicesSettingsRepository.createOne({ deviceId: doc._id.toString() });
+    await devicesSettingsRepository.createOne({
+        deviceId: doc._id.toString(),
+        firmwareVersion: versions[-1]?.firmwareVersion || '1.0.0',
+    });
 
     // Prossimo middleware
     next();
