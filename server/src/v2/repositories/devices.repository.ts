@@ -15,6 +15,18 @@ class DevicesRepository {
         return device;
     }
 
+    // Funzione ricevi dispositivo da id
+    async findOne(payload: {
+        userId: string | Types.ObjectId;
+        prototypeModel: string;
+    }) {
+        // Richiesta dispositivo database
+        const device = await DevicesModel.findOne(payload).lean();
+
+        // Ritorno dispositivo
+        return device;
+    }
+
     // Funzione ricevi dispositivo da key
     async findOneByKey(key: string) {
         // Richiesta dispositivo database

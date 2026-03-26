@@ -20,6 +20,7 @@ class DeviceSettingsRepository {
     // Funzione creazione impostazioni dispositivo
     async createOne(payload: {
         deviceId: string;
+        firmwareVersion: string;
         mode?: 'config' | 'auto' | 'safe';
         humIMax?: number;
         humIMin?: number;
