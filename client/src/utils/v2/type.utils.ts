@@ -81,7 +81,7 @@ interface DeviceSettings {
     sensorHumIMax: number;
     sensorLumMin: number;
     sensorLumMax: number;
-    firmwareVersion: string;
+    firmwareId: string;
     kInterval: number;
     updatedAt: Date;
     createdAt: Date;
@@ -95,7 +95,7 @@ interface DeviceVersion {
     channel: 'stable' | 'beta' | 'dev';
     mandatory: boolean;
     filepath: string;
-    firmwareId: string;
+    firmwareVersion: string;
     updatedAt: Date;
     createdAt: Date;
 }

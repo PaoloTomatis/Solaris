@@ -18,6 +18,8 @@ import Auth from '../pages/v2/Auth.page';
 import Warning from '../pages/global/Warning.page';
 import Parent from '../components/v2/Parent.comp';
 import ProtectedRoute from '../components/v2/ProtectedRoute.comp';
+import AdminDeviceUpdates from '../pages/v2/AdminDeviceUpdates';
+import DeviceUpdates from '../pages/v2/DeviceUpdates.page';
 
 // Dichiarazione pagine router
 const pagesv2 = [
@@ -106,6 +108,14 @@ const pagesv2 = [
                     </ProtectedRoute>
                 ),
             },
+            {
+                path: '/dashboard/:id/updates',
+                element: (
+                    <ProtectedRoute>
+                        <DeviceUpdates />
+                    </ProtectedRoute>
+                ),
+            },
             { path: '/credits', element: <Credits /> },
             {
                 path: '/settings',
@@ -120,6 +130,14 @@ const pagesv2 = [
                 element: (
                     <ProtectedRoute>
                         <Account />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/admin/updates',
+                element: (
+                    <ProtectedRoute>
+                        <AdminDeviceUpdates />
                     </ProtectedRoute>
                 ),
             },

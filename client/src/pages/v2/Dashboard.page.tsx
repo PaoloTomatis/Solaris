@@ -33,6 +33,7 @@ import DashboardIcon from '../../assets/icons/dashboard.svg?react';
 import MeasurementIcon from '../../assets/icons/measurement.svg?react';
 import IrrigationIcon from '../../assets/icons/irrigation.svg?react';
 import CalibrationIcon from '../../assets/icons/calibration.svg?react';
+import ResetIcon from '../../assets/icons/reset.svg?react';
 
 // Pagina dashboard
 function Dashboard() {
@@ -391,6 +392,11 @@ function Dashboard() {
                         url={`/dashboard/${deviceId}/stats`}
                         name="Statistiche"
                         icon={StatsIcon}
+                    />
+                    <Info
+                        url={`/dashboard/${deviceId}/updates`}
+                        name="Aggiornamenti"
+                        icon={ResetIcon}
                     />
                     <Info
                         url={`/dashboard/${deviceId}/calibration`}
