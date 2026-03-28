@@ -164,8 +164,7 @@ async function getDevicesVersionsCheckService(device?: DeviceType) {
     if (!deviceVersion) throw new Error('Device version not found');
 
     // Confronto versioni dispositivo
-    if (deviceVersion.firmwareVersion == deviceSettings.firmwareVersion)
-        return null;
+    if (deviceVersion._id == deviceSettings.firmwareId) return null;
 
     // Conversione versione dispositivo
     const parsedDeviceVersion = dataParser(
@@ -191,8 +190,11 @@ async function postDevicesVersionsService(
         throw new Error('The user has to be an admin to perform this action');
 
     // Richiesta versione dispositivo database
-    const duplicatedDeviceVersion =
-        await devicesVersionsRepository.findLatest(payload);
+    const duplicatedDeviceVersion = await devicesVersionsRepository.findLatest({
+        firmwareVersion: payload.firmwareVersion,
+        prototypeModel: payload.prototypeModel,
+        channel: payload.channel,
+    });
 
     // Controllo duplicato
     if (duplicatedDeviceVersion)
@@ -250,6 +252,12 @@ async function postDevicesVersionsInstallService(
 
     // Controllo versioni dispositivo
     if (!deviceVersion) throw new Error('Device version not found');
+
+    // Aggiornamento impostazioni dispositivo database
+    await devicesSettingsRepository.updateOne(
+        { firmwareId: deviceVersion._id },
+        device._id,
+    );
 
     // Conversione versione dispositivo
     const parsedDeviceVersion = dataParser(

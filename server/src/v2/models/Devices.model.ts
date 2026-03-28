@@ -37,7 +37,7 @@ const DevicesSchema = new Schema(
 // Middleware creazione dispositivo
 DevicesSchema.post('save', async (doc, next) => {
     // Richiesta ultima versione
-    const versions = await devicesVersionsRepository.findMany({
+    const version = await devicesVersionsRepository.findLatest({
         channel: 'stable',
         prototypeModel: doc.prototypeModel,
     });
@@ -45,7 +45,7 @@ DevicesSchema.post('save', async (doc, next) => {
     // Creazione impostazioni dispositivo database
     await devicesSettingsRepository.createOne({
         deviceId: doc._id.toString(),
-        firmwareVersion: versions[-1]?.firmwareVersion || '1.0.0',
+        firmwareId: version?._id,
     });
 
     // Prossimo middleware

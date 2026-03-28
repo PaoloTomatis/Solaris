@@ -1,8 +1,6 @@
 // Importazione moduli
 import { Types } from 'mongoose';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
-import { PatchDevicesSettingsBodySchema } from '../schemas/DevicesSettings.schema.js';
-import z from 'zod';
 
 // Respository impostazioni dispositivi
 class DeviceSettingsRepository {
@@ -19,8 +17,8 @@ class DeviceSettingsRepository {
 
     // Funzione creazione impostazioni dispositivo
     async createOne(payload: {
-        deviceId: string;
-        firmwareVersion: string;
+        deviceId: string | Types.ObjectId;
+        firmwareId?: string | Types.ObjectId | undefined | null;
         mode?: 'config' | 'auto' | 'safe';
         humIMax?: number;
         humIMin?: number;
@@ -38,7 +36,13 @@ class DeviceSettingsRepository {
 
     // Funzione modifica impostazioni dispositivo
     async updateOne(
-        payload: z.infer<typeof PatchDevicesSettingsBodySchema>,
+        payload: {
+            firmwareId?: string | Types.ObjectId;
+            mode?: 'config' | 'auto' | 'safe' | undefined | null;
+            humIMax?: number | undefined | null;
+            humIMin?: number | undefined | null;
+            kInterval?: number | undefined | null;
+        },
         deviceId: string | Types.ObjectId,
     ) {
         // Modifica impostazioni dispositivo database
