@@ -1,11 +1,10 @@
 // Importazione moduli
 import React from 'react';
 
-// Componente input
-function Input({
+// Componente testo
+function Textarea({
     placeholder,
     className,
-    type = 'text',
     value,
     setValue,
     error,
@@ -23,22 +22,15 @@ function Input({
 }) {
     return (
         <div className="w-[95%] max-w-[300px] flex flex-col items-center justify-center gap-0.5">
-            <input
-                type={type}
+            <textarea
                 placeholder={placeholder}
                 className={`${className} text-xsmall text-primary-text bg-primary-bg rounded-4xl ${
                     error ? 'border-error' : 'border-primary-text'
-                } border-[2px] px-2 py-1.5 w-full focus:border-secondary`}
+                } border-[2px] px-2 py-1.5 w-full focus:border-secondary h-50vh`}
                 value={value}
                 onChange={(e) => {
                     const val = e.target.value;
-                    setValue(
-                        type === 'number'
-                            ? val === ''
-                                ? ''
-                                : Number(val)
-                            : val,
-                    );
+                    setValue(val);
                     if (error && setError) {
                         setError('');
                     }
@@ -52,4 +44,4 @@ function Input({
 }
 
 // Esportazione componente
-export default Input;
+export default Textarea;

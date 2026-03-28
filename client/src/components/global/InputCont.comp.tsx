@@ -14,7 +14,9 @@ function InputCont({
     options,
 }: {
     value: any;
-    setValue: React.Dispatch<React.SetStateAction<any>>;
+    setValue:
+        | React.Dispatch<React.SetStateAction<any>>
+        | ((arg0: any) => void | Promise<void>);
     type?: string;
     placeholder?: string;
     inputType?: 'input' | 'select';
