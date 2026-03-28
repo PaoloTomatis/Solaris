@@ -150,8 +150,8 @@
         2. `GET /api/v2/devices` --> al caricamento
         3. `POST /api/v2/devices-settings/:id/calibration` --> pulsante
 
-- **Update**
-    - Url --> `/admin/update`
+- **AdminDeviceUpdates**
+    - Url --> `/admin/updates`
     - Protetto --> ✔️
     - Note --> permette di creare un nuovo aggiornamento per il firmware del dispositivo
     - Chiamate API

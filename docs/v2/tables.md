@@ -140,7 +140,7 @@
 - `sensorLumMin` — float? — luminosità minima (calibrazione)
 - `sensorLumMax` — float? — luminosità massima (calibrazione)
 - `kInterval` — float? — coefficiente di intervallo
-- `firmwareVersion` — string FK — versione firmware
+- `firmwareId` — string FK — collegamento a firmware
 - `schemaVersion` — 1 | 2 | ... — versione schema
 - `updatedAt` — date — data modifica elemento
 - `createdAt` — date — data creazione elemento
