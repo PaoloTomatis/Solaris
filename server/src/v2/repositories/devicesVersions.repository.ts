@@ -1,28 +1,23 @@
 // Importazione moduli
-import { Types, type FilterQuery } from 'mongoose';
+import { type FilterQuery } from 'mongoose';
 import DeviceVersionsModel, {
     type DevicesVersionsType,
-} from '../models/DeviceVersions.model.js';
-import {
-    GetDevicesVersionsUserQuerySchema,
-    PostDevicesVersionsBodySchema,
-} from '../schemas/DevicesVersions.schema.js';
-import z from 'zod';
+} from '../models/DevicesVersions.model.js';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import { cwd } from 'process';
+import type { BaseManyRequest, IdType } from '../types/types.js';
 
 // Respository versioni dispositivi
 class DeviceVersionsRepository {
     // Funzione ricevi versioni dispositivi
     async findMany(
-        payload: Omit<
-            z.infer<typeof GetDevicesVersionsUserQuerySchema> & {
-                firmwareVersion?: string;
-                prototypeModel?: string;
-            },
-            'deviceId'
-        >,
+        payload: BaseManyRequest & {
+            channel?: 'stable' | 'beta' | 'dev';
+            prototypeModel?: string;
+            mandatory?: boolean;
+            firmwareVersion?: string;
+        },
     ) {
         // Dichiarazione filtri
         const filter: FilterQuery<DevicesVersionsType> = {};
@@ -70,8 +65,8 @@ class DeviceVersionsRepository {
     // Funzione ricevi versione dispositivo
     async findLatest(payload: {
         firmwareVersion?: string;
-        prototypeModel?: string;
-        channel?: 'stable' | 'beta' | 'dev';
+        prototypeModel: string;
+        channel: 'stable' | 'beta' | 'dev';
         mandatory?: boolean;
     }) {
         // Richiesta versione dispositivo database
@@ -88,7 +83,7 @@ class DeviceVersionsRepository {
     }
 
     // Funzione ricevi versione dispositivo
-    async findOne(id: string | Types.ObjectId) {
+    async findOneById(id: IdType) {
         // Richiesta versione dispositivo database
         const deviceVersion = await DeviceVersionsModel.findById(id).lean();
 
@@ -97,11 +92,14 @@ class DeviceVersionsRepository {
     }
 
     // Funzione creazione versioni dispositivo
-    async createOne(
-        payload: Omit<z.infer<typeof PostDevicesVersionsBodySchema>, 'code'> & {
-            filepath: string;
-        },
-    ) {
+    async createOne(payload: {
+        notes?: string | null;
+        prototypeModel: string;
+        channel: 'stable' | 'beta' | 'dev';
+        mandatory: boolean;
+        filepath: string;
+        firmwareVersion: string;
+    }) {
         // Creazione versione dispositivo
         const deviceVersion = new DeviceVersionsModel(payload);
 
@@ -113,14 +111,12 @@ class DeviceVersionsRepository {
     }
 
     // Funzione salvataggio versioni dispositivo
-    async save(
-        payload: {
-            prototypeModel: string;
-            channel: 'stable' | 'beta' | 'dev';
-            firmwareVersion: string;
-        },
-        code: string,
-    ) {
+    async save(payload: {
+        prototypeModel: string;
+        channel: 'stable' | 'beta' | 'dev';
+        firmwareVersion: string;
+        code: string;
+    }) {
         // Definizione directory
         const filepath = join(
             cwd(),
@@ -134,7 +130,7 @@ class DeviceVersionsRepository {
         await mkdir(dirname(filepath), { recursive: true });
 
         // Creazione file
-        await writeFile(filepath, code);
+        await writeFile(filepath, payload.code);
 
         // Ritono filepath
         return filepath;

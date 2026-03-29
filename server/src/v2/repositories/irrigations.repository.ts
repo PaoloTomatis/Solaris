@@ -2,17 +2,18 @@
 import IrrigationsModel, {
     type IrrigationsType,
 } from '../models/Irrigations.model.js';
-import { type FilterQuery, Types } from 'mongoose';
-import {
-    PostIrrigationsBodySchema,
-    GetIrrigationsQuerySchema,
-} from '../schemas/Irrigations.schema.js';
-import z from 'zod';
+import { type FilterQuery } from 'mongoose';
+import type { BaseManyRequest, IdType } from '../types/types.js';
 
 // Respository irrigazioni
 class IrrigationsRepository {
     // Funzione ricevi irrigazioni
-    async findMany(payload: z.infer<typeof GetIrrigationsQuerySchema>) {
+    async findMany(
+        payload: BaseManyRequest & {
+            deviceId?: IdType;
+            type?: 'config' | 'auto';
+        },
+    ) {
         // Dichiarazione filtri
         const filter: FilterQuery<IrrigationsType> = {
             deviceId: payload.deviceId,
@@ -51,12 +52,19 @@ class IrrigationsRepository {
     }
 
     // Funzione creazione irrigazione
-    async createOne(
-        payload: z.infer<typeof PostIrrigationsBodySchema>,
-        deviceId: string | Types.ObjectId,
-    ) {
+    async createOne(payload: {
+        deviceId: IdType;
+        temp: number;
+        lum: number;
+        humE: number;
+        humIBefore: number;
+        humIAfter: number;
+        interval: number;
+        type: 'config' | 'auto';
+        irrigatedAt: Date;
+    }) {
         // Creazione irrigazione
-        const irrigation = new IrrigationsModel({ ...payload, deviceId });
+        const irrigation = new IrrigationsModel(payload);
 
         // Salvataggio irrigazione
         await irrigation.save();
@@ -66,7 +74,7 @@ class IrrigationsRepository {
     }
 
     // Funzione eliminazione misurazioni
-    async deleteManyByDevice(deviceId: string) {
+    async deleteManyByDevice(deviceId: IdType) {
         // Modifica dispositivi database
         await IrrigationsModel.deleteMany({ deviceId }).lean();
 
