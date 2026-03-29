@@ -148,7 +148,7 @@
 **Vincoli/Regole:**
 
 - `humIMax` — positivo, decimale, <100, >humIMin, non presente se mode è diverso da "auto"
-- `humIMax` — positivo, decimale, <100, <humIMax, non presente se mode è diverso da "auto"
+- `humIMin` — positivo, decimale, <100, <humIMax, non presente se mode è diverso da "auto"
 - `kInterval` — positivo, decimale, non presente se mode è diverso da "auto"
 
 ### Sessions
@@ -167,7 +167,7 @@
 - `updatedAt` — date — data modifica elemento
 - `createdAt` — date — data creazione elemento
 
-### DeviceVersions
+### DevicesVersions
 
 **Campi principali:**
 
