@@ -18,7 +18,7 @@ async function deleteMeService(user?: UserType) {
     if (!user) throw new Error('Invalid authentication');
 
     // Eliminazione utente
-    const oldUser = await usersRepository.deleteOne(user.id);
+    const oldUser = await usersRepository.deleteOneById(user.id);
 
     // Controllo vecchio utente
     if (!oldUser) throw new Error('Deletion of the user failed');

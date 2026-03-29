@@ -40,10 +40,10 @@ UsersSchema.post('findOneAndDelete', async (doc, next) => {
     if (!doc) next();
 
     // Eliminazione impostazioni utente database
-    await usersSettingsRepository.deleteOne(doc._id.toString() as string);
+    await usersSettingsRepository.deleteOneByUserId(doc._id);
 
     // Modifica dispositivi database
-    await devicesRepository.updateManyByUser(doc._id.toString() as string, {
+    await devicesRepository.updateManyByUserId(doc._id, {
         userId: null,
     });
 

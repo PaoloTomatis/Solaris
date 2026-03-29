@@ -117,7 +117,7 @@ async function patchDevicesActivateService(
         );
 
     // Modifica dispositivo
-    const newDevice = await devicesRepository.updateOne(device._id, {
+    const newDevice = await devicesRepository.updateOneById(device._id, {
         userId: user.id,
         name,
     });
@@ -179,7 +179,7 @@ async function deleteDevicesService(deviceId: string, user?: UserType) {
         throw new Error('The user has to be an admin to perform this action');
 
     // Eliminazione dispositivo
-    const oldDevice = await devicesRepository.deleteOne(deviceId);
+    const oldDevice = await devicesRepository.deleteOneById(deviceId);
 
     // Controllo vecchio dispositivo
     if (!oldDevice) throw new Error('Deletion of the device failed');

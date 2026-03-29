@@ -60,13 +60,15 @@ async function postIrrigationsService(
     if (!device) throw new Error('Invalid authentication');
 
     // Creazione irrigazione database
-    const irrigation = await irrigationsRepository.createOne(
-        payload,
-        device.id,
-    );
+    const irrigation = await irrigationsRepository.createOne({
+        ...payload,
+        deviceId: device.id,
+    });
 
     // Richiesta impostazioni database
-    const settings = await devicesSettingsRepository.findOne(device.id);
+    const settings = await devicesSettingsRepository.findOneByDeviceId(
+        device.id,
+    );
 
     // Controllo impostazioni
     if (!settings) throw new Error('Device settings not found');
@@ -91,10 +93,13 @@ async function postIrrigationsService(
         const kInterval = algorithmInterval(irrigations, false);
 
         // Modifica impostazioni dispositivo
-        const deviceSettings = await devicesSettingsRepository.updateOne(
-            { ...payload, humIMin, humIMax, kInterval },
-            device.id,
-        );
+        const deviceSettings =
+            await devicesSettingsRepository.updateOneByDeviceId(device.id, {
+                ...payload,
+                humIMin,
+                humIMax,
+                kInterval,
+            });
 
         // Controllo impostazioni dispositivo
         if (!deviceSettings)
@@ -115,9 +120,9 @@ async function postIrrigationsService(
         );
 
         // Aggiornamento impostazioni
-        newSettings = await devicesSettingsRepository.updateOne(
-            { kInterval: newKInterval },
+        newSettings = await devicesSettingsRepository.updateOneByDeviceId(
             device.id,
+            { kInterval: newKInterval },
         );
 
         // Controllo nuove impostazioni
@@ -156,7 +161,9 @@ async function postIrrigationsExecuteService(
         );
 
     // Richiesta impostazioni dispositivo database
-    const settings = await devicesSettingsRepository.findOne(payload.deviceId);
+    const settings = await devicesSettingsRepository.findOneByDeviceId(
+        payload.deviceId,
+    );
 
     // Controllo impostazioni dispositivo
     if (!settings) throw new Error('Device settings not found');

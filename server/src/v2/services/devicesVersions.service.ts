@@ -65,7 +65,7 @@ async function getDevicesVersionsByIdService(
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta versione dispositivo database
-    const deviceVersion = await devicesVersionsRepository.findOne(id);
+    const deviceVersion = await devicesVersionsRepository.findOneById(id);
 
     // Controllo versione dispositivo
     if (!deviceVersion) throw new Error('Device version not found');
@@ -148,7 +148,9 @@ async function getDevicesVersionsCheckService(device?: DeviceType) {
     if (!user) throw new Error('The device must be owned by a user');
 
     // Richiesta impostazioni dispositivo database
-    const deviceSettings = await devicesSettingsRepository.findOne(device.id);
+    const deviceSettings = await devicesSettingsRepository.findOneByDeviceId(
+        device.id,
+    );
 
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Device settings not found');
@@ -201,7 +203,7 @@ async function postDevicesVersionsService(
         throw new Error('The version does already exist');
 
     // Creazione file
-    const filepath = await devicesVersionsRepository.save(payload, code);
+    const filepath = await devicesVersionsRepository.save({ ...payload, code });
 
     // Creazione versione dispositivo database
     const deviceVersion = await devicesVersionsRepository.createOne({
@@ -254,10 +256,9 @@ async function postDevicesVersionsInstallService(
     if (!deviceVersion) throw new Error('Device version not found');
 
     // Aggiornamento impostazioni dispositivo database
-    await devicesSettingsRepository.updateOne(
-        { firmwareId: deviceVersion._id },
-        device._id,
-    );
+    await devicesSettingsRepository.updateOneByDeviceId(device._id, {
+        firmwareId: deviceVersion._id,
+    });
 
     // Conversione versione dispositivo
     const parsedDeviceVersion = dataParser(
