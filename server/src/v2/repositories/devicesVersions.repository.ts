@@ -110,12 +110,11 @@ class DeviceVersionsRepository {
         return deviceVersion.toObject();
     }
 
-    // Funzione salvataggio versioni dispositivo
-    async save(payload: {
+    // Funzione creazione path versioni dispositivo
+    async createFilepath(payload: {
         prototypeModel: string;
         channel: 'stable' | 'beta' | 'dev';
         firmwareVersion: string;
-        code: string;
     }) {
         // Definizione directory
         const filepath = join(
@@ -126,6 +125,15 @@ class DeviceVersionsRepository {
             `${payload.firmwareVersion}.py`,
         );
 
+        // Creazione directory
+        await mkdir(dirname(filepath), { recursive: true });
+
+        // Ritono filepath
+        return filepath;
+    }
+
+    // Funzione salvataggio versioni dispositivo
+    async save(filepath: string, payload: { code: string }) {
         // Creazione directory
         await mkdir(dirname(filepath), { recursive: true });
 

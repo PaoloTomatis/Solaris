@@ -57,6 +57,23 @@ class DeviceSettingsRepository {
         return deviceSettings;
     }
 
+    // Funzione modifica impostazioni dispositivo
+    async updateManyByPrototypeModel(
+        prototypeModel: string,
+        payload: {
+            firmwareId?: IdType;
+        },
+    ) {
+        // Modifica impostazioni dispositivo database
+        await DeviceSettingsModel.updateMany(
+            { prototypeModel },
+            payload,
+        ).lean();
+
+        // Ritorno nullo
+        return null;
+    }
+
     // Funzione elimina impostazioni dispositivo
     async deleteOneByDeviceId(deviceId: IdType) {
         // Modifica impostazioni dispositivo database
