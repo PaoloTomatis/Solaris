@@ -7,8 +7,8 @@ import sortParser from '../../global/utils/sortParser.js';
 // Lista
 const deviceVersionsSortFields = ['createdAt', 'updatedAt'];
 
-// Schema query get /devices-versions/user
-const GetDevicesVersionsUserQuerySchema = z
+// Schema query get /devices-versions
+const GetDevicesVersionsQuerySchema = z
     .object({
         ...baseQuerySchema,
         deviceId: z.string().refine((val) => Types.ObjectId.isValid(val), {
@@ -35,17 +35,27 @@ const GetDevicesVersionsUserQuerySchema = z
         path: ['from', 'to'],
     });
 
-// Schema query get /devices-versions/:id
+// Schema query get /devices-versions/check
+const GetDevicesVersionsCheckQuerySchema = z.object({
+    firmwareId1: z
+        .string()
+        .refine((val) => Types.ObjectId.isValid(val), {
+            error: 'Invalid id',
+        })
+        .optional(),
+    firmwareId2: z
+        .string()
+        .refine((val) => Types.ObjectId.isValid(val), {
+            error: 'Invalid id',
+        })
+        .optional(),
+});
+
+// Schema parametri get /devices-versions/:id
 const GetDevicesVersionsParamsSchema = z.object({
     id: z.string().refine((val) => Types.ObjectId.isValid(val), {
         error: 'Invalid id',
     }),
-});
-
-// Schema query get /devices-versions/device
-const GetDevicesVersionsDeviceQuerySchema = z.object({
-    firmware: z.string(),
-    channel: z.enum(['stable', 'beta', 'dev']),
 });
 
 // Schema body post /devices-versions
@@ -69,9 +79,9 @@ const PostDevicesVersionsInstallBodySchema = z.object({
 
 // Esportazione schemi
 export {
-    GetDevicesVersionsUserQuerySchema,
+    GetDevicesVersionsQuerySchema,
+    GetDevicesVersionsCheckQuerySchema,
     GetDevicesVersionsParamsSchema,
-    GetDevicesVersionsDeviceQuerySchema,
     PostDevicesVersionsBodySchema,
     PostDevicesVersionsInstallBodySchema,
 };
