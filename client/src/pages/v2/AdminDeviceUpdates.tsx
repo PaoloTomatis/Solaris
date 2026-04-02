@@ -139,7 +139,12 @@ function AdminDeviceUpdates() {
                                     'devices-versions',
                                     'api',
                                     accessToken,
-                                    firmwareVersion,
+                                    {
+                                        ...firmwareVersion,
+                                        mandatory: Boolean(
+                                            firmwareVersion.mandatory,
+                                        ),
+                                    },
                                 );
                                 setFirmwareVersion({
                                     notes: '',
