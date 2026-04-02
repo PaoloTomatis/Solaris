@@ -289,7 +289,7 @@
 
     - **_GET_ /devices-versions/check**:
         - Autore --> device
-        - Body --> `{ version1?, version2? }`
+        - Query --> `{ firmwareId1?, firmwareId2? }`
         - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion }`
         - Note --> il dispositivo deve essere posseduto da un utente, viene restituita la versione più aggiornata, se non sono presenti campi nel body si verifica la versione del dispositivo con l'ultima versione disponibile
         - Autenticazione --> ✔️
