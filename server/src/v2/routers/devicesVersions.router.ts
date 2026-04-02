@@ -1,10 +1,10 @@
 // Importazione moduli
 import { Router } from 'express';
 import {
+    getDevicesVersionsController,
     getDevicesVersionsByIdController,
     getDevicesVersionsCheckController,
-    getDevicesVersionsDeviceController,
-    getDevicesVersionsUserController,
+    getDevicesVersionsLatestController,
     postDevicesVersionsController,
     postDevicesVersionsInstallController,
 } from '../controllers/devicesVersions.controller.js';
@@ -14,10 +14,10 @@ const devicesVersionsRouter = Router();
 
 // Definizione rotte
 devicesVersionsRouter
-    .get('/user', getDevicesVersionsUserController)
-    .get('/device', getDevicesVersionsDeviceController)
-    .get('/:id', getDevicesVersionsByIdController)
+    .get('/', getDevicesVersionsController)
     .get('/check', getDevicesVersionsCheckController)
+    .get('/latest', getDevicesVersionsLatestController)
+    .get('/:id', getDevicesVersionsByIdController)
     .post('/', postDevicesVersionsController)
     .post('/install', postDevicesVersionsInstallController);
 

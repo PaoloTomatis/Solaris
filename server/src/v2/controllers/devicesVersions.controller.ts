@@ -2,24 +2,24 @@
 import type { NextFunction, Request, Response } from 'express';
 import resHandler from '../utils/responseHandler.js';
 import {
+    getDevicesVersionsService,
     getDevicesVersionsByIdService,
     getDevicesVersionsCheckService,
-    getDevicesVersionsDeviceService,
-    getDevicesVersionsUserService,
+    getDevicesVersionsLatestService,
     postDevicesVersionsInstallService,
     postDevicesVersionsService,
 } from '../services/devicesVersions.service.js';
 import {
-    GetDevicesVersionsDeviceQuerySchema,
     GetDevicesVersionsParamsSchema,
-    GetDevicesVersionsUserQuerySchema,
+    GetDevicesVersionsQuerySchema,
+    GetDevicesVersionsCheckQuerySchema,
     PostDevicesVersionsBodySchema,
     PostDevicesVersionsInstallBodySchema,
 } from '../schemas/DevicesVersions.schema.js';
 import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
-// Controller get /devices-versions/user
-async function getDevicesVersionsUserController(
+// Controller get /devices-versions
+async function getDevicesVersionsController(
     req: Request,
     res: Response,
     next: NextFunction,
@@ -27,38 +27,12 @@ async function getDevicesVersionsUserController(
     // Gestione errori
     try {
         // Validazione query
-        const parsedQuery = GetDevicesVersionsUserQuerySchema.parse(req.query);
+        const parsedQuery = GetDevicesVersionsQuerySchema.parse(req.query);
 
         // Chiamata servizio
-        const devicesVersions = await getDevicesVersionsUserService(
+        const devicesVersions = await getDevicesVersionsService(
             parsedQuery,
             req.user,
-        );
-
-        // Risposta
-        resHandler(res, true, 200, devicesVersions);
-    } catch (error) {
-        next(error);
-    }
-}
-
-// Controller get /devices-versions/device
-async function getDevicesVersionsDeviceController(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-) {
-    // Gestione errori
-    try {
-        // Validazione query
-        const parsedQuery = GetDevicesVersionsDeviceQuerySchema.parse(
-            req.query,
-        );
-
-        // Chiamata servizio
-        const devicesVersions = await getDevicesVersionsDeviceService(
-            parsedQuery,
-            req.device,
         );
 
         // Risposta
@@ -82,8 +56,10 @@ async function getDevicesVersionsByIdController(
         // Chiamata servizio
         const deviceVersion = await getDevicesVersionsByIdService(
             parsedParams,
-            req.user,
+            req.device,
         );
+
+        console.log(deviceVersion);
 
         // Risposta
         resHandler(res, true, 200, deviceVersion);
@@ -100,8 +76,32 @@ async function getDevicesVersionsCheckController(
 ) {
     // Gestione errori
     try {
+        // Validazione body
+        const parsedBody = GetDevicesVersionsCheckQuerySchema.parse(req.query);
+
         // Chiamata servizio
-        const deviceVersion = await getDevicesVersionsCheckService(req.device);
+        const deviceVersion = await getDevicesVersionsCheckService(
+            parsedBody,
+            req.device,
+        );
+
+        // Risposta
+        resHandler(res, true, 200, deviceVersion);
+    } catch (error) {
+        next(error);
+    }
+}
+
+// Controller get /devices-versions/latest
+async function getDevicesVersionsLatestController(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    // Gestione errori
+    try {
+        // Chiamata servizio
+        const deviceVersion = await getDevicesVersionsLatestService(req.device);
 
         // Risposta
         resHandler(res, true, 200, deviceVersion);
@@ -146,16 +146,16 @@ async function postDevicesVersionsInstallController(
         const parsedBody = PostDevicesVersionsInstallBodySchema.parse(req.body);
 
         // Chiamata servizio
-        const deviceVersion = await postDevicesVersionsInstallService(
+        const deviceSettings = await postDevicesVersionsInstallService(
             parsedBody,
             req.user,
         );
 
-        // Invio aggiornamento ws
+        // Invio impostazioni ws
         emitToRoom(`DEVICE-${parsedBody.deviceId}`, {
-            event: 'v2/update',
-            firmwareVersion: deviceVersion.firmwareVersion,
-            channel: deviceVersion.channel,
+            event: 'v2/mode',
+            mode: deviceSettings.mode,
+            info: deviceSettings,
         });
 
         // Risposta
@@ -167,10 +167,10 @@ async function postDevicesVersionsInstallController(
 
 // Esportazione controller
 export {
+    getDevicesVersionsController,
     getDevicesVersionsByIdController,
     getDevicesVersionsCheckController,
-    getDevicesVersionsDeviceController,
-    getDevicesVersionsUserController,
+    getDevicesVersionsLatestController,
     postDevicesVersionsController,
     postDevicesVersionsInstallController,
 };
