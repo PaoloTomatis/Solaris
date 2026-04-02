@@ -279,7 +279,7 @@
         - Protocollo --> ws
 
 - **DeviceVersions**
-    - **_GET_ /devices-versions/user**:
+    - **_GET_ /devices-versions**:
         - Autore --> user
         - Query --> `? deviceId & from & to & limit & sort & channel`
         - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion }`
@@ -287,24 +287,25 @@
         - Autenticazione --> ✔️
         - Protocollo --> http
 
-    - **_GET_ /devices-versions/:id**:
-        - Autore --> user
-        - Params --> `:id`
+    - **_GET_ /devices-versions/check**:
+        - Autore --> device
+        - Body --> `{ version1?, version2? }`
         - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion }`
+        - Note --> il dispositivo deve essere posseduto da un utente, viene restituita la versione più aggiornata, se non sono presenti campi nel body si verifica la versione del dispositivo con l'ultima versione disponibile
         - Autenticazione --> ✔️
         - Protocollo --> http
 
-    - **_GET_ /devices-versions/device**:
+    - **_GET_ /devices-versions/latest**:
         - Autore --> device
-        - Query --> `? firmwareVersion & channel`
-        - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion, code }`
+        - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion }`
         - Note --> il dispositivo deve essere posseduto da un utente
         - Autenticazione --> ✔️
         - Protocollo --> http
 
-    - **_GET_ /devices-versions/check**:
+    - **_GET_ /devices-versions/:id**:
         - Autore --> device
-        - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion }`
+        - Params --> `:id`
+        - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion, code }`
         - Note --> il dispositivo deve essere posseduto da un utente
         - Autenticazione --> ✔️
         - Protocollo --> http
@@ -324,13 +325,6 @@
         - Note --> l'utente deve possedere il dispositivo
         - Autenticazione --> ✔️
         - Protocollo --> http
-
-    - **OUTPUT v2/update**:
-        - Ricevente --> device
-        - Body --> `{ event, firmwareVersion, channel }`
-        - Note --> inviato a seguito di un aggiornamento obbligatorio o richiesto (solo se attivo in quel momento)
-        - Autenticazione --> ✔️
-        - Protocollo --> ws
 
 - **Authentication**
     - **_POST_ /user-login**:
