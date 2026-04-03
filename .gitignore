@@ -1,4 +1,5 @@
 devlog
 node_modules
 device/cad
+device/src/v2/minify
 server/firmwares
