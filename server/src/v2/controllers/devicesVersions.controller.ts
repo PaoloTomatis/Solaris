@@ -54,15 +54,13 @@ async function getDevicesVersionsByIdController(
         const parsedParams = GetDevicesVersionsParamsSchema.parse(req.params);
 
         // Chiamata servizio
-        const deviceVersion = await getDevicesVersionsByIdService(
+        const code = await getDevicesVersionsByIdService(
             parsedParams,
             req.device,
         );
 
-        console.log(deviceVersion);
-
         // Risposta
-        resHandler(res, true, 200, deviceVersion);
+        res.send(code).status(200);
     } catch (error) {
         next(error);
     }
