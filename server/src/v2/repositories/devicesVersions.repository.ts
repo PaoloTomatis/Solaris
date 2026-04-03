@@ -147,7 +147,7 @@ class DeviceVersionsRepository {
     // Funzione lettura versioni dispositivo
     async read(filepath: string) {
         // Lettura codice
-        return await readFile(filepath);
+        return await readFile(filepath, 'utf-8');
     }
 }
 
