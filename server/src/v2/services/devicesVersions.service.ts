@@ -84,13 +84,6 @@ async function getDevicesVersionsByIdService(
     if (device.prototypeModel !== deviceVersion.prototypeModel)
         throw new Error('Device version not found');
 
-    // Conversione versione dispositivo
-    const parsedDeviceVersion = dataParser(
-        deviceVersion,
-        ['__v', 'schemaVersion'],
-        true,
-    );
-
     // Lettura codice
     const code = await devicesVersionsRepository.read(deviceVersion.filepath);
 
@@ -98,7 +91,7 @@ async function getDevicesVersionsByIdService(
     if (!code) throw new Error('Code not found');
 
     // Ritorno versione dispositivo
-    return { ...parsedDeviceVersion, code };
+    return code;
 }
 
 // Servizio get /devices-versions/check

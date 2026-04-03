@@ -77,6 +77,15 @@ class DevicesRepository {
         return devices;
     }
 
+    // Funzione ricevi dispositivi
+    async findManyByPrototypeModel(payload: { prototypeModel: string }) {
+        // Richiesta dispositivi database
+        const devices = await DevicesModel.find(payload).lean();
+
+        // Ritorno irrigazione
+        return devices;
+    }
+
     // Funzione creazione dispositivo
     async createOne(payload: {
         userId?: IdType;

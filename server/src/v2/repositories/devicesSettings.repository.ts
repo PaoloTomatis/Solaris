@@ -1,6 +1,7 @@
 // Importazione moduli
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
 import type { IdType } from '../types/types.js';
+import devicesRepository from './devices.repository.js';
 
 // Respository impostazioni dispositivi
 class DeviceSettingsRepository {
@@ -64,11 +65,19 @@ class DeviceSettingsRepository {
             firmwareId?: IdType;
         },
     ) {
-        // Modifica impostazioni dispositivo database
-        await DeviceSettingsModel.updateMany(
-            { prototypeModel },
-            payload,
-        ).lean();
+        // Richiesta dispositivi
+        const devices = await devicesRepository.findManyByPrototypeModel({
+            prototypeModel,
+        });
+
+        // Iterzione dispositivi
+        devices.forEach(async (device) => {
+            // Modifica impostazioni dispositivo database
+            await DeviceSettingsModel.updateOne(
+                { deviceId: device._id },
+                payload,
+            ).lean();
+        });
 
         // Ritorno nullo
         return null;
