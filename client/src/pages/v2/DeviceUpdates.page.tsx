@@ -43,7 +43,7 @@ function DeviceUpdates() {
                 if (accessToken) {
                     await getData(
                         accessToken,
-                        'devices-versions/user',
+                        'devices-versions',
                         setDevicesVersions,
                         `limit=50&deviceId=${deviceId}&sort=-createdAt`,
                     );
@@ -99,18 +99,6 @@ function DeviceUpdates() {
                     notify(
                         'MISURAZIONE',
                         `Umidità Interna: ${eventData?.measurements?.humI?.toFixed(1)}% | Luminosità: ${eventData?.measurements?.lum?.toFixed(1)}% | Umidità Esterna: ${eventData?.measurements?.humE}% | Temperatura: ${eventData?.measurements?.temp}°C`,
-                        'success',
-                    );
-                }),
-            );
-
-            // Iscrizione evento aggiornamento
-            unsubscribes.push(
-                ws.subscribe(deviceId, 'update', (eventData: any) => {
-                    // Invio notifica
-                    notify(
-                        'AGGIORNAMENTO',
-                        `Il dispositivo a completato l'aggiornamento ${eventData?.firmwareVersion} - ${eventData?.channel?.toUpperCase()}`,
                         'success',
                     );
                 }),
