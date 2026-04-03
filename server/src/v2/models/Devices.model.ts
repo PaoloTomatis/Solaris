@@ -4,6 +4,7 @@ import devicesSettingsRepository from '../repositories/devicesSettings.repositor
 import measurementsRepository from '../repositories/measurements.repository.js';
 import irrigationsRepository from '../repositories/irrigations.repository.js';
 import notificationsRepository from '../repositories/notifications.repository.js';
+import devicesVersionsRepository from '../repositories/devicesVersions.repository.js';
 
 // Tipo dispositivi
 interface DevicesType {
@@ -35,8 +36,17 @@ const DevicesSchema = new Schema(
 
 // Middleware creazione dispositivo
 DevicesSchema.post('save', async (doc, next) => {
+    // Richiesta ultima versione
+    const version = await devicesVersionsRepository.findLatest({
+        channel: 'stable',
+        prototypeModel: doc.prototypeModel,
+    });
+
     // Creazione impostazioni dispositivo database
-    await devicesSettingsRepository.createOne({ deviceId: doc._id.toString() });
+    await devicesSettingsRepository.createOne({
+        deviceId: doc._id,
+        firmwareId: version?._id,
+    });
 
     // Prossimo middleware
     next();
@@ -48,22 +58,16 @@ DevicesSchema.post('deleteOne', async (doc, next) => {
     if (!doc) next();
 
     // Eliminazione impostazioni dispositivo database
-    await devicesSettingsRepository.deleteOne(doc._id.toString() as string);
+    await devicesSettingsRepository.deleteOneByDeviceId(doc._id);
 
     // Eliminazione misurazioni dispositivo database
-    await measurementsRepository.deleteManyByDevice(
-        doc._id.toString() as string,
-    );
+    await measurementsRepository.deleteManyByDevice(doc._id);
 
     // Eliminazione irrigazioni dispositivo database
-    await irrigationsRepository.deleteManyByDevice(
-        doc._id.toString() as string,
-    );
+    await irrigationsRepository.deleteManyByDevice(doc._id);
 
     // Eliminazione notifiche dispositivo database
-    await notificationsRepository.deleteManyByDevice(
-        doc._id.toString() as string,
-    );
+    await notificationsRepository.deleteManyByDevice(doc._id);
 
     // Prossimo middleware
     next();

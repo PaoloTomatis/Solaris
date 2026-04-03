@@ -12,10 +12,10 @@ import {
     GetDevicesSettingsParamsSchema,
     PostCalibrationDataBodySchema,
     PatchDevicesSettingsBodySchema,
+    PatchDevicesSettingsParamsSchema,
     PostCalibrationExecuteBodySchema,
     PostCalibrationParamsSchema,
 } from '../schemas/DevicesSettings.schema.js';
-import { PatchDevicesParamsSchema } from '../schemas/Devices.schema.js';
 import { emitToRoom } from '../../global/utils/wsRoomHandlers.js';
 
 // Controller get /me/device-settings
@@ -106,7 +106,7 @@ async function patchDevicesSettingsController(
         const parsedBody = PatchDevicesSettingsBodySchema.parse(req.body);
 
         // Validazione parametri
-        const parsedParams = PatchDevicesParamsSchema.parse(req.params);
+        const parsedParams = PatchDevicesSettingsParamsSchema.parse(req.params);
 
         // Chiamata servizio
         const deviceSettings = await patchDevicesSettingsService(

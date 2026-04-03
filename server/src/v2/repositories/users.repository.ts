@@ -1,13 +1,11 @@
 // Importazione moduli
-import { Types } from 'mongoose';
 import UsersModel from '../models/Users.model.js';
-import type { UsersRegisterBodySchema } from '../schemas/Authentication.schema.js';
-import z from 'zod';
+import type { IdType } from '../types/types.js';
 
 // Respository utenti
 class UsersRepository {
     // Funzione ricevi utente da id
-    async findOneById(id: string | Types.ObjectId) {
+    async findOneById(id: IdType) {
         // Richiesta utente database
         const user = await UsersModel.findById(id).lean();
 
@@ -25,7 +23,11 @@ class UsersRepository {
     }
 
     // Funzione creazione utente
-    async createOne(payload: z.infer<typeof UsersRegisterBodySchema>) {
+    async createOne(payload: {
+        email: string;
+        psw: string;
+        role?: 'user' | 'admin';
+    }) {
         // Creazione utente database
         const user = new UsersModel(payload);
 
@@ -37,7 +39,7 @@ class UsersRepository {
     }
 
     // Funzione elimina utente
-    async deleteOne(id: string | Types.ObjectId) {
+    async deleteOneById(id: IdType) {
         // Eliminazione utente database
         const user = await UsersModel.findByIdAndDelete(id).lean();
 

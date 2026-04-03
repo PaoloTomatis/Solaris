@@ -5,9 +5,9 @@
 - Categoria dispositivo: IOT
 - Versione hardware: v1
 - Protocollo comunicazione: HTTP / WebSocket / Serial
-- Alimentazione: Batteria / Rete elettrica
+- Alimentazione: Batteria + Rete elettrica
 - Modalità operativa: Online / Offline
-- Aggiornamenti firmware OTA: ❌
+- Aggiornamenti firmware OTA: ✔️
 - Ambiente operativo: Indoor / Outdoor
 
 ## Specifiche Hardware

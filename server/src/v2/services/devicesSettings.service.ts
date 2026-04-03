@@ -37,7 +37,8 @@ async function getDevicesSettingsService(
         );
 
     // Richiesta impostazioni dispositivo database
-    const deviceSettings = await devicesSettingsRepository.findOne(deviceId);
+    const deviceSettings =
+        await devicesSettingsRepository.findOneByDeviceId(deviceId);
 
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Device settings not found');
@@ -68,7 +69,9 @@ async function getMeSettingsService(device?: DeviceType) {
     if (!user) throw new Error('The device must be owned by a user');
 
     // Richiesta impostazioni dispositivo database
-    const deviceSettings = await devicesSettingsRepository.findOne(device.id);
+    const deviceSettings = await devicesSettingsRepository.findOneByDeviceId(
+        device.id,
+    );
 
     // Controllo impostazioni dispositivo
     if (!deviceSettings) throw new Error('Device settings not found');
@@ -144,9 +147,9 @@ async function patchDevicesSettingsService(
     }
 
     // Modifica impostazioni dispositivo
-    const deviceSettings = await devicesSettingsRepository.updateOne(
-        { ...payload, humIMin, humIMax, kInterval },
+    const deviceSettings = await devicesSettingsRepository.updateOneByDeviceId(
         deviceId,
+        { ...payload, humIMin, humIMax, kInterval },
     );
 
     // Controllo impostazioni dispositivo
@@ -181,9 +184,9 @@ async function postCalibrationDataService(
     if (!user) throw new Error('The device must be owned by a user');
 
     // Modifica impostazioni dispositivo
-    const deviceSettings = await devicesSettingsRepository.updateOne(
-        { [payload.sensor]: payload.measurement },
+    const deviceSettings = await devicesSettingsRepository.updateOneByDeviceId(
         device.id,
+        { [payload.sensor]: payload.measurement },
     );
 
     // Controllo impostazioni dispositivo

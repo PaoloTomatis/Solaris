@@ -1,13 +1,11 @@
 // Importazione moduli
-import { Types } from 'mongoose';
 import UserSettingsModel from '../models/UserSettings.model.js';
-import { PatchUsersSettingsBodySchema } from '../schemas/UsersSettings.schema.js';
-import z from 'zod';
+import type { IdType } from '../types/types.js';
 
 // Respository impostazioni utenti
 class UserSettingsRepository {
     // Funzione ricevi impostazioni utente
-    async findOne(userId: string | Types.ObjectId) {
+    async findOneByUserId(userId: IdType) {
         // Richiesta impostazioni utente
         const userSettings = UserSettingsModel.findOne({ userId }).lean();
 
@@ -17,7 +15,7 @@ class UserSettingsRepository {
 
     // Funzione creazione impostazioni utente
     async createOne(payload: {
-        userId: string;
+        userId: IdType;
         styleMode?: 'light' | 'dark';
         units?: 'metric' | 'imperial';
     }) {
@@ -32,9 +30,12 @@ class UserSettingsRepository {
     }
 
     // Funzione modifica impostazioni utente
-    async updateOne(
-        payload: z.infer<typeof PatchUsersSettingsBodySchema>,
-        userId: string | Types.ObjectId,
+    async updateOneByUserId(
+        userId: IdType,
+        payload: {
+            styleMode?: 'light' | 'dark';
+            units?: 'metric' | 'imperial';
+        },
     ) {
         // Modifica impostazioni utente database
         const userSettings = await UserSettingsModel.findOneAndUpdate(
@@ -48,7 +49,7 @@ class UserSettingsRepository {
     }
 
     // Funzione elimina impostazioni utente
-    async deleteOne(userId: string) {
+    async deleteOneByUserId(userId: IdType) {
         // Modifica impostazioni utente database
         const userSettings = await UserSettingsModel.findOneAndDelete({
             userId,

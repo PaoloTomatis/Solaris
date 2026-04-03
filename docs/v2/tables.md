@@ -140,6 +140,7 @@
 - `sensorLumMin` — float? — luminosità minima (calibrazione)
 - `sensorLumMax` — float? — luminosità massima (calibrazione)
 - `kInterval` — float? — coefficiente di intervallo
+- `firmwareId` — string FK — collegamento a firmware
 - `schemaVersion` — 1 | 2 | ... — versione schema
 - `updatedAt` — date — data modifica elemento
 - `createdAt` — date — data creazione elemento
@@ -147,7 +148,7 @@
 **Vincoli/Regole:**
 
 - `humIMax` — positivo, decimale, <100, >humIMin, non presente se mode è diverso da "auto"
-- `humIMax` — positivo, decimale, <100, <humIMax, non presente se mode è diverso da "auto"
+- `humIMin` — positivo, decimale, <100, <humIMax, non presente se mode è diverso da "auto"
 - `kInterval` — positivo, decimale, non presente se mode è diverso da "auto"
 
 ### Sessions
@@ -162,6 +163,21 @@
 - `userAgent` — string — browser e sistema operativo
 - `subject` — "user" | "device" — soggetto
 - `status` — "active" | "expired" | "revoked" — stato
+- `schemaVersion` — 1 | 2 | ... — versione schema
+- `updatedAt` — date — data modifica elemento
+- `createdAt` — date — data creazione elemento
+
+### DevicesVersions
+
+**Campi principali:**
+
+- `id` — string PK — identificativo univoco
+- `notes` — string? — descrizione versione
+- `prototypeModel` — "Solaris Vega" — modello
+- `channel` — "stable" | "beta" | "dev" — tipo versione
+- `mandatory` — bool — obbligo aggiornamento
+- `filepath` — string — nome file
+- `firmwareVersion` — string — versione firmware
 - `schemaVersion` — 1 | 2 | ... — versione schema
 - `updatedAt` — date — data modifica elemento
 - `createdAt` — date — data creazione elemento

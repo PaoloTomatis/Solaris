@@ -2,8 +2,7 @@
 from machine import Pin, ADC, Timer, RTC, reset, PWM
 import usocket as sk
 from time import sleep, sleep_ms, ticks_ms, ticks_diff, mktime, localtime
-import dht, network, json, ubinascii, urandom, urequests, struct, ntptime, utime
-import os
+import dht, network, json, ubinascii, urandom, urequests, struct, ntptime, utime, os
 
 # Dichiarazione stato dispositivo
 deviceState = {}
@@ -1204,6 +1203,8 @@ def criticError(e):
 
 # Esecuzione script
 if __name__ == "__main__":
+    print("-- MAIN v0.0.1 STABLE (Solaris Vega) --")
+    
     # Configurazione completa
     fullConfig()
 

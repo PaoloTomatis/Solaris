@@ -28,5 +28,19 @@ interface AuthenticatedWS extends WebSocket {
     device?: DeviceType;
 }
 
+// Interfaccia base per richieste multiple
+interface BaseManyRequest {
+    sort?: {
+        field: string;
+        order: 'asc' | 'desc';
+    }[];
+    limit: number;
+    from?: Date;
+    to?: Date;
+}
+
+// Tipo id
+type IdType = string | Types.ObjectId;
+
 // Esportazione tipi
-export type { UserType, DeviceType, AuthenticatedWS };
+export type { UserType, DeviceType, AuthenticatedWS, BaseManyRequest, IdType };

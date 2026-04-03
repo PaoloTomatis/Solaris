@@ -11,7 +11,7 @@ async function getMeSettingsService(user?: UserType) {
     if (!user) throw new Error('Invalid authentication');
 
     // Richiesta impostazioni utente database
-    const userSettings = await usersSettingsRepository.findOne(user.id);
+    const userSettings = await usersSettingsRepository.findOneByUserId(user.id);
 
     // Controllo impostazioni utente
     if (!userSettings) throw new Error('User settings not found');
@@ -36,9 +36,9 @@ async function patchMeSettingsService(
     if (!user) throw new Error('Invalid authentication');
 
     // Modifica impostazioni utente
-    const userSettings = await usersSettingsRepository.updateOne(
-        payload,
+    const userSettings = await usersSettingsRepository.updateOneByUserId(
         user.id,
+        payload,
     );
 
     // Controllo impostazioni utente

@@ -2,6 +2,7 @@
 interface User {
     id: string;
     email: string;
+    role: 'admin' | 'user';
     updatedAt: Date;
     createdAt: Date;
 }
@@ -80,7 +81,21 @@ interface DeviceSettings {
     sensorHumIMax: number;
     sensorLumMin: number;
     sensorLumMax: number;
+    firmwareId: string;
     kInterval: number;
+    updatedAt: Date;
+    createdAt: Date;
+}
+
+// Tipo versione dispositivo
+interface DeviceVersion {
+    id: string;
+    notes?: string;
+    prototypeModel: string;
+    channel: 'stable' | 'beta' | 'dev';
+    mandatory: boolean;
+    filepath: string;
+    firmwareVersion: string;
     updatedAt: Date;
     createdAt: Date;
 }
@@ -110,6 +125,7 @@ export type {
     Notifications,
     DeviceSettings,
     UserSettings,
+    DeviceVersion,
     Login,
     APIResponseSuccess,
     APIResponseError,

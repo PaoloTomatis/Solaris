@@ -59,10 +59,10 @@ async function postNotificationsService(
     if (!user) throw new Error('The device must be owned by a user');
 
     // Creazione notifica database
-    const notification = await notificationsRepository.createOne(
-        payload,
-        device.id,
-    );
+    const notification = await notificationsRepository.createOne({
+        ...payload,
+        deviceId: device.id,
+    });
 
     // Conversione notifica
     const parsedNotification = dataParser(

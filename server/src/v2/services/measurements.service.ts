@@ -59,10 +59,10 @@ async function postMeasurementsService(
     if (!user) throw new Error('The device must be owned by a user');
 
     // Creazione misurazione database
-    const measurement = await measurementsRepository.createOne(
-        payload,
-        device.id,
-    );
+    const measurement = await measurementsRepository.createOne({
+        ...payload,
+        deviceId: device.id,
+    });
 
     // Conversione misurazione
     const parsedMeasurement = dataParser(

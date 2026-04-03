@@ -1,13 +1,12 @@
 // Importazione moduli
-import { Types } from 'mongoose';
 import DeviceSettingsModel from '../models/DeviceSettings.model.js';
-import { PatchDevicesSettingsBodySchema } from '../schemas/DevicesSettings.schema.js';
-import z from 'zod';
+import type { IdType } from '../types/types.js';
+import devicesRepository from './devices.repository.js';
 
 // Respository impostazioni dispositivi
 class DeviceSettingsRepository {
     // Funzione ricevi impostazioni dispositivo
-    async findOne(deviceId: string | Types.ObjectId) {
+    async findOneByDeviceId(deviceId: IdType) {
         // Richiesta impostazioni dispositivo database
         const deviceSettings = await DeviceSettingsModel.findOne({
             deviceId,
@@ -19,11 +18,9 @@ class DeviceSettingsRepository {
 
     // Funzione creazione impostazioni dispositivo
     async createOne(payload: {
-        deviceId: string;
+        deviceId: IdType;
+        firmwareId?: IdType;
         mode?: 'config' | 'auto' | 'safe';
-        humIMax?: number;
-        humIMin?: number;
-        kInterval?: number;
     }) {
         // Creazione impostazioni dispositivo
         const deviceSettings = new DeviceSettingsModel(payload);
@@ -36,9 +33,19 @@ class DeviceSettingsRepository {
     }
 
     // Funzione modifica impostazioni dispositivo
-    async updateOne(
-        payload: z.infer<typeof PatchDevicesSettingsBodySchema>,
-        deviceId: string | Types.ObjectId,
+    async updateOneByDeviceId(
+        deviceId: IdType,
+        payload: {
+            firmwareId?: IdType;
+            mode?: 'config' | 'auto' | 'safe';
+            humIMax?: number | null;
+            humIMin?: number | null;
+            kInterval?: number | null;
+            sensorHumIMin?: number;
+            sensorHumIMax?: number;
+            sensorLumMin?: number;
+            sensorLumMax?: number;
+        },
     ) {
         // Modifica impostazioni dispositivo database
         const deviceSettings = await DeviceSettingsModel.findOneAndUpdate(
@@ -51,8 +58,33 @@ class DeviceSettingsRepository {
         return deviceSettings;
     }
 
+    // Funzione modifica impostazioni dispositivo
+    async updateManyByPrototypeModel(
+        prototypeModel: string,
+        payload: {
+            firmwareId?: IdType;
+        },
+    ) {
+        // Richiesta dispositivi
+        const devices = await devicesRepository.findManyByPrototypeModel({
+            prototypeModel,
+        });
+
+        // Iterzione dispositivi
+        devices.forEach(async (device) => {
+            // Modifica impostazioni dispositivo database
+            await DeviceSettingsModel.updateOne(
+                { deviceId: device._id },
+                payload,
+            ).lean();
+        });
+
+        // Ritorno nullo
+        return null;
+    }
+
     // Funzione elimina impostazioni dispositivo
-    async deleteOne(deviceId: string) {
+    async deleteOneByDeviceId(deviceId: IdType) {
         // Modifica impostazioni dispositivo database
         const deviceSettings = await DeviceSettingsModel.findOneAndDelete({
             deviceId,

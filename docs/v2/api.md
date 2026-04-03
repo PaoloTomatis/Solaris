@@ -220,14 +220,14 @@
     - **_GET_ /devices-settings/:deviceId**:
         - Autore --> user
         - Params --> `:deviceId`
-        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, updatedAt, createdAt }`
+        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, firmwareId, updatedAt, createdAt }`
         - Note --> l'utente deve possedere il dispositivo
         - Autenticazione --> ✔️
         - Protocollo --> http
 
     - **_GET_ /me/device-settings**:
         - Autore --> device
-        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, updatedAt, createdAt }`
+        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, firmwareId, updatedAt, createdAt }`
         - Note --> le impostazioni restituite sono quelle del dispositivo autenticato
         - Autenticazione --> ✔️
         - Protocollo --> http
@@ -252,7 +252,7 @@
         - Autore --> user
         - Params --> `:deviceId`
         - Body --> `{ mode?, humIMax?, humIMin?, kInterval? }`
-        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, updatedAt, createdAt }`
+        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, firmwareId, updatedAt, createdAt }`
         - Note --> l'utente deve possedere il dispositivo
         - Autenticazione --> ✔️
         - Protocollo --> http
@@ -277,6 +277,54 @@
         - Note --> inviato a seguito di una richiesta di calibrazione di un sensore del dispositivo (solo se attivo in quel momento)
         - Autenticazione --> ✔️
         - Protocollo --> ws
+
+- **DeviceVersions**
+    - **_GET_ /devices-versions**:
+        - Autore --> user
+        - Query --> `? deviceId & from & to & limit & sort & channel`
+        - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion }`
+        - Note --> l'utente deve possedere il dispositivo
+        - Autenticazione --> ✔️
+        - Protocollo --> http
+
+    - **_GET_ /devices-versions/check**:
+        - Autore --> device
+        - Query --> `{ firmwareId1?, firmwareId2? }`
+        - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion }`
+        - Note --> il dispositivo deve essere posseduto da un utente, viene restituita la versione più aggiornata, se non sono presenti campi nel body si verifica la versione del dispositivo con l'ultima versione disponibile
+        - Autenticazione --> ✔️
+        - Protocollo --> http
+
+    - **_GET_ /devices-versions/latest**:
+        - Autore --> device
+        - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion }`
+        - Note --> il dispositivo deve essere posseduto da un utente
+        - Autenticazione --> ✔️
+        - Protocollo --> http
+
+    - **_GET_ /devices-versions/:id**:
+        - Autore --> device
+        - Params --> `:id`
+        - Output --> `{ id, notes?, prototypeModel, channel, mandatory, firmwareVersion, code }`
+        - Note --> il dispositivo deve essere posseduto da un utente
+        - Autenticazione --> ✔️
+        - Protocollo --> http
+
+    - **_POST_ /devices-versions**:
+        - Autore --> user (admin)
+        - Body --> `{ notes?, prototypeModel, channel, mandatory, code, firmwareVersion }`
+        - Output --> `null`
+        - Note --> l'utente deve essere un amministratore, non possono essere create due versioni con stesso nome e tipo
+        - Autenticazione --> ✔️
+        - Protocollo --> http
+
+    - **_POST_ /devices-versions/install**:
+        - Autore --> user
+        - Body --> `{ firmwareVersion, channel, deviceId }`
+        - Output --> `null`
+        - Note --> l'utente deve possedere il dispositivo
+        - Autenticazione --> ✔️
+        - Protocollo --> http
 
 - **Authentication**
     - **_POST_ /user-login**:

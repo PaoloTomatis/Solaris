@@ -2,17 +2,13 @@
 import MeasurementsModel, {
     type MeasurementsType,
 } from '../models/Measurements.model.js';
-import { type FilterQuery, Types } from 'mongoose';
-import {
-    GetMeasurementsQuerySchema,
-    PostMeasurementsBodySchema,
-} from '../schemas/Measurements.schema.js';
-import z from 'zod';
+import { type FilterQuery } from 'mongoose';
+import type { IdType, BaseManyRequest } from '../types/types.js';
 
 // Respository misurazioni
 class MeasurementsRepository {
     // Funzione ricevi misurazioni
-    async findMany(payload: z.infer<typeof GetMeasurementsQuerySchema>) {
+    async findMany(payload: BaseManyRequest & { deviceId?: IdType }) {
         // Dichiarazione filtri
         const filter: FilterQuery<MeasurementsType> = {
             deviceId: payload.deviceId,
@@ -48,12 +44,16 @@ class MeasurementsRepository {
     }
 
     // Funzione creazione misurazione
-    async createOne(
-        payload: z.infer<typeof PostMeasurementsBodySchema>,
-        deviceId: string | Types.ObjectId,
-    ) {
+    async createOne(payload: {
+        deviceId: IdType;
+        temp: number;
+        lum: number;
+        humE: number;
+        humI: number;
+        measuredAt: Date;
+    }) {
         // Creazione misurazione
-        const measurement = new MeasurementsModel({ ...payload, deviceId });
+        const measurement = new MeasurementsModel(payload);
 
         // Salvataggio misurazione
         await measurement.save();
@@ -63,7 +63,7 @@ class MeasurementsRepository {
     }
 
     // Funzione eliminazione misurazioni
-    async deleteManyByDevice(deviceId: string) {
+    async deleteManyByDevice(deviceId: IdType) {
         // Modifica dispositivi database
         await MeasurementsModel.deleteMany({ deviceId }).lean();
 

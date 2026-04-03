@@ -150,6 +150,21 @@
         2. `GET /api/v2/devices` --> al caricamento
         3. `POST /api/v2/devices-settings/:id/calibration` --> pulsante
 
+- **AdminDeviceUpdates**
+    - Url --> `/admin/updates`
+    - Protetto --> ✔️
+    - Note --> permette di creare un nuovo aggiornamento per il firmware del dispositivo
+    - Chiamate API
+        1. `POST /api/v2/devices-versions` --> pulsante
+
+- **DeviceUpdates**
+    - Url --> `/dashboard/:id/updates`
+    - Protetto --> ✔️
+    - Note --> permette di verificare gli aggiornamenti disponibili per il dispositivo e installarli
+    - Chiamate API
+        1. `GET /api/v2/devices-versions/user` --> al caricamento
+        2. `POST /api/v2/devices-versions/install` --> pulsante
+
 - **Errore 404**
     - Url --> `/*`
     - Protetto --> ❌

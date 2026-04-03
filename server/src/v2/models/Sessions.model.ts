@@ -9,7 +9,7 @@ interface SessionsType {
     refreshToken: string;
     ipAddress: string;
     userAgent: string;
-    subject: string;
+    subject: 'user' | 'device';
     status: 'active' | 'expired' | 'revoked';
     schemaVersion: number;
     updatedAt: Date;

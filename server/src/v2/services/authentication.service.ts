@@ -41,7 +41,7 @@ async function usersLoginService(
     );
 
     // Invalidazione sessioni
-    await sessionsRepository.updateUserMany(user._id, 'revoked');
+    await sessionsRepository.updateManyByUserId(user._id, { type: 'revoked' });
 
     // Firma access token
     const accessToken = jwt.sign(
@@ -64,7 +64,6 @@ async function usersLoginService(
     // Creazione sessione database
     await sessionsRepository.createOne({
         userId: user._id,
-        subject: 'user',
         refreshToken,
         ipAddress: info.ipAddress,
         userAgent: info.userAgent,
@@ -121,7 +120,9 @@ async function devicesLoginService(
     );
 
     // Invalidazione sessioni
-    await sessionsRepository.updateDeviceMany(device._id, 'revoked');
+    await sessionsRepository.updateManyByDeviceId(device._id, {
+        type: 'revoked',
+    });
 
     // Firma access token
     const accessToken = jwt.sign(minimalParsedDevice, process.env.JWT_ACCESS, {
@@ -140,7 +141,6 @@ async function devicesLoginService(
     // Creazione sessione database
     await sessionsRepository.createOne({
         deviceId: device._id,
-        subject: 'device',
         refreshToken,
         ipAddress: info.ipAddress,
         userAgent: info.userAgent,
@@ -247,12 +247,13 @@ async function refreshService(
         );
 
         // Aggiornamento sessione database
-        await sessionsRepository.updateOne('revoked', session._id);
+        await sessionsRepository.updateOneById(session._id, {
+            type: 'revoked',
+        });
 
         // Creazione sessione database
         await sessionsRepository.createOne({
             userId: user._id,
-            subject: 'user',
             refreshToken: newRefreshToken,
             ipAddress: info.ipAddress,
             userAgent: info.userAgent,
@@ -319,12 +320,13 @@ async function refreshService(
         );
 
         // Aggiornamento sessione database
-        await sessionsRepository.updateOne('revoked', session._id);
+        await sessionsRepository.updateOneById(session._id, {
+            type: 'revoked',
+        });
 
         // Creazione sessione database
         await sessionsRepository.createOne({
             deviceId: device._id,
-            subject: 'device',
             refreshToken: newRefreshToken,
             ipAddress: info.ipAddress,
             userAgent: info.userAgent,
@@ -358,7 +360,9 @@ async function logoutService(
         if (!session) return null;
 
         // Aggiornamento sessione database
-        await sessionsRepository.updateOne('revoked', session._id);
+        await sessionsRepository.updateOneById(session._id, {
+            type: 'revoked',
+        });
     } else if (device) {
         // Richiesta sessione database
         const [session] = await sessionsRepository.findMany({
@@ -371,7 +375,9 @@ async function logoutService(
         if (!session) return null;
 
         // Aggiornamento sessione database
-        await sessionsRepository.updateOne('revoked', session._id);
+        await sessionsRepository.updateOneById(session._id, {
+            type: 'revoked',
+        });
     }
 
     // Ritorno null
