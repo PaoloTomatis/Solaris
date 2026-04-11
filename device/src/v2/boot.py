@@ -9,6 +9,12 @@ deviceState = {}
 # Impostazione flags
 deviceState["flags"] = {"lastWifiAttempt": 0, "lastAuthAttempt": 0, "wifiAttemps":0, "authAttemps":0}
 
+# Headers base
+BASE_HEADERS = {
+    "Content-Type": "application/json",
+    "user-agent": "esp32 - Solaris Vega"
+}
+
 # Classe errore critico
 class CriticalError(Exception):
     pass
@@ -21,6 +27,9 @@ class TransientError(Exception):
 
 # Funzione gestione richieste get in streaming
 def getStreamHandler(url: str, name: str, token = None):
+    # Pulizia memoria
+    gc.collect()
+
     # Controllo wifi
     if not deviceState["utils"]["wifi"].isconnected():
         print(f"Stream request error: {name} wifi not connected\n")
@@ -57,6 +66,9 @@ def getStreamHandler(url: str, name: str, token = None):
 
 # Funzione gestione richieste get
 def getHandler(url: str, name: str, token = None) :
+    # Pulizia memoria
+    gc.collect()
+
     # Controllo wifi
     if not deviceState["utils"]["wifi"].isconnected():
         print(f"Get request error: {name} wifi not connected\n")
@@ -64,13 +76,13 @@ def getHandler(url: str, name: str, token = None) :
 
     print(f"Get request: {name}...")
 
+    # Dichiarazione headers
+    headers = BASE_HEADERS.copy()
+
     # Controllo token
     if token:
         # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}", "user-agent":"esp32 - Solaris Vega"}
-    else:
-        # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "user-agent":"esp32 - Solaris Vega"}
+        headers["Authorization"] = "Bearer " + token
     
     # Dichiarazione dati risposta
     resData = None
@@ -85,31 +97,39 @@ def getHandler(url: str, name: str, token = None) :
             headers=headers
         )
         
-        # Controllo richiesta
-        if response.text:
-            resData = json.loads(response.text)
-            if response.status_code != 200:
+        try:
+            # Richiesta dati
+            resData = response.json()
+        except:
+            if "message" in resData:
                 raise Exception(resData["message"])
-        else:
-            raise Exception()
-
-        # Chiusura richiesta
-        response.close()
+            else:
+                raise Exception("Unknown error")
         
         print(f"Get request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
     except Exception as e:
+        print(f"Get request error: {name}",e, "\n")
+        return None
+    finally:
+        # Controllo risposta
         if response:
             # Chiusura richiesta
             response.close()
 
-        print(f"Get request error: {name}",e, "\n")
-        return None
-    
+        # Eliminazione richiesta
+        del response
+
+        # Eliminazione dati
+        del resData
+
 # Funzione gestione richieste post
 def postHandler(url: str, payload: dict, name: str, token = None):
+    # Pulizia memoria
+    gc.collect()
+
     # Controllo wifi
     if not deviceState["utils"]["wifi"].isconnected():
         print(f"Post request error: {name} wifi not connected\n")
@@ -117,13 +137,13 @@ def postHandler(url: str, payload: dict, name: str, token = None):
 
     print(f"Post request: {name}...")
 
+    # Dichiarazione headers
+    headers = BASE_HEADERS.copy()
+
     # Controllo token
     if token:
         # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}", "user-agent":"esp32 - Solaris Vega"}
-    else:
-        # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "user-agent":"esp32 - Solaris Vega"}
+        headers["Authorization"] = "Bearer " + token
 
     # Dichiarazione dati risposta
     resData = None
@@ -136,32 +156,37 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         # Effettuazione richiesta
         response = urequests.post(
             url,
-            data=json.dumps(payload).encode("utf-8"),
+            data=json.dumps(payload),
             headers=headers
         )
         
-        # Controllo richiesta
-        if response.text:
-            resData = json.loads(response.text)
-            if response.status_code != 200:
+        try:
+            # Richiesta dati
+            resData = response.json()
+        except:
+            if "message" in resData:
                 raise Exception(resData["message"])
-        else:
-            raise Exception()
+            else:
+                raise Exception("Unknown error")
         
-        # Chiusura richiesta
-        response.close()
-
         print(f"Post request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
-    except Exception as e:
+    except Exception as e:            
+        print(f"Post request error: {name}", e, "\n")
+        return None
+    finally:
+        # Controllo risposta
         if response:
             # Chiusura richiesta
             response.close()
-            
-        print(f"Post request error: {name}", e, "\n")
-        return None
+
+        # Eliminazione richiesta
+        del response
+
+        # Eliminazione dati
+        del resData
 
 # Funzione invio avvisi
 def sendNotifications (title: str, description: str, _type: str, loadingData=False):
@@ -496,7 +521,40 @@ def config():
     # Autenticazione
     authenticationConfig()
 
+# Funzione pulizia profonda
+def deepClean():
+    print("RAM cleanup")
+
+    print(f"Free memory before: {gc.mem_free()} bytes")
+    
+    try:
+        # Deinizializzazione led
+        deinitPins()
+    except:
+        pass
+    
+    # Lista moduli da mantenere
+    keep = ('gc', 'os', 'machine', 'deepClean', "sleep")
+
+    # Pulizia moduli
+    for name in list(globals().keys()):
+        if name not in keep and not name.startswith('__'):
+            del globals()[name]
+    
+    # Pulizia memoria ripetutua
+    for _ in range(3):
+        gc.collect()
+    
+    print(f"Free memory after: {gc.mem_free()} bytes")
+
+    sleep(5)
+
 # ---
+
+# Funzione impostazione flag
+def updateFlag(flag: str, value: bool):
+    # Impostazione valore
+    deviceState["flags"][flag] = value
 
 # Funzione mappatura
 def mapRange(x, in_min, in_max, out_min, out_max):
@@ -632,3 +690,6 @@ if __name__ == "__main__":
     except Exception as e:
         # Gestione errore
         criticError(e)
+
+    # Pulizia profonda
+    deepClean()

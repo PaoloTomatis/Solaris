@@ -2,13 +2,19 @@
 from machine import Pin, ADC, Timer, RTC, reset, PWM
 import usocket as sk
 from time import sleep, sleep_ms, ticks_ms, ticks_diff, mktime, localtime
-import dht, network, json, ubinascii, urandom, urequests, struct, ntptime, utime, os
+import dht, network, ujson, ubinascii, urandom, urequests, struct, ntptime, utime, os, gc, micropython
 
 # Dichiarazione stato dispositivo
 deviceState = {}
 
 # Impostazione flags
 deviceState["flags"] = {"irrigate": False, "irrigationInfo": None, "readingDht": False, "lastStatusSend": 0, "lastWarningNotification": 0, "lastWifiAttempt": 0, "lastSockAttempt": 0, "lastAuthAttempt": 0, "unsavedData": False, "lastMeasurement": 0, "irrigationStartTime": None, "irrigationDuration": None, "irrigationMeasureTime": None}
+
+# Headers base
+BASE_HEADERS = {
+    "Content-Type": "application/json",
+    "user-agent": "esp32 - Solaris Vega"
+}
 
 # Classe errore critico
 class CriticalError(Exception):
@@ -22,20 +28,23 @@ class TransientError(Exception):
 
 # Funzione gestione richieste get
 def getHandler(url: str, name: str, token = None) :
+    # Pulizia memoria
+    gc.collect()
+
     # Controllo wifi
-    if not deviceState["utils"]["wifi"].isconnected():
+    if not deviceState["wifi"].isconnected():
         print(f"Get request error: {name} wifi not connected\n")
         return
 
     print(f"Get request: {name}...")
 
+    # Dichiarazione headers
+    headers = BASE_HEADERS.copy()
+
     # Controllo token
     if token:
         # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}", "user-agent":"esp32 - Solaris Vega"}
-    else:
-        # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "user-agent":"esp32 - Solaris Vega"}
+        headers["Authorization"] = "Bearer " + token
     
     # Dichiarazione dati risposta
     resData = None
@@ -47,48 +56,54 @@ def getHandler(url: str, name: str, token = None) :
     try:
         # Effettuazione richiesta
         response = urequests.get(url,
-            headers=headers
+            headers=headers,
+            timeout=10
         )
         
-        # Controllo richiesta
-        if response.text:
-            resData = json.loads(response.text)
-            if response.status_code != 200:
-                raise Exception(resData["message"])
-        else:
-            raise Exception()
+        # Richiesta dati
+        raw = response.text
 
         # Chiusura richiesta
         response.close()
+
+        # Pulizia memoria
+        gc.collect()
+
+        # Conversione dati
+        resData = ujson.loads(raw)
         
         print(f"Get request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
     except Exception as e:
+        print(f"Get request error: {name}",e, "\n")
+        return None
+    finally:
+        # Controllo risposta
         if response:
             # Chiusura richiesta
             response.close()
 
-        print(f"Get request error: {name}",e, "\n")
-        return None
-    
 # Funzione gestione richieste post
 def postHandler(url: str, payload: dict, name: str, token = None):
+    # Pulizia memoria
+    gc.collect()
+
     # Controllo wifi
-    if not deviceState["utils"]["wifi"].isconnected():
+    if not deviceState["wifi"].isconnected():
         print(f"Post request error: {name} wifi not connected\n")
         return None
 
     print(f"Post request: {name}...")
 
+    # Dichiarazione headers
+    headers = BASE_HEADERS.copy()
+
     # Controllo token
     if token:
         # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "Authorization":f"Bearer {token}", "user-agent":"esp32 - Solaris Vega"}
-    else:
-        # Dichiarazione headers
-        headers = {"Content-Type": "application/json", "user-agent":"esp32 - Solaris Vega"}
+        headers["Authorization"] = "Bearer " + token
 
     # Dichiarazione dati risposta
     resData = None
@@ -101,33 +116,36 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         # Effettuazione richiesta
         response = urequests.post(
             url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers
+            data=ujson.dumps(payload),
+            headers=headers,
+            timeout=10
         )
-        
-        # Controllo richiesta
-        if response.text:
-            resData = json.loads(response.text)
-            if response.status_code != 200:
-                raise Exception(resData["message"])
-        else:
-            raise Exception()
-        
+
+        # Richiesta dati
+        raw = response.text
+
         # Chiusura richiesta
         response.close()
+
+        # Pulizia memoria
+        gc.collect()
+
+        # Conversione dati
+        resData = ujson.loads(raw)
 
         print(f"Post request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
-    except Exception as e:
+    except Exception as e:            
+        print(f"Post request error: {name}", e, "\n")
+        return None
+    finally:
+        # Controllo risposta
         if response:
             # Chiusura richiesta
             response.close()
-            
-        print(f"Post request error: {name}", e, "\n")
-        return None
-       
+
 # Funzione invio avvisi
 def sendNotifications (title: str, description: str, _type: str, loadingData=False):
     try:
@@ -143,7 +161,7 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
             notifications = readFile("notifications")
 
             # Controllo notifiche
-            if len(notifications) > 10:
+            if len(notifications) > 5:
                 notifications.pop(0)
 
             # Aggiornamento notifiche
@@ -166,7 +184,7 @@ def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, h
             irrigations = readFile("irrigations")
 
             # Controllo irrigazioni
-            if len(irrigations) > 10:
+            if len(irrigations) > 5:
                 irrigations.pop(0)
 
             # Aggiornamento irrigazioni
@@ -189,7 +207,7 @@ def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, l
             measurements = readFile("measurements")
 
             # Controllo irrigazioni
-            if len(measurements) > 10:
+            if len(measurements) > 5:
                 measurements.pop(0)
 
             # Aggiornamento irrigazioni
@@ -235,7 +253,7 @@ def readFile(path: str):
 
     # Caricamento dati
     with open(f'{path}.json', 'r') as file:
-        fileData = json.load(file)
+        fileData = ujson.load(file)
 
     # Ritorno dati
     return fileData
@@ -244,7 +262,7 @@ def readFile(path: str):
 def writeFile(path: str, data, unsaved = False):
     # Aggiornamento misurazioni
     with open(f'{path}.tmp', 'w') as file:
-        file.write(json.dumps(data))
+        file.write(ujson.dumps(data))
 
     # Rinominazione file
     os.rename(f'{path}.tmp', f'{path}.json')
@@ -289,7 +307,7 @@ def syncTime():
             ntptime.settime()
             epoch_local = utime.time() + 1 * 3600
             lt = utime.localtime(epoch_local)
-            deviceState["utils"]["rtc"].datetime((lt[0], lt[1], lt[2], lt[6]+1, lt[3], lt[4], lt[5], 0))
+            deviceState["rtc"].datetime((lt[0], lt[1], lt[2], lt[6]+1, lt[3], lt[4], lt[5], 0))
             print("Time sync success\n")
             return
         except OSError as e:
@@ -300,9 +318,9 @@ def syncTime():
 # Funzione connessione wifi
 def connWifi(tentatives=10):
     try:
-        if deviceState["utils"]["wifi"]:
+        if deviceState["wifi"]:
             # Definizione wlan
-            wlan = deviceState["utils"]["wifi"]
+            wlan = deviceState["wifi"]
             
             # Controllo connessione
             if wlan.isconnected():
@@ -318,7 +336,7 @@ def connWifi(tentatives=10):
             wlan.active(True)
 
             # Impostazione wifi
-            deviceState["utils"]["wifi"] = wlan
+            deviceState["wifi"] = wlan
 
         # Connessione wifi
         wlan.connect(deviceState["wifiInfo"]["ssid"], deviceState["wifiInfo"]["psw"])
@@ -369,12 +387,19 @@ def sensorConfig():
 
     # Impostazione dati
     deviceState["sensors"] = {"pump":pump, "sensorIn":sensorIn, "sensorOut":sensorOut, "sensorLum":sensorLum}
-    deviceState["utils"] = {"rtc":rtc, "tim1":tim1, "pwms":pwms, "dhtRead":0, "wifi":None, "sock":None}
+    deviceState["wifi"] = None
+    deviceState["sock"] = None
+    deviceState["rtc"] = rtc
+    deviceState["tim1"] = tim1
+    deviceState["pwms"] = pwms
+    deviceState["dhtRead"] = 0
 
 # Funzione autenticazione
 def authenticationConfig():
+    print(f"Free memory before login: \n{micropython.mem_info(1)}")
     # Effettuazione login
     loginData = login()
+    print(f"Free memory after login: \n{micropython.mem_info(1)}")
 
     # Definizione token
     deviceState["token"] = None
@@ -394,20 +419,24 @@ def authenticationConfig():
             writeFile("deviceInfo", parsedInfo)
             deviceState["info"] = parsedInfo
 
+        print(f"Free memory before settings: \n{micropython.mem_info(1)}")
         # Richiesta impostazioni
         newSettings = getSettings()
-
+        print(f"Free memory after settings: \n{micropython.mem_info(1)}")
+        
         # Controllo impostazioni
         if newSettings:
             # Sovrascrittura file
             writeFile("settings", newSettings)
             deviceState["settings"] = newSettings
-
+        
+        
         # Connessione socket
         connSocket()
+        
 
         # Controllo socket
-        if not deviceState["utils"]["sock"] and deviceState["utils"]["wifi"].isconnected():
+        if not deviceState["sock"] and deviceState["wifi"].isconnected():
             # Ritorno errore
             raise Exception("Socket connection failed")
 
@@ -415,6 +444,9 @@ def authenticationConfig():
 def config():
     # Caricamento dati
     [deviceState["wifiInfo"], deviceState["serverInfo"], deviceState["settings"], deviceState["info"]] = loadData()
+
+    # Pulizia memoria
+    gc.collect()
 
     # Connessione wifi
     connWifi()
@@ -433,14 +465,20 @@ def fullConfig():
     # Configurazione sensori
     sensorConfig()
 
-    # Impostazione colore
-    rgbColor("yellow")
-
     # Configurazione generale
     config()
 
+    # Impostazione colore
+    rgbColor("yellow")
+
+    # Attesa
+    sleep(1)
+
+    # Pulizia memoria
+    gc.collect()
+
     # Controllo connessione wifi
-    if deviceState["utils"]["wifi"].isconnected() and deviceState["token"]:
+    if deviceState["wifi"].isconnected() and deviceState["token"]:
         loadSavedData()
 
     # Impostazione colore
@@ -493,7 +531,7 @@ def dhtMeasure():
     MIN_INTERVAL = 2500  # ms
 
     now = ticks_ms()
-    last = deviceState["utils"]["dhtRead"]
+    last = deviceState["dhtRead"]
 
     # rate limiter duro
     if ticks_diff(now, last) < MIN_INTERVAL:
@@ -509,7 +547,7 @@ def dhtMeasure():
             h = deviceState["sensors"]["sensorOut"].humidity()
             t = deviceState["sensors"]["sensorOut"].temperature()
 
-            deviceState["utils"]["dhtRead"] = ticks_ms()
+            deviceState["dhtRead"] = ticks_ms()
             updateFlag("readingDht", False)
 
             return h, t
@@ -614,18 +652,18 @@ def secureMeasurementsCheck(temp: float, humE: float):
 # Funzione misurazione con controllo modalità
 def measurementsMode(humI: float, humE: float, lum: float, temp: float):
     # Dichiarazione tempo corrente
-    currentTime = f'{deviceState["utils"]["rtc"].datetime()[0]:04d}-{deviceState["utils"]["rtc"].datetime()[1]:02d}-{deviceState["utils"]["rtc"].datetime()[2]:02d}T{deviceState["utils"]["rtc"].datetime()[4]:02d}:{deviceState["utils"]["rtc"].datetime()[5]:02d}:{deviceState["utils"]["rtc"].datetime()[6]:02d}'
+    currentTime = f'{deviceState["rtc"].datetime()[0]:04d}-{deviceState["rtc"].datetime()[1]:02d}-{deviceState["rtc"].datetime()[2]:02d}T{deviceState["rtc"].datetime()[4]:02d}:{deviceState["rtc"].datetime()[5]:02d}:{deviceState["rtc"].datetime()[6]:02d}'
 
     # Stampo misurazioni
     printMeasurement(humI, humE, temp, lum)
 
     # Controllo connessione wifi
-    if not deviceState["utils"]["wifi"].isconnected() or not deviceState["token"]:
+    if not deviceState["wifi"].isconnected() or not deviceState["token"]:
         # Caricamento misurazioni
         measurements = readFile("measurements")
 
         # Controllo misurazioni
-        if len(measurements) > 10:
+        if len(measurements) > 5:
             measurements.pop(0)
 
         # Aggiornamento misurazioni
@@ -654,7 +692,7 @@ def measurements():
     updateFlag("lastMeasurement", ticks_ms())
 
     # Dichiarazione tempo corrente
-    currentTime = f'{deviceState["utils"]["rtc"].datetime()[0]:04d}-{deviceState["utils"]["rtc"].datetime()[1]:02d}-{deviceState["utils"]["rtc"].datetime()[2]:02d}T{deviceState["utils"]["rtc"].datetime()[4]:02d}:{deviceState["utils"]["rtc"].datetime()[5]:02d}:{deviceState["utils"]["rtc"].datetime()[6]:02d}'
+    currentTime = f'{deviceState["rtc"].datetime()[0]:04d}-{deviceState["rtc"].datetime()[1]:02d}-{deviceState["rtc"].datetime()[2]:02d}T{deviceState["rtc"].datetime()[4]:02d}:{deviceState["rtc"].datetime()[5]:02d}:{deviceState["rtc"].datetime()[6]:02d}'
     
     try:
         # Misurazioni
@@ -681,10 +719,10 @@ def measurements():
 # Funzione connessione socket
 def connSocket():
     # Controllo wifi
-    if not deviceState["utils"]["wifi"].isconnected():
+    if not deviceState["wifi"].isconnected():
         print(f"WS connection error: wifi not connected\n")
         # Impostazione connessione socket
-        deviceState["utils"]["sock"] = None
+        deviceState["sock"] = None
 
     try:
         print("\nWS connection...")
@@ -721,7 +759,7 @@ def connSocket():
             raise CriticalError("WS connection refused")
 
         # Impostazione connessione socket
-        deviceState["utils"]["sock"] = s
+        deviceState["sock"] = s
     except Exception as e:
         raise CriticalError(e)
 
@@ -781,7 +819,7 @@ def wsRecv(sock, timeout=2):
         # Decodifica e restituisce
         try:
             text = payload.decode()
-            return json.loads(text)
+            return ujson.loads(text)
         except:
             return payload
 
@@ -790,7 +828,7 @@ def wsRecv(sock, timeout=2):
         if "ETIMEDOUT" in str(e) or "timeout" in str(e):
             return None
         if "ENOTCONN" in str(e) or "ECONNRESET" in str(e):
-            deviceState["utils"]["sock"] = None
+            deviceState["sock"] = None
             return None
         else:
             raise TransientError(e)
@@ -799,10 +837,10 @@ def wsRecv(sock, timeout=2):
 # Funzione gestione socket
 def socketHandler():    
     # Dichiarazione tempo corrente
-    currentTime = f'{deviceState["utils"]["rtc"].datetime()[0]:04d}-{deviceState["utils"]["rtc"].datetime()[1]:02d}-{deviceState["utils"]["rtc"].datetime()[2]:02d}T{deviceState["utils"]["rtc"].datetime()[4]:02d}:{deviceState["utils"]["rtc"].datetime()[5]:02d}:{deviceState["utils"]["rtc"].datetime()[6]:02d}'
+    currentTime = f'{deviceState["rtc"].datetime()[0]:04d}-{deviceState["rtc"].datetime()[1]:02d}-{deviceState["rtc"].datetime()[2]:02d}T{deviceState["rtc"].datetime()[4]:02d}:{deviceState["rtc"].datetime()[5]:02d}:{deviceState["rtc"].datetime()[6]:02d}'
     
     # Ricezione evento
-    event = wsRecv(deviceState["utils"]["sock"], 0.1)
+    event = wsRecv(deviceState["sock"], 0.1)
     
     # Controllo evento
     if type(event) is dict and "event" in event:        
@@ -817,7 +855,7 @@ def socketHandler():
     # Controllo ultimo invio
     if ticks_diff(ticks_ms(), deviceState["flags"]["lastStatusSend"]) > 5000:
         # Invio stato
-        wsSend(deviceState["utils"]["sock"], json.dumps({"event": "v2/status", "data":{"lastSeen":currentTime}}))
+        wsSend(deviceState["sock"], ujson.dumps({"event": "v2/status", "data":{"lastSeen":currentTime}}))
 
 # ---
 
@@ -857,7 +895,7 @@ def irrigation(humI: float, date, irrigationTime: int, mode: str):
         updateFlag("irrigationDuration", irrigationTime * 1000)
 
         # Impostazione timer fallback
-        deviceState["utils"]["tim1"].init(period = irrigationTime*1000 + 2000, mode = Timer.ONE_SHOT, callback = lambda t: deviceState["sensors"]["pump"].off())
+        deviceState["tim1"].init(period = irrigationTime*1000 + 2000, mode = Timer.ONE_SHOT, callback = lambda t: deviceState["sensors"]["pump"].off())
     else:
         sendNotifications("ERRORE IRRIGAZIONE", "Non è stato possibile irrigare in quanto il tempo d'irrigazione era inferiore o uguale a 0 o il dispositivo stava già irrigando", "error")
 
@@ -870,12 +908,12 @@ def irrigationCheck(humI1: float, humI2: float, humE: float, lum: float, temp: f
     if humI2 <= humI1:
         # Invio notifica
         sendNotifications("ERRORE IRRIGAZIONE", f'Irrigazione di {irrigationTime}s del dispositivo {deviceState["info"]["name"]} non effettuata correttamente, controllare tanica d\'acqua!', "error")
-    elif not deviceState["utils"]["wifi"].isconnected() or not deviceState["token"]:
+    elif not deviceState["wifi"].isconnected() or not deviceState["token"]:
         # Caricamento irrigazioni
         irrigations = readFile("irrigations")
 
         # Controllo irrigazioni
-        if len(irrigations) > 10:
+        if len(irrigations) > 5:
             irrigations.pop(0)
 
         # Aggiornamento irrigazioni
@@ -955,7 +993,6 @@ def updateFlag(flag: str, value: bool):
     # Impostazione valore
     deviceState["flags"][flag] = value
 
-
 # ---
 
 # Funzione scrittura misurazioni
@@ -969,15 +1006,15 @@ def printMeasurement (humI: float, humE: float, temp: float, lum:float):
 
 # Funzione deinizializzazione pin
 def deinitPins():
-    deviceState["utils"]["pwms"][0].deinit()
-    deviceState["utils"]["pwms"][1].deinit()
-    deviceState["utils"]["pwms"][2].deinit()
+    deviceState["pwms"][0].deinit()
+    deviceState["pwms"][1].deinit()
+    deviceState["pwms"][2].deinit()
 
 # Funzione spegnimento led
 def rgbOff():
-    deviceState["utils"]["pwms"][0].duty_u16(0)
-    deviceState["utils"]["pwms"][1].duty_u16(0)
-    deviceState["utils"]["pwms"][2].duty_u16(0)
+    deviceState["pwms"][0].duty_u16(0)
+    deviceState["pwms"][1].duty_u16(0)
+    deviceState["pwms"][2].duty_u16(0)
     sleep(0.1)
 
 # Funzione accensione colore
@@ -998,9 +1035,9 @@ def rgbColor (color: str):
         r, g, b = 0, 255, 255
 
     # Impostazione colore 
-    deviceState["utils"]["pwms"][0].duty_u16(mapRange(r, 0, 255, 0, 65535))
-    deviceState["utils"]["pwms"][1].duty_u16(mapRange(g, 0, 255, 0, 65535))
-    deviceState["utils"]["pwms"][2].duty_u16(mapRange(b, 0, 255, 0, 65535))
+    deviceState["pwms"][0].duty_u16(mapRange(r, 0, 255, 0, 65535))
+    deviceState["pwms"][1].duty_u16(mapRange(g, 0, 255, 0, 65535))
+    deviceState["pwms"][2].duty_u16(mapRange(b, 0, 255, 0, 65535))
 
 # ---
 
@@ -1009,20 +1046,26 @@ def settingsEvent(event):
     print(f'New mode: {event["mode"].upper()}')
 
     # Controllo modalità
-    if (event["mode"] == "auto" or event["mode"] == "config") and "info" in event:
-        
-        print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
+    if "info" in event:
+        # Controllo differenza firmwareId
+        if event["info"]["firmwareId"] != deviceState["settings"]["firmwareId"]:
+            # Reset
+            reset()
 
-        # Creazione nuove impostazioni
-        newSettings = deviceState["settings"].copy()
-        newSettings["humIMax"] = event["info"]["humIMax"]
-        newSettings["humIMin"] = event["info"]["humIMin"]
-        newSettings["kInterval"] = event["info"]["kInterval"]
-        newSettings["mode"] = event["mode"]
-                   
-        # Sovrascrittura file
-        writeFile("settings", newSettings)
-        deviceState["settings"] = newSettings
+        elif event["mode"] == "auto" or event["mode"] == "config":
+            
+            print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
+
+            # Creazione nuove impostazioni
+            newSettings = deviceState["settings"].copy()
+            newSettings["humIMax"] = event["info"]["humIMax"]
+            newSettings["humIMin"] = event["info"]["humIMin"]
+            newSettings["kInterval"] = event["info"]["kInterval"]
+            newSettings["mode"] = event["mode"]
+                    
+            # Sovrascrittura file
+            writeFile("settings", newSettings)
+            deviceState["settings"] = newSettings
 
     elif event["mode"] == "config" or event["mode"] == "safe":
 
@@ -1098,15 +1141,15 @@ def main():
                 pumpOff()
 
         # Controllo wifi
-        if not deviceState["utils"]["wifi"].isconnected():
+        if not deviceState["wifi"].isconnected():
             # Controllo connessione socket
-            if deviceState["utils"]["sock"]:
+            if deviceState["sock"]:
                 # Chiusura connessione socket
-                deviceState["utils"]["sock"].close()
-            deviceState["utils"]["sock"] = None
+                deviceState["sock"].close()
+            deviceState["sock"] = None
 
             # Controllo tempo passato
-            if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 15000:
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
                 # Impostazione colore
                 rgbColor("yellow")
                 # Connessione wifi
@@ -1118,7 +1161,7 @@ def main():
                 rgbColor("green")
         elif not deviceState["token"]:
             # Controllo tempo passato
-            if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 15000:
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
                 # Impostazione colore
                 rgbColor("yellow")
                 # Autenticatione
@@ -1128,9 +1171,9 @@ def main():
 
                 # Impostazione colore
                 rgbColor("green")
-        elif not deviceState["utils"]["sock"]:
+        elif not deviceState["sock"]:
             # Controllo tempo passato
-            if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 15000:
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 60000:
                 # Impostazione colore
                 rgbColor("yellow")
                 # Connessione socket
@@ -1141,7 +1184,7 @@ def main():
                 rgbColor("green")
 
         # Controllo connessione socket
-        if deviceState["utils"]["sock"]:
+        if deviceState["sock"]:
             # Gestore connessione socket
             socketHandler()
             
@@ -1161,7 +1204,7 @@ def main():
                 irrigationMeasurements()
 
         # Controllo salvataggi
-        if deviceState["flags"]["unsavedData"] == True and deviceState["token"] and deviceState["utils"]["wifi"].isconnected():
+        if deviceState["flags"]["unsavedData"] == True and deviceState["token"] and deviceState["wifi"].isconnected():
             # Caricamento dati
             loadSavedData()
 
@@ -1203,6 +1246,9 @@ def criticError(e):
 
 # Esecuzione script
 if __name__ == "__main__":
+    # Pulizia memoria
+    gc.collect()
+    
     print("-- MAIN v0.0.1 STABLE (Solaris Vega) --")
     
     # Configurazione completa
