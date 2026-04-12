@@ -1,11 +1,9 @@
 # Importazione moduli
 from machine import Pin, ADC, Timer, RTC, reset, PWM
-import usocket as sk
 from time import sleep, sleep_ms, ticks_ms, ticks_diff, mktime, localtime
-import dht, network, ujson, ubinascii, urandom, urequests, struct, ntptime, utime, os, gc, micropython
-
-# Dichiarazione stato dispositivo
-deviceState = {}
+from state import deviceState
+import usocket as sk
+import dht, network, ujson, ubinascii, urandom, urequests, struct, ntptime, utime, os, gc
 
 # Impostazione flags
 deviceState["flags"] = {"irrigate": False, "irrigationInfo": None, "readingDht": False, "lastStatusSend": 0, "lastWarningNotification": 0, "lastWifiAttempt": 0, "lastSockAttempt": 0, "lastAuthAttempt": 0, "unsavedData": False, "lastMeasurement": 0, "irrigationStartTime": None, "irrigationDuration": None, "irrigationMeasureTime": None}
@@ -297,6 +295,46 @@ def loadData():
     except Exception as e:
         raise CriticalError(e)
 
+# Funzione caricamento dati salvati
+def loadSavedData():
+    try:        
+        # Caricamento informazione misurazioni
+        measurements = readFile("measurements")
+            
+        # Caricamento informazioni irrigazioni
+        irrigations = readFile("irrigations")
+
+        # Caricamento informazione notifiche
+        notifications = readFile("notifications")
+        
+        # Iterazione irrigazioni
+        for irrigation in irrigations:
+            # Invio Irrigazione
+            sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
+
+        # Iterazione misurazioni
+        for measurement in measurements:
+            # Invio misurazioni
+            sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
+
+        # Iterazione notifiche
+        for notification in notifications:
+            # Invio notifiche
+            sendNotifications(notification["title"], notification["description"], notification["type"], True)
+
+
+        # Aggiornamento misurazioni
+        writeFile("measurements", [])
+            
+        # Aggiornamento irrigazioni
+        writeFile("irrigations", [])
+
+        # Aggiornamento notifiche
+        writeFile("notifications", [])
+
+    except Exception as e:
+        raise CriticalError(e)
+
 # Funzione sincronizzazione orario
 def syncTime():
     for attempt in range(5):
@@ -356,50 +394,10 @@ def connWifi(tentatives=10):
     except Exception as e:
         raise CriticalError(e)
 
-# Funzione configurazione sensori
-def sensorConfig():
-    # Dichiarazione pin led
-    pwmPins = [27,13,12]
-    pwms = [PWM(Pin(pwmPins[0])),PWM(Pin(pwmPins[1])), PWM(Pin(pwmPins[2]))]
-    [pwm.freq(1010) for pwm in pwms]
-
-    # Dichiarazione pompa
-    pump = Pin(26, Pin.OUT)
-
-    # Dichiarazione sensore suolo
-    sensorIn = ADC(Pin(32))
-    sensorIn.atten(ADC.ATTN_11DB)
-    sensorIn.width(ADC.WIDTH_12BIT)
-
-    # Dichiarazione sensore esterno
-    sensorOut = dht.DHT22(Pin(33))
-
-    # Dichiarazione sensore luminosità
-    sensorLum = ADC(Pin(35))
-    sensorLum.atten(ADC.ATTN_11DB)
-    sensorLum.width(ADC.WIDTH_12BIT)
-
-    # Creazione timer
-    tim1 = Timer(0)
-
-    # Creazione orario
-    rtc = RTC()
-
-    # Impostazione dati
-    deviceState["sensors"] = {"pump":pump, "sensorIn":sensorIn, "sensorOut":sensorOut, "sensorLum":sensorLum}
-    deviceState["wifi"] = None
-    deviceState["sock"] = None
-    deviceState["rtc"] = rtc
-    deviceState["tim1"] = tim1
-    deviceState["pwms"] = pwms
-    deviceState["dhtRead"] = 0
-
 # Funzione autenticazione
 def authenticationConfig():
-    print(f"Free memory before login: \n{micropython.mem_info(1)}")
     # Effettuazione login
     loginData = login()
-    print(f"Free memory after login: \n{micropython.mem_info(1)}")
 
     # Definizione token
     deviceState["token"] = None
@@ -419,10 +417,8 @@ def authenticationConfig():
             writeFile("deviceInfo", parsedInfo)
             deviceState["info"] = parsedInfo
 
-        print(f"Free memory before settings: \n{micropython.mem_info(1)}")
         # Richiesta impostazioni
         newSettings = getSettings()
-        print(f"Free memory after settings: \n{micropython.mem_info(1)}")
         
         # Controllo impostazioni
         if newSettings:
@@ -433,56 +429,11 @@ def authenticationConfig():
         
         # Connessione socket
         connSocket()
-        
 
         # Controllo socket
         if not deviceState["sock"] and deviceState["wifi"].isconnected():
             # Ritorno errore
             raise Exception("Socket connection failed")
-
-# Funzione configurazione
-def config():
-    # Caricamento dati
-    [deviceState["wifiInfo"], deviceState["serverInfo"], deviceState["settings"], deviceState["info"]] = loadData()
-
-    # Pulizia memoria
-    gc.collect()
-
-    # Connessione wifi
-    connWifi()
-
-    try:
-        # Sincronizzazione orario
-        syncTime()
-    except Exception:
-        print("Time sync failed")
-
-    # Autenticazione
-    authenticationConfig()
-
-# Funzione configurazione totale
-def fullConfig():
-    # Configurazione sensori
-    sensorConfig()
-
-    # Configurazione generale
-    config()
-
-    # Impostazione colore
-    rgbColor("yellow")
-
-    # Attesa
-    sleep(1)
-
-    # Pulizia memoria
-    gc.collect()
-
-    # Controllo connessione wifi
-    if deviceState["wifi"].isconnected() and deviceState["token"]:
-        loadSavedData()
-
-    # Impostazione colore
-    rgbColor("green")
 
 # Funzione caricamento dati irrigazione e misurazione
 def loadSavedData():
@@ -827,7 +778,7 @@ def wsRecv(sock, timeout=2):
         # Nessun messaggio o errore di timeout
         if "ETIMEDOUT" in str(e) or "timeout" in str(e):
             return None
-        if "ENOTCONN" in str(e) or "ECONNRESET" in str(e):
+        elif "ENOTCONN" in str(e) or "ECONNRESET" in str(e):
             deviceState["sock"] = None
             return None
         else:
@@ -1010,13 +961,6 @@ def deinitPins():
     deviceState["pwms"][1].deinit()
     deviceState["pwms"][2].deinit()
 
-# Funzione spegnimento led
-def rgbOff():
-    deviceState["pwms"][0].duty_u16(0)
-    deviceState["pwms"][1].duty_u16(0)
-    deviceState["pwms"][2].duty_u16(0)
-    sleep(0.1)
-
 # Funzione accensione colore
 def rgbColor (color: str):
     # Dichiarazione valori rgb
@@ -1120,11 +1064,60 @@ def calibrationEvent(event):
 
 # ---
 
+# Funzione controllo connessione
+def networkCheck():
+    # Controllo wifi
+    if not deviceState["wifi"].isconnected():
+        # Controllo connessione socket
+        if deviceState["sock"]:
+            # Chiusura connessione socket
+            deviceState["sock"].close()
+        deviceState["sock"] = None
+
+        # Controllo tempo passato
+        if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
+            # Impostazione colore
+            rgbColor("yellow")
+            # Connessione wifi
+            connWifi(3)
+            # Impostazione flag
+            updateFlag("lastWifiAttempt", ticks_ms())
+
+            # Impostazione colore
+            rgbColor("green")
+    elif not deviceState["token"]:
+        # Controllo tempo passato
+        if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
+            # Impostazione colore
+            rgbColor("yellow")
+            # Autenticatione
+            authenticationConfig()
+            # Impostazione flag
+            updateFlag("lastAuthAttempt", ticks_ms())
+
+            # Impostazione colore
+            rgbColor("green")
+    elif not deviceState["sock"]:
+        # Controllo tempo passato
+        if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 60000:
+            # Impostazione colore
+            rgbColor("yellow")
+            # Connessione socket
+            connSocket()
+            # Impostazione flag
+            updateFlag("lastSockAttempt", ticks_ms())
+            # Impostazione colore
+            rgbColor("green")
+
+    # Controllo connessione socket
+    if deviceState["sock"]:
+        # Gestore connessione socket
+        socketHandler()
+
 # Funzione principale
-def main():
+def mainLoop():
     # Loop
-    while True:
-        
+    while True:        
         # Controllo flag lettura dht
         if deviceState["flags"]["readingDht"]:
             sleep(1)
@@ -1140,56 +1133,11 @@ def main():
                 # Spegnimento pompa
                 pumpOff()
 
-        # Controllo wifi
-        if not deviceState["wifi"].isconnected():
-            # Controllo connessione socket
-            if deviceState["sock"]:
-                # Chiusura connessione socket
-                deviceState["sock"].close()
-            deviceState["sock"] = None
-
-            # Controllo tempo passato
-            if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
-                # Impostazione colore
-                rgbColor("yellow")
-                # Connessione wifi
-                connWifi(3)
-                # Impostazione flag
-                updateFlag("lastWifiAttempt", ticks_ms())
-
-                # Impostazione colore
-                rgbColor("green")
-        elif not deviceState["token"]:
-            # Controllo tempo passato
-            if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
-                # Impostazione colore
-                rgbColor("yellow")
-                # Autenticatione
-                authenticationConfig()
-                # Impostazione flag
-                updateFlag("lastAuthAttempt", ticks_ms())
-
-                # Impostazione colore
-                rgbColor("green")
-        elif not deviceState["sock"]:
-            # Controllo tempo passato
-            if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 60000:
-                # Impostazione colore
-                rgbColor("yellow")
-                # Connessione socket
-                connSocket()
-                # Impostazione flag
-                updateFlag("lastSockAttempt", ticks_ms())
-                # Impostazione colore
-                rgbColor("green")
-
-        # Controllo connessione socket
-        if deviceState["sock"]:
-            # Gestore connessione socket
-            socketHandler()
+        # Controllo connessione
+        networkCheck()
             
         # Controllo misurazione
-        if ticks_diff(ticks_ms(), deviceState["flags"]["lastMeasurement"]) > 300000:
+        if ticks_diff(ticks_ms(), deviceState["flags"]["lastMeasurement"]) > 600000:
             # Misurazione
             measurements()
 
@@ -1213,6 +1161,29 @@ def main():
 
         sleep(1)
 
+# Funzione main
+def main():
+    # Pulizia memoria
+    gc.collect()
+    
+    print("\n\n\n-- MAIN v0.0.1 STABLE (Solaris Vega) --")
+
+    while True:
+        try:
+            # Funzione pricipale
+            mainLoop()
+
+        except TransientError as e:
+            print("Recoverable error:", e)
+
+        except CriticalError as e:
+            # Gestione errore
+            criticError(e)
+
+        except Exception as e:
+            # Gestione errore
+            criticError(e)
+
 # Funzione gestiore errori critici
 def criticError(e):
     # Stampa dettagli
@@ -1225,12 +1196,19 @@ def criticError(e):
     print("Critical error:", e)
     print("\n", exc_str)
 
+
     # Pulizia hardware
     try:
         # Impostazione colore
         rgbColor("red")
     except Exception as hw_err:
         print("Hardware cleanup failed:", hw_err)
+        
+    # Deinizializzazione led
+    try:
+        deinitPins()
+    except:
+        pass
 
     # Invio notifica
     try:
@@ -1246,26 +1224,4 @@ def criticError(e):
 
 # Esecuzione script
 if __name__ == "__main__":
-    # Pulizia memoria
-    gc.collect()
-    
-    print("-- MAIN v0.0.1 STABLE (Solaris Vega) --")
-    
-    # Configurazione completa
-    fullConfig()
-
-    while True:
-        try:
-            # Funzione pricipale
-            main()
-
-        except TransientError as e:
-            print("Recoverable error:", e)
-
-        except CriticalError as e:
-            # Gestione errore
-            criticError(e)
-
-        except Exception as e:
-            # Gestione errore
-            criticError(e)
+    main()
