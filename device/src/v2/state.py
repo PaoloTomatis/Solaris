@@ -1,0 +1,2 @@
+# Dichiarazione stato dispositivo
+deviceState = {}
