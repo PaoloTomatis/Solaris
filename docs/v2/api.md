@@ -220,14 +220,14 @@
     - **_GET_ /devices-settings/:deviceId**:
         - Autore --> user
         - Params --> `:deviceId`
-        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, firmwareId, updatedAt, createdAt }`
+        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, sensorHumIMin, sensorHumIMax, sensorLumMin, sensorLumMax, firmwareId, updatedAt, createdAt }`
         - Note --> l'utente deve possedere il dispositivo
         - Autenticazione --> ✔️
         - Protocollo --> http
 
     - **_GET_ /me/device-settings**:
         - Autore --> device
-        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, firmwareId, updatedAt, createdAt }`
+        - Output --> `{ id, deviceId, mode, humIMax, humIMin, kInterval, sensorHumIMin, sensorHumIMax, sensorLumMin, sensorLumMax, firmwareId, updatedAt, createdAt }`
         - Note --> le impostazioni restituite sono quelle del dispositivo autenticato
         - Autenticazione --> ✔️
         - Protocollo --> http
