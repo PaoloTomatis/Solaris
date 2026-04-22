@@ -6,7 +6,7 @@ import usocket as sk
 import dht, network, ujson, ubinascii, urandom, urequests, ntptime, utime, os, gc
 
 # Impostazione flags
-deviceState["flags"] = {"lastWifiAttempt": 0, "lastAuthAttempt": 0, "wifiAttemps":0, "authAttemps":0}
+deviceState["flags"] = {"lastWifiAttempt": 0, "lastAuthAttempt": 0, "lastSockAttempt": 0, "wifiAttempts":0, "authAttempts":0, "sockAttempts":0}
 
 # Headers base
 BASE_HEADERS = {
@@ -405,48 +405,6 @@ def connSocket():
     except Exception as e:
         raise CriticalError(e)
 
-# Funzione autenticazione
-def authenticationConfig():
-    # Effettuazione login
-    loginData = login()
-
-    # Definizione token
-    deviceState["token"] = None
-
-    # Controllo dati
-    if loginData:
-        # Impostazione token e nuove info dispositivo
-        deviceState["token"] = loginData["accessToken"]
-        newDevice = loginData["device"]
-
-        # Controllo nuove info dispositivo
-        if newDevice:
-            # Conversione dispositivo
-            parsedInfo = {"id":newDevice["id"], "key":deviceState["info"]["key"], "psw":deviceState["info"]["psw"], "name": newDevice["name"], "prototypeModel":newDevice["prototypeModel"]}
-            
-            # Sovrascrittura file
-            writeFile("deviceInfo", parsedInfo)
-            deviceState["info"] = parsedInfo
-
-        # Richiesta impostazioni
-        newSettings = getSettings()
-        
-        # Controllo impostazioni
-        if newSettings:
-            # Sovrascrittura file
-            writeFile("settings", newSettings)
-            deviceState["settings"] = newSettings
-        
-        
-        # Connessione socket
-        connSocket()
-        
-
-        # Controllo socket
-        if not deviceState["sock"] and deviceState["wifi"].isconnected():
-            # Ritorno errore
-            raise Exception("Socket connection failed")
-
 # Funzione controllo esistenza file
 def exists(path):
     try:
@@ -602,6 +560,48 @@ def sensorConfig():
     deviceState["pwms"] = pwms
     deviceState["dhtRead"] = 0
 
+# Funzione autenticazione
+def authenticationConfig():
+    # Effettuazione login
+    loginData = login()
+
+    # Definizione token
+    deviceState["token"] = None
+
+    # Controllo dati
+    if loginData:
+        # Impostazione token e nuove info dispositivo
+        deviceState["token"] = loginData["accessToken"]
+        newDevice = loginData["device"]
+
+        # Controllo nuove info dispositivo
+        if newDevice:
+            # Conversione dispositivo
+            parsedInfo = {"id":newDevice["id"], "key":deviceState["info"]["key"], "psw":deviceState["info"]["psw"], "name": newDevice["name"], "prototypeModel":newDevice["prototypeModel"]}
+            
+            # Sovrascrittura file
+            writeFile("deviceInfo", parsedInfo)
+            deviceState["info"] = parsedInfo
+
+        # Richiesta impostazioni
+        newSettings = getSettings()
+        
+        # Controllo impostazioni
+        if newSettings:
+            # Sovrascrittura file
+            writeFile("settings", newSettings)
+            deviceState["settings"] = newSettings
+        
+        
+        # Connessione socket
+        connSocket()
+        
+
+        # Controllo socket
+        if not deviceState["sock"] and deviceState["wifi"].isconnected():
+            # Ritorno errore
+            raise Exception("Socket connection failed")
+
 # Funzione configurazione versione
 def versionConfig():
     # Ricavo versione dispositivo
@@ -701,7 +701,7 @@ def deinitPins():
     deviceState["pwms"][2].deinit()
 
 # Funzione accensione colore
-def rgbColor (color: str):
+def rgbColor(color: str):
     # Dichiarazione valori rgb
     r, g, b = 0, 0, 0
     
@@ -720,6 +720,71 @@ def rgbColor (color: str):
     deviceState["pwms"][1].duty_u16(mapRange(g, 0, 255, 0, 65535))
     deviceState["pwms"][2].duty_u16(mapRange(b, 0, 255, 0, 65535))
 
+# Funzione controllo connessione
+def networkCheck():
+    if not deviceState["wifi"].isconnected():
+        # Controllo connessione socket
+        if deviceState["sock"]:
+
+            # Chiusura connessione socket
+            deviceState["sock"].close()
+
+        deviceState["sock"] = None
+
+        # Controllo tempo passato
+        if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
+            # Impostazione colore
+            rgbColor("yellow")
+
+            # Connessione wifi
+            connWifi(3)
+
+            # Impostazione flag
+            updateFlag("lastWifiAttempt", ticks_ms())
+
+            # Impostazione flag
+            updateFlag("wifiAttempts", deviceState["flags"]["wifiAttempts"] + 1)
+
+            # Impostazione colore
+            rgbColor("green")
+
+    elif not deviceState["token"]:
+        # Controllo tempo passato
+        if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
+            # Impostazione colore
+            rgbColor("yellow")            
+
+            # Autenticatione
+            authenticationConfig()
+
+            # Impostazione flag
+            updateFlag("lastAuthAttempt", ticks_ms())
+
+            # Impostazione flag
+            updateFlag("authAttempts", deviceState["flags"]["authAttempts"] + 1)
+
+            # Impostazione colore
+            rgbColor("green")
+
+    elif not deviceState["sock"]:
+        # Controllo tempo passato
+        if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 60000:
+
+            # Impostazione colore
+            rgbColor("yellow")
+
+            # Connessione socket
+            connSocket()
+
+            # Impostazione flag
+            updateFlag("lastSockAttempt", ticks_ms())
+
+            # Impostazione flag
+            updateFlag("sockAttempts", deviceState["flags"]["sockAttempts"] + 1)
+
+            # Impostazione colore
+            rgbColor("green")
+
 # ---
 
 # Funzione tentativi
@@ -728,31 +793,14 @@ def retryLoop():
     while True:
 
         # Controllo wifi e autenticazione
-        if deviceState["wifi"].isconnected() and deviceState["token"]:
+        if deviceState["wifi"].isconnected() and deviceState["token"] and deviceState["sock"]:
             return True
 
-        elif deviceState["flags"]["wifiAttemps"] > 3 or deviceState["flags"]["authAttemps"] > 3:
+        elif deviceState["flags"]["wifiAttempts"] > 3 or deviceState["flags"]["authAttempts"] > 3 or deviceState["flags"]["sockAttempts"] > 3:
             return False
 
-        elif not deviceState["wifi"].isconnected():
-            # Controllo tempo passato
-            if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
-                # Connessione wifi
-                connWifi(3)
-                # Impostazione flag
-                updateFlag("lastWifiAttempt", ticks_ms())
-                # Impostazione flag
-                updateFlag("wifiAttempts", deviceState["flags"]["wifiAttemps"] + 1)
-
-        elif not deviceState["token"]:
-            # Controllo tempo passato
-            if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
-                # Autenticatione
-                authenticationConfig()
-                # Impostazione flag
-                updateFlag("lastAuthAttempt", ticks_ms())
-                # Impostazione flag
-                updateFlag("authAttempts", deviceState["flags"]["authAttemps"] + 1)
+        # Controllo connessione
+        networkCheck()
 
         sleep(1)
 
