@@ -240,7 +240,7 @@ def mapRange(x, in_min, in_max, out_min, out_max):
     if in_max == in_min:
         raise TransientError("Range map failed (cannot divide by 0)")
 
-    return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+    return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
 # ---
 
@@ -997,29 +997,15 @@ def settingsEvent(event):
             reset()
 
         elif event["mode"] == "auto" or event["mode"] == "config":
-            
-            print(f'New settings:\thumIMin --> {event["info"]["humIMin"]}\thumIMax --> {event["info"]["humIMax"]}\tkInterval --> {event["info"]["kInterval"]}')
-
-            # Creazione nuove impostazioni
-            newSettings = deviceState["settings"].copy()
-            newSettings["humIMax"] = event["info"]["humIMax"]
-            newSettings["humIMin"] = event["info"]["humIMin"]
-            newSettings["kInterval"] = event["info"]["kInterval"]
-            newSettings["mode"] = event["mode"]
-                    
-            # Sovrascrittura file
-            writeFile("settings", newSettings)
-            deviceState["settings"] = newSettings
+            # Aggiornamento impostazioni
+            deviceState["settings"] = event["info"]
+            deviceState["settings"]["mode"] = event["mode"]
+            writeFile("settings", deviceState["settings"])
 
     elif event["mode"] == "config" or event["mode"] == "safe":
-
-        # Creazione nuove impostazioni
-        newSettings = deviceState["settings"].copy()
-        newSettings["mode"] = event["mode"]
-
-        # Sovrascrittura file
-        writeFile("settings", newSettings)
-        deviceState["settings"] = newSettings
+        # Aggiornamento impostazioni
+        deviceState["settings"]["mode"] = event["mode"]
+        writeFile("settings", deviceState["settings"])
         
     else:
         print("Invalid mode request\n")
@@ -1043,6 +1029,7 @@ def calibrationEvent(event):
 
         # Aggiornamento impostazioni
         deviceState["settings"] = newSettings
+        writeFile("settings", deviceState["settings"])
 
     elif event["sensor"] == "sensorLumMin" or event["sensor"] == "sensorLumMax":
         # Misurazione
@@ -1058,6 +1045,7 @@ def calibrationEvent(event):
 
         # Aggiornamento impostazioni
         deviceState["settings"] = newSettings
+        writeFile("settings", deviceState["settings"])
 
     else:
         print("Invalid sensor request\n")
@@ -1068,10 +1056,12 @@ def calibrationEvent(event):
 def networkCheck():
     # Controllo wifi
     if not deviceState["wifi"].isconnected():
-        # Controllo connessione socket
-        if deviceState["sock"]:
-            # Chiusura connessione socket
+        # Chiusura connessione
+        try:
             deviceState["sock"].close()
+        except:
+            pass
+
         deviceState["sock"] = None
 
         # Controllo tempo passato
@@ -1166,7 +1156,7 @@ def main():
     # Pulizia memoria
     gc.collect()
     
-    print("\n\n\n-- MAIN v0.0.1 STABLE (Solaris Vega) --")
+    print("\n\n\n-- MAIN v0.0.2 STABLE (Solaris Vega) --")
 
     while True:
         try:
