@@ -52,7 +52,7 @@ def getStreamHandler(url: str, name: str, token = None):
         # Controllo codice stato
         if response.status_code != 200:
             response.close()
-            raise Exception(f"Status code {response.status_code}")
+            raise Exception(f"Stream request error: status {response.status_code}")
 
         print(f"Stream request started: {name}\n")
         
@@ -60,13 +60,24 @@ def getStreamHandler(url: str, name: str, token = None):
         return response
         
     except Exception as e:
-        print(f"Stream request error: {name}", e, "\n")
-        return None
+        raise Exception(f"Stream request error: {name}", str(e))
+        
+    finally:
+        # Pulizia memoria
+        gc.collect()
+
+        # Chiusura richiesta
+        try:
+            response.close()
+        except:
+            pass
 
 # Funzione gestione richieste get
 def getHandler(url: str, name: str, token = None) :
     # Pulizia memoria
     gc.collect()
+
+    print(gc.mem_free())
 
     # Controllo wifi
     if not deviceState["wifi"].isconnected():
@@ -93,41 +104,51 @@ def getHandler(url: str, name: str, token = None) :
     try:
         # Effettuazione richiesta
         response = urequests.get(url,
-            headers=headers
+            headers=headers,
+            timeout=10
         )
         
-        try:
-            # Richiesta dati
-            resData = response.json()
-        except:
-            if "message" in resData:
-                raise Exception(resData["message"])
-            else:
-                raise Exception("Unknown error")
+        # Richiesta dati
+        raw = response.content
+
+        # Chiusura richiesta
+        response.close()
+
+        # Pulizia richiesta
+        del response
+
+        # Pulizia memoria
+        gc.collect()
+
+        # Conversione dati
+        resData = ujson.loads(raw)
+
+        # Pulizia dati
+        del raw
         
         print(f"Get request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
     except Exception as e:
-        print(f"Get request error: {name}",e, "\n")
-        return None
+        raise Exception(f"Get request error: {name}", str(e))
+
     finally:
-        # Controllo risposta
-        if response:
-            # Chiusura richiesta
+        # Pulizia memoria
+        gc.collect()
+
+        # Chiusura richiesta
+        try:
             response.close()
-
-        # Eliminazione richiesta
-        del response
-
-        # Eliminazione dati
-        del resData
+        except:
+            pass
 
 # Funzione gestione richieste post
 def postHandler(url: str, payload: dict, name: str, token = None):
     # Pulizia memoria
     gc.collect()
+
+    print(gc.mem_free())
 
     # Controllo wifi
     if not deviceState["wifi"].isconnected():
@@ -156,36 +177,44 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         response = urequests.post(
             url,
             data=ujson.dumps(payload),
-            headers=headers
+            headers=headers,
+            timeout=10
         )
-        
-        try:
-            # Richiesta dati
-            resData = response.json()
-        except:
-            if "message" in resData:
-                raise Exception(resData["message"])
-            else:
-                raise Exception("Unknown error")
-        
+
+        # Richiesta dati
+        raw = response.content
+
+        # Chiusura richiesta
+        response.close()
+
+        # Pulizia richiesta
+        del response
+
+        # Pulizia memoria
+        gc.collect()
+
+        # Conversione dati
+        resData = ujson.loads(raw)
+
+        # Pulizia dati
+        del raw
+
         print(f"Post request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
-    except Exception as e:            
-        print(f"Post request error: {name}", e, "\n")
-        return None
+    except Exception as e:
+        raise Exception(f"Post request error: {name}", str(e))
+
     finally:
-        # Controllo risposta
-        if response:
-            # Chiusura richiesta
+        # Pulizia memoria
+        gc.collect()
+
+        # Chiusura richiesta
+        try:
             response.close()
-
-        # Eliminazione richiesta
-        del response
-
-        # Eliminazione dati
-        del resData
+        except:
+            pass
 
 # Funzione invio avvisi
 def sendNotifications (title: str, description: str, _type: str, loadingData=False):
@@ -208,7 +237,53 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
             # Aggiornamento notifiche
             writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications, True)
         else:
-            raise CriticalError(e)
+            raise CriticalError("Send notifications error: ", str(e))
+
+# Funzione invio irrigazione
+def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, humIAfter: float, humE: float, lum: float, temp: float, loadingData=False):
+    try:
+        # Dichiarazione dati
+        payload = {"irrigatedAt": date, "interval": irrigationTime, "type": _type, "humIBefore": humIBefore, "humIAfter": humIAfter, "humE": humE, "lum": lum, "temp": temp}
+
+        # Ritorno dati
+        return postHandler(f'{deviceState["serverInfo"]["apiUrl"]}/irrigations?authType=device', payload, "irrigation", deviceState["token"])
+    except Exception as e:
+        # Controllo caricamento dati
+        if not loadingData:
+            # Caricamento irrigazioni
+            irrigations = readFile("irrigations")
+
+            # Controllo irrigazioni
+            if len(irrigations) > 5:
+                irrigations.pop(0)
+
+            # Aggiornamento irrigazioni
+            writeFile("irrigations", [{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations, True)
+        else:
+            raise CriticalError("Send irrigations error: ", str(e))
+
+# Funzione invio misurazioni
+def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, loadingData=False):
+    try:
+        # Dichiarazione dati
+        payload = {"measuredAt": date, "humI": humI, "humE": humE, "temp":temp, "lum":lum}
+
+        # Ritorno dati
+        return postHandler(f'{deviceState["serverInfo"]["apiUrl"]}/measurements?authType=device', payload, "measurements", deviceState["token"])
+    except Exception as e:
+        # Controllo caricamento dati
+        if not loadingData:
+            # Caricamento irrigazioni
+            measurements = readFile("measurements")
+
+            # Controllo irrigazioni
+            if len(measurements) > 5:
+                measurements.pop(0)
+
+            # Aggiornamento irrigazioni
+            writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements, True)
+        else:
+            raise CriticalError("Send measurements error: ", str(e))
 
 # Funzione login
 def login():
@@ -275,7 +350,7 @@ def loadData():
         # Ritorno dati
         return [wifiInfo, serverInfo, settings, deviceInfo]
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Load data error: ", str(e))
 
 # Funzione caricamento dati salvati
 def loadSavedData():
@@ -315,7 +390,7 @@ def loadSavedData():
         writeFile("notifications", [])
 
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Load saved data error", str(e))
 
 # Funzione connessione wifi
 def connWifi(tentatives=10):
@@ -356,7 +431,7 @@ def connWifi(tentatives=10):
         
         print("Wifi connection failed")
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Connect wifi error: ", str(e))
 
 # Funzione connessione socket
 def connSocket():
@@ -398,12 +473,12 @@ def connSocket():
         if b"101" in resp:
             print("WS connection success\n")
         else:
-            raise CriticalError("WS connection refused")
+            raise CriticalError("Socket connection error: connection refused")
 
         # Impostazione connessione socket
         deviceState["sock"] = s
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Socket connection error:", str(e))
 
 # Funzione controllo esistenza file
 def exists(path):
@@ -434,7 +509,7 @@ def getLatestVersion():
         # Ritorno versione
         return firmwareVersion
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Get latest version error: ", str(e))
 
 # Funzione installazione versione firmware
 def installVersion(versionId: str):
@@ -476,12 +551,12 @@ def installVersion(versionId: str):
                 # Pulizia della ram
                 gc.collect()
 
-                print("device version installation finished")
+                print("Device version installation finished")
                 
                 # Reset
                 reset()
             else:
-                raise Exception("downloaded file is empty")
+                raise Exception("Device version installation error: file is empty")
 
     except Exception as e:
         # Pulizia file temporaneo in caso di errore
@@ -489,7 +564,7 @@ def installVersion(versionId: str):
         except: pass
         
         # Rilancio errore critico
-        raise CriticalError(e)
+        raise CriticalError("Device version installation error: ", str(e))
 
 # Funzione confronto versioni
 def checkVersions(v1: str, v2: str):
@@ -500,7 +575,7 @@ def checkVersions(v1: str, v2: str):
         # Ritorno versione
         return firmwareVersion
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Check versione error: ", str(e))
 
 # ---
 
@@ -512,15 +587,15 @@ def syncTime():
 
             # Aggiornamento orario
             ntptime.settime()
-            epoch_local = utime.time() + 1 * 3600
+            epoch_local = utime.time()
             lt = utime.localtime(epoch_local)
-            deviceState["rtc"].datetime((lt[0], lt[1], lt[2], lt[6]+1, lt[3], lt[4], lt[5], 0))
+            deviceState["rtc"].datetime((lt[0], lt[1], lt[2], lt[6], lt[3], lt[4], lt[5], 0))
             print("Time sync success\n")
             return
         except OSError as e:
             print(f"Time sync attempt {attempt+1} failed: {e}")
             sleep(1)
-    raise TransientError("Time sync failed after retries")
+    raise TransientError("Time sync error: failed after retries")
 
 # Funzione configurazione sensori
 def sensorConfig():
@@ -600,7 +675,7 @@ def authenticationConfig():
         # Controllo socket
         if not deviceState["sock"] and deviceState["wifi"].isconnected():
             # Ritorno errore
-            raise Exception("Socket connection failed")
+            raise Exception("Socket connection error: connection failed")
 
 # Funzione configurazione versione
 def versionConfig():
@@ -690,7 +765,7 @@ def updateFlag(flag: str, value: bool):
 def mapRange(x, in_min, in_max, out_min, out_max):
     # Controllo valori
     if in_max == in_min:
-        raise TransientError("Range map failed (cannot divide by 0)")
+        raise TransientError("Range map error: cannot divide by 0")
 
     return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
 
