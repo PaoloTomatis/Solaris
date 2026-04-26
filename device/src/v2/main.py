@@ -29,6 +29,8 @@ def getHandler(url: str, name: str, token = None) :
     # Pulizia memoria
     gc.collect()
 
+    print(gc.mem_free())
+
     # Controllo wifi
     if not deviceState["wifi"].isconnected():
         print(f"Get request error: {name} wifi not connected\n")
@@ -59,34 +61,46 @@ def getHandler(url: str, name: str, token = None) :
         )
         
         # Richiesta dati
-        raw = response.text
+        raw = response.content
 
         # Chiusura richiesta
         response.close()
+
+        # Pulizia richiesta
+        del response
 
         # Pulizia memoria
         gc.collect()
 
         # Conversione dati
         resData = ujson.loads(raw)
+
+        # Pulizia dati
+        del raw
         
         print(f"Get request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
     except Exception as e:
-        print(f"Get request error: {name}",e, "\n")
-        return None
+        raise Exception(f"Get request error: {name}", str(e))
+
     finally:
-        # Controllo risposta
-        if response:
-            # Chiusura richiesta
+        # Pulizia memoria
+        gc.collect()
+
+        # Chiusura richiesta
+        try:
             response.close()
+        except:
+            pass
 
 # Funzione gestione richieste post
 def postHandler(url: str, payload: dict, name: str, token = None):
     # Pulizia memoria
     gc.collect()
+
+    print(gc.mem_free())
 
     # Controllo wifi
     if not deviceState["wifi"].isconnected():
@@ -120,10 +134,13 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         )
 
         # Richiesta dati
-        raw = response.text
+        raw = response.content
 
         # Chiusura richiesta
         response.close()
+
+        # Pulizia richiesta
+        del response
 
         # Pulizia memoria
         gc.collect()
@@ -131,18 +148,25 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         # Conversione dati
         resData = ujson.loads(raw)
 
+        # Pulizia dati
+        del raw
+
         print(f"Post request success: {name}\n")
         
         # Ritorno dati
         return resData["data"]
-    except Exception as e:            
-        print(f"Post request error: {name}", e, "\n")
-        return None
+    except Exception as e:
+        raise Exception(f"Post request error: {name}", str(e))
+
     finally:
-        # Controllo risposta
-        if response:
-            # Chiusura richiesta
+        # Pulizia memoria
+        gc.collect()
+
+        # Chiusura richiesta
+        try:
             response.close()
+        except:
+            pass
 
 # Funzione invio avvisi
 def sendNotifications (title: str, description: str, _type: str, loadingData=False):
@@ -165,7 +189,7 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
             # Aggiornamento notifiche
             writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications, True)
         else:
-            raise CriticalError(e)
+            raise CriticalError("Send notifications error: ", str(e))
 
 # Funzione invio irrigazione
 def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, humIAfter: float, humE: float, lum: float, temp: float, loadingData=False):
@@ -188,7 +212,7 @@ def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, h
             # Aggiornamento irrigazioni
             writeFile("irrigations", [{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations, True)
         else:
-            raise CriticalError(e)
+            raise CriticalError("Send irrigations error: ", str(e))
 
 # Funzione invio misurazioni
 def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, loadingData=False):
@@ -211,7 +235,7 @@ def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, l
             # Aggiornamento irrigazioni
             writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements, True)
         else:
-            raise CriticalError(e)
+            raise CriticalError("Send measurements error: ", str(e))
 
 # Funzione login
 def login():
@@ -238,7 +262,7 @@ def getSettings():
 def mapRange(x, in_min, in_max, out_min, out_max):
     # Controllo valori
     if in_max == in_min:
-        raise TransientError("Range map failed (cannot divide by 0)")
+        raise TransientError("Range map error: cannot divide by 0")
 
     return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
@@ -293,7 +317,7 @@ def loadData():
         # Ritorno dati
         return [wifiInfo, serverInfo, settings, deviceInfo]
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Load data error: ", str(e))
 
 # Funzione caricamento dati salvati
 def loadSavedData():
@@ -322,7 +346,6 @@ def loadSavedData():
             # Invio notifiche
             sendNotifications(notification["title"], notification["description"], notification["type"], True)
 
-
         # Aggiornamento misurazioni
         writeFile("measurements", [])
             
@@ -333,7 +356,7 @@ def loadSavedData():
         writeFile("notifications", [])
 
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Load saved data error: ", str(e))
 
 # Funzione sincronizzazione orario
 def syncTime():
@@ -343,15 +366,15 @@ def syncTime():
 
             # Aggiornamento orario
             ntptime.settime()
-            epoch_local = utime.time() + 1 * 3600
+            epoch_local = utime.time()
             lt = utime.localtime(epoch_local)
-            deviceState["rtc"].datetime((lt[0], lt[1], lt[2], lt[6]+1, lt[3], lt[4], lt[5], 0))
+            deviceState["rtc"].datetime((lt[0], lt[1], lt[2], lt[6], lt[3], lt[4], lt[5], 0))
             print("Time sync success\n")
             return
         except OSError as e:
             print(f"Time sync attempt {attempt+1} failed: {e}")
             sleep(1)
-    raise TransientError("Time sync failed after retries")
+    raise TransientError("Sync time error: failed after retries")
 
 # Funzione connessione wifi
 def connWifi(tentatives=10):
@@ -392,7 +415,7 @@ def connWifi(tentatives=10):
         
         print("Wifi connection failed")
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Connect wifi error: ", str(e))
 
 # Funzione autenticazione
 def authenticationConfig():
@@ -433,47 +456,7 @@ def authenticationConfig():
         # Controllo socket
         if not deviceState["sock"] and deviceState["wifi"].isconnected():
             # Ritorno errore
-            raise Exception("Socket connection failed")
-
-# Funzione caricamento dati irrigazione e misurazione
-def loadSavedData():
-    try:        
-        # Caricamento informazione misurazioni
-        measurements = readFile("measurements")
-            
-        # Caricamento informazioni irrigazioni
-        irrigations = readFile("irrigations")
-
-        # Caricamento informazione notifiche
-        notifications = readFile("notifications")
-        
-        # Iterazione irrigazioni
-        for irrigation in irrigations:
-            # Invio Irrigazione
-            sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
-
-        # Iterazione misurazioni
-        for measurement in measurements:
-            # Invio misurazioni
-            sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
-
-        # Iterazione notifiche
-        for notification in notifications:
-            # Invio notifiche
-            sendNotifications(notification["title"], notification["description"], notification["type"], True)
-
-
-        # Aggiornamento misurazioni
-        writeFile("measurements", [])
-            
-        # Aggiornamento irrigazioni
-        writeFile("irrigations", [])
-
-        # Aggiornamento notifiche
-        writeFile("notifications", [])
-
-    except Exception as e:
-        raise CriticalError(e)
+            raise Exception("Socket connection error: connection failed")
 
 # ---
 
@@ -553,22 +536,22 @@ def measurementsCheck(humI: float, humE: float, lum: float, temp: float):
     # Controllo humI
     if humI is None or humI < 0 or humI > 100:
         # Ritorno errore
-        raise CriticalError("Soil humidity measurement invalid")
+        raise CriticalError("Measurement check error: soil humidity measurement invalid")
 
     # Controllo humE
     if humE is None or humE < 0 or humE > 100:
         # Ritorno errore
-        raise CriticalError("External humidity measurement invalid")
+        raise CriticalError("Measurement check error: external humidity measurement invalid")
 
     # Controllo temp
     if temp is None:
         # Ritorno errore
-        raise TransientError("Temperature measurement invalid")
+        raise CriticalError("Measurement check error: temperature measurement invalid")
 
     # Controllo temp
     if lum is None or lum < 0 or lum > 100:
         # Ritorno errore
-        raise Exception("Luminosity measurement invalid")
+        raise CriticalError("Measurement check error: luminosity measurement invalid")
 
 # Funzione controllo misurazioni sicure
 def secureMeasurementsCheck(temp: float, humE: float):
@@ -651,7 +634,7 @@ def measurements():
         humI = sensorInMeasure()
         lum = sensorLumMeasure()
     except Exception as e:
-        raise TransientError(e)
+        raise TransientError("Measurements error: ", str(e))
 
     # Controllo misurazioni
     measurementsCheck(humI, humE, lum, temp)
@@ -707,12 +690,12 @@ def connSocket():
         if b"101" in resp:
             print("WS connection success\n")
         else:
-            raise CriticalError("WS connection refused")
+            raise CriticalError("Connect socket error: connection refused")
 
         # Impostazione connessione socket
         deviceState["sock"] = s
     except Exception as e:
-        raise CriticalError(e)
+        raise CriticalError("Connect socket error:", str(e))
 
 # Funzione invio messaggi
 def wsSend(sock, msg: str):
@@ -744,7 +727,7 @@ def wsSend(sock, msg: str):
         # Invia frame completo
         sock.send(header + masked_payload)
     except Exception as e:
-        raise TransientError(e)
+        raise TransientError("Socket send error: ", str(e))
 
 # Funzione ricezione messaggi
 def wsRecv(sock, timeout=2):
@@ -782,7 +765,7 @@ def wsRecv(sock, timeout=2):
             deviceState["sock"] = None
             return None
         else:
-            raise TransientError(e)
+            raise TransientError("Socket receive error: ", str(e))
             return None
 
 # Funzione gestione socket
@@ -807,6 +790,8 @@ def socketHandler():
     if ticks_diff(ticks_ms(), deviceState["flags"]["lastStatusSend"]) > 5000:
         # Invio stato
         wsSend(deviceState["sock"], ujson.dumps({"event": "v2/status", "data":{"lastSeen":currentTime}}))
+        # Impostazione flag
+        updateFlag("lastStatusSend", ticks_ms())
 
 # ---
 
@@ -916,9 +901,9 @@ def irrigationMeasurements():
             # Impostazione colore
             rgbColor("green")
         else:
-            raise CriticalError("Irrigation failed")
+            raise CriticalError("Irrigation measurements error: irrigation failed")
     else:
-        raise CriticalError("Irrigation failed")
+        raise CriticalError("Irrigation measurements error: irrigation failed")
 
 # Funzione accensione pompa
 def pumpOn(humI: float, date, irrigationTime: int, _type: str):
@@ -1014,41 +999,46 @@ def settingsEvent(event):
 def calibrationEvent(event):
     print(f'Calibration: {event["sensor"]}')
 
-    # Controllo sensore
-    if event["sensor"] == "sensorHumIMin" or event["sensor"] == "sensorHumIMax":
-        # Misurazione
-        measurement = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
+    # Gestione errori
+    try:
+        # Controllo sensore
+        if event["sensor"] == "sensorHumIMin" or event["sensor"] == "sensorHumIMax":
+            # Misurazione
+            measurement = (1 - measure(deviceState["sensors"]["sensorIn"], 50) / 4095) * 100
 
-        print(f"{measurement}%")
+            print(f"{measurement}%")
 
-        # Dichiarazione payload
-        payload = {"sensor":event["sensor"], "measurement":measurement}
+            # Dichiarazione payload
+            payload = {"sensor":event["sensor"], "measurement":measurement}
 
-        # Invio calibrazione
-        newSettings = postHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration/data?authType=device', payload, "calibration", deviceState["token"])
+            # Invio calibrazione
+            newSettings = postHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration/data?authType=device', payload, "calibration", deviceState["token"])
 
-        # Aggiornamento impostazioni
-        deviceState["settings"] = newSettings
-        writeFile("settings", deviceState["settings"])
+            # Aggiornamento impostazioni
+            deviceState["settings"] = newSettings
+            writeFile("settings", deviceState["settings"])
 
-    elif event["sensor"] == "sensorLumMin" or event["sensor"] == "sensorLumMax":
-        # Misurazione
-        measurement = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
+        elif event["sensor"] == "sensorLumMin" or event["sensor"] == "sensorLumMax":
+            # Misurazione
+            measurement = measure(deviceState["sensors"]["sensorLum"], 50) / 4095 * 100
 
-        print(f"{measurement}%")
+            print(f"{measurement}%")
 
-        # Dichiarazione payload
-        payload = {"sensor":event["sensor"], "measurement":measurement}
+            # Dichiarazione payload
+            payload = {"sensor":event["sensor"], "measurement":measurement}
 
-        # Invio calibrazione
-        newSettings = postHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration/data?authType=device', payload, "calibration", deviceState["token"])
+            # Invio calibrazione
+            newSettings = postHandler(f'{deviceState["serverInfo"]["apiUrl"]}/devices-settings/calibration/data?authType=device', payload, "calibration", deviceState["token"])
 
-        # Aggiornamento impostazioni
-        deviceState["settings"] = newSettings
-        writeFile("settings", deviceState["settings"])
+            # Aggiornamento impostazioni
+            deviceState["settings"] = newSettings
+            writeFile("settings", deviceState["settings"])
 
-    else:
-        print("Invalid sensor request\n")
+        else:
+            print("Invalid sensor request\n")
+
+    except Exception as e:
+        raise CriticalError("Calibration event error: ", str(e))
 
 # ---
 
@@ -1164,7 +1154,7 @@ def main():
             mainLoop()
 
         except TransientError as e:
-            print("Recoverable error:", e)
+            print("RECOVERABLE ERROR\t|\t", e)
 
         except CriticalError as e:
             # Gestione errore
@@ -1183,7 +1173,7 @@ def criticError(e):
     sys.print_exception(e, buf)
     exc_str = buf.getvalue()
 
-    print("Critical error:", e)
+    print("CRITICAL ERROR\t|\t", e)
     print("\n", exc_str)
 
 
