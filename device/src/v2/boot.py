@@ -60,7 +60,7 @@ def getStreamHandler(url: str, name: str, token = None):
         return response
         
     except Exception as e:
-        raise Exception(f"Stream request error: {name}", str(e))
+        raise Exception(f"Stream request error: {name} " + str(e))
         
     finally:
         # Pulizia memoria
@@ -109,7 +109,7 @@ def getHandler(url: str, name: str, token = None) :
         )
         
         # Richiesta dati
-        raw = response.content
+        raw = response.text
 
         # Chiusura richiesta
         response.close()
@@ -131,7 +131,7 @@ def getHandler(url: str, name: str, token = None) :
         # Ritorno dati
         return resData["data"]
     except Exception as e:
-        raise Exception(f"Get request error: {name}", str(e))
+        raise Exception(f"Get request error: {name} " + str(e))
 
     finally:
         # Pulizia memoria
@@ -182,7 +182,7 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         )
 
         # Richiesta dati
-        raw = response.content
+        raw = response.text
 
         # Chiusura richiesta
         response.close()
@@ -204,7 +204,7 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         # Ritorno dati
         return resData["data"]
     except Exception as e:
-        raise Exception(f"Post request error: {name}", str(e))
+        raise Exception(f"Post request error: {name} " + str(e))
 
     finally:
         # Pulizia memoria
@@ -237,7 +237,7 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
             # Aggiornamento notifiche
             writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications, True)
         else:
-            raise CriticalError("Send notifications error: ", str(e))
+            raise CriticalError("Send notifications error: " + str(e))
 
 # Funzione invio irrigazione
 def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, humIAfter: float, humE: float, lum: float, temp: float, loadingData=False):
@@ -260,7 +260,7 @@ def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, h
             # Aggiornamento irrigazioni
             writeFile("irrigations", [{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations, True)
         else:
-            raise CriticalError("Send irrigations error: ", str(e))
+            raise CriticalError("Send irrigations error: " + str(e))
 
 # Funzione invio misurazioni
 def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, loadingData=False):
@@ -283,7 +283,7 @@ def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, l
             # Aggiornamento irrigazioni
             writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements, True)
         else:
-            raise CriticalError("Send measurements error: ", str(e))
+            raise CriticalError("Send measurements error: " + str(e))
 
 # Funzione login
 def login():
@@ -350,7 +350,7 @@ def loadData():
         # Ritorno dati
         return [wifiInfo, serverInfo, settings, deviceInfo]
     except Exception as e:
-        raise CriticalError("Load data error: ", str(e))
+        raise CriticalError("Load data error: " + str(e))
 
 # Funzione caricamento dati salvati
 def loadSavedData():
@@ -390,7 +390,7 @@ def loadSavedData():
         writeFile("notifications", [])
 
     except Exception as e:
-        raise CriticalError("Load saved data error", str(e))
+        raise CriticalError("Load saved data error" + str(e))
 
 # Funzione connessione wifi
 def connWifi(tentatives=10):
@@ -431,7 +431,7 @@ def connWifi(tentatives=10):
         
         print("Wifi connection failed")
     except Exception as e:
-        raise CriticalError("Connect wifi error: ", str(e))
+        raise CriticalError("Connect wifi error: " + str(e))
 
 # Funzione connessione socket
 def connSocket():
@@ -478,7 +478,7 @@ def connSocket():
         # Impostazione connessione socket
         deviceState["sock"] = s
     except Exception as e:
-        raise CriticalError("Socket connection error:", str(e))
+        raise CriticalError("Socket connection error: " + str(e))
 
 # Funzione controllo esistenza file
 def exists(path):
@@ -509,7 +509,7 @@ def getLatestVersion():
         # Ritorno versione
         return firmwareVersion
     except Exception as e:
-        raise CriticalError("Get latest version error: ", str(e))
+        raise CriticalError("Get latest version error: " + str(e))
 
 # Funzione installazione versione firmware
 def installVersion(versionId: str):
@@ -564,7 +564,7 @@ def installVersion(versionId: str):
         except: pass
         
         # Rilancio errore critico
-        raise CriticalError("Device version installation error: ", str(e))
+        raise CriticalError("Device version installation error: " + str(e))
 
 # Funzione confronto versioni
 def checkVersions(v1: str, v2: str):
@@ -575,7 +575,7 @@ def checkVersions(v1: str, v2: str):
         # Ritorno versione
         return firmwareVersion
     except Exception as e:
-        raise CriticalError("Check versione error: ", str(e))
+        raise CriticalError("Check versione error: " + str(e))
 
 # ---
 
@@ -688,6 +688,11 @@ def versionConfig():
             # Installazione versione
             installVersion(deviceState["settings"]["firmwareId"])
     else:
+        # Controllo versione impostazioni
+        if deviceState["settings"]["firmwareId"]:
+            # Installazione versione
+            installVersion(deviceState["settings"]["firmwareId"])
+
         # Richiesta ultima versione
         firmwareVersion = getLatestVersion()
 
@@ -795,71 +800,6 @@ def rgbColor(color: str):
     deviceState["pwms"][1].duty_u16(mapRange(g, 0, 255, 0, 65535))
     deviceState["pwms"][2].duty_u16(mapRange(b, 0, 255, 0, 65535))
 
-# Funzione controllo connessione
-def networkCheck():
-    if not deviceState["wifi"].isconnected():
-        # Controllo connessione socket
-        if deviceState["sock"]:
-
-            # Chiusura connessione socket
-            deviceState["sock"].close()
-
-        deviceState["sock"] = None
-
-        # Controllo tempo passato
-        if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
-            # Impostazione colore
-            rgbColor("yellow")
-
-            # Connessione wifi
-            connWifi(3)
-
-            # Impostazione flag
-            updateFlag("lastWifiAttempt", ticks_ms())
-
-            # Impostazione flag
-            updateFlag("wifiAttempts", deviceState["flags"]["wifiAttempts"] + 1)
-
-            # Impostazione colore
-            rgbColor("green")
-
-    elif not deviceState["token"]:
-        # Controllo tempo passato
-        if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
-            # Impostazione colore
-            rgbColor("yellow")            
-
-            # Autenticatione
-            authenticationConfig()
-
-            # Impostazione flag
-            updateFlag("lastAuthAttempt", ticks_ms())
-
-            # Impostazione flag
-            updateFlag("authAttempts", deviceState["flags"]["authAttempts"] + 1)
-
-            # Impostazione colore
-            rgbColor("green")
-
-    elif not deviceState["sock"]:
-        # Controllo tempo passato
-        if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 60000:
-
-            # Impostazione colore
-            rgbColor("yellow")
-
-            # Connessione socket
-            connSocket()
-
-            # Impostazione flag
-            updateFlag("lastSockAttempt", ticks_ms())
-
-            # Impostazione flag
-            updateFlag("sockAttempts", deviceState["flags"]["sockAttempts"] + 1)
-
-            # Impostazione colore
-            rgbColor("green")
-
 # ---
 
 # Funzione tentativi
@@ -874,8 +814,68 @@ def retryLoop():
         elif deviceState["flags"]["wifiAttempts"] > 3 or deviceState["flags"]["authAttempts"] > 3 or deviceState["flags"]["sockAttempts"] > 3:
             return False
 
-        # Controllo connessione
-        networkCheck()
+        if not deviceState["wifi"].isconnected():
+            # Controllo connessione socket
+            if deviceState["sock"]:
+
+                # Chiusura connessione socket
+                deviceState["sock"].close()
+
+            deviceState["sock"] = None
+
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
+                # Impostazione colore
+                rgbColor("yellow")
+
+                # Connessione wifi
+                connWifi(3)
+
+                # Impostazione flag
+                updateFlag("lastWifiAttempt", ticks_ms())
+
+                # Impostazione flag
+                updateFlag("wifiAttempts", deviceState["flags"]["wifiAttempts"] + 1)
+
+                # Impostazione colore
+                rgbColor("green")
+
+        elif not deviceState["token"]:
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
+                # Impostazione colore
+                rgbColor("yellow")            
+
+                # Autenticatione
+                authenticationConfig()
+
+                # Impostazione flag
+                updateFlag("lastAuthAttempt", ticks_ms())
+
+                # Impostazione flag
+                updateFlag("authAttempts", deviceState["flags"]["authAttempts"] + 1)
+
+                # Impostazione colore
+                rgbColor("green")
+
+        elif not deviceState["sock"]:
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 60000:
+
+                # Impostazione colore
+                rgbColor("yellow")
+
+                # Connessione socket
+                connSocket()
+
+                # Impostazione flag
+                updateFlag("lastSockAttempt", ticks_ms())
+
+                # Impostazione flag
+                updateFlag("sockAttempts", deviceState["flags"]["sockAttempts"] + 1)
+
+                # Impostazione colore
+                rgbColor("green")
 
         sleep(1)
 

@@ -61,7 +61,7 @@ def getHandler(url: str, name: str, token = None) :
         )
         
         # Richiesta dati
-        raw = response.content
+        raw = response.text
 
         # Chiusura richiesta
         response.close()
@@ -83,7 +83,7 @@ def getHandler(url: str, name: str, token = None) :
         # Ritorno dati
         return resData["data"]
     except Exception as e:
-        raise Exception(f"Get request error: {name}", str(e))
+        raise Exception(f"Get request error: {name} " + str(e))
 
     finally:
         # Pulizia memoria
@@ -134,7 +134,7 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         )
 
         # Richiesta dati
-        raw = response.content
+        raw = response.text
 
         # Chiusura richiesta
         response.close()
@@ -156,7 +156,7 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         # Ritorno dati
         return resData["data"]
     except Exception as e:
-        raise Exception(f"Post request error: {name}", str(e))
+        raise Exception(f"Post request error: {name} " + str(e))
 
     finally:
         # Pulizia memoria
@@ -189,7 +189,7 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
             # Aggiornamento notifiche
             writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications, True)
         else:
-            raise CriticalError("Send notifications error: ", str(e))
+            raise CriticalError("Send notifications error: " + str(e))
 
 # Funzione invio irrigazione
 def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, humIAfter: float, humE: float, lum: float, temp: float, loadingData=False):
@@ -212,7 +212,7 @@ def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, h
             # Aggiornamento irrigazioni
             writeFile("irrigations", [{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations, True)
         else:
-            raise CriticalError("Send irrigations error: ", str(e))
+            raise CriticalError("Send irrigations error: " + str(e))
 
 # Funzione invio misurazioni
 def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, loadingData=False):
@@ -235,7 +235,7 @@ def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, l
             # Aggiornamento irrigazioni
             writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements, True)
         else:
-            raise CriticalError("Send measurements error: ", str(e))
+            raise CriticalError("Send measurements error: " + str(e))
 
 # Funzione login
 def login():
@@ -317,7 +317,7 @@ def loadData():
         # Ritorno dati
         return [wifiInfo, serverInfo, settings, deviceInfo]
     except Exception as e:
-        raise CriticalError("Load data error: ", str(e))
+        raise CriticalError("Load data error: " + str(e))
 
 # Funzione caricamento dati salvati
 def loadSavedData():
@@ -356,7 +356,7 @@ def loadSavedData():
         writeFile("notifications", [])
 
     except Exception as e:
-        raise CriticalError("Load saved data error: ", str(e))
+        raise CriticalError("Load saved data error: " + str(e))
 
 # Funzione sincronizzazione orario
 def syncTime():
@@ -415,7 +415,7 @@ def connWifi(tentatives=10):
         
         print("Wifi connection failed")
     except Exception as e:
-        raise CriticalError("Connect wifi error: ", str(e))
+        raise CriticalError("Connect wifi error: " + str(e))
 
 # Funzione autenticazione
 def authenticationConfig():
@@ -634,7 +634,7 @@ def measurements():
         humI = sensorInMeasure()
         lum = sensorLumMeasure()
     except Exception as e:
-        raise TransientError("Measurements error: ", str(e))
+        raise TransientError("Measurements error: " + str(e))
 
     # Controllo misurazioni
     measurementsCheck(humI, humE, lum, temp)
@@ -695,7 +695,7 @@ def connSocket():
         # Impostazione connessione socket
         deviceState["sock"] = s
     except Exception as e:
-        raise CriticalError("Connect socket error:", str(e))
+        raise CriticalError("Connect socket error: " + str(e))
 
 # Funzione invio messaggi
 def wsSend(sock, msg: str):
@@ -727,7 +727,7 @@ def wsSend(sock, msg: str):
         # Invia frame completo
         sock.send(header + masked_payload)
     except Exception as e:
-        raise TransientError("Socket send error: ", str(e))
+        raise TransientError("Socket send error: " + str(e))
 
 # Funzione ricezione messaggi
 def wsRecv(sock, timeout=2):
@@ -765,7 +765,7 @@ def wsRecv(sock, timeout=2):
             deviceState["sock"] = None
             return None
         else:
-            raise TransientError("Socket receive error: ", str(e))
+            raise TransientError("Socket receive error: " + str(e))
             return None
 
 # Funzione gestione socket
@@ -1038,61 +1038,9 @@ def calibrationEvent(event):
             print("Invalid sensor request\n")
 
     except Exception as e:
-        raise CriticalError("Calibration event error: ", str(e))
+        raise CriticalError("Calibration event error: " + str(e))
 
 # ---
-
-# Funzione controllo connessione
-def networkCheck():
-    # Controllo wifi
-    if not deviceState["wifi"].isconnected():
-        # Chiusura connessione
-        try:
-            deviceState["sock"].close()
-        except:
-            pass
-
-        deviceState["sock"] = None
-
-        # Controllo tempo passato
-        if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
-            # Impostazione colore
-            rgbColor("yellow")
-            # Connessione wifi
-            connWifi(3)
-            # Impostazione flag
-            updateFlag("lastWifiAttempt", ticks_ms())
-
-            # Impostazione colore
-            rgbColor("green")
-    elif not deviceState["token"]:
-        # Controllo tempo passato
-        if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
-            # Impostazione colore
-            rgbColor("yellow")
-            # Autenticatione
-            authenticationConfig()
-            # Impostazione flag
-            updateFlag("lastAuthAttempt", ticks_ms())
-
-            # Impostazione colore
-            rgbColor("green")
-    elif not deviceState["sock"]:
-        # Controllo tempo passato
-        if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 60000:
-            # Impostazione colore
-            rgbColor("yellow")
-            # Connessione socket
-            connSocket()
-            # Impostazione flag
-            updateFlag("lastSockAttempt", ticks_ms())
-            # Impostazione colore
-            rgbColor("green")
-
-    # Controllo connessione socket
-    if deviceState["sock"]:
-        # Gestore connessione socket
-        socketHandler()
 
 # Funzione principale
 def mainLoop():
@@ -1113,8 +1061,55 @@ def mainLoop():
                 # Spegnimento pompa
                 pumpOff()
 
-        # Controllo connessione
-        networkCheck()
+        # Controllo wifi
+        if not deviceState["wifi"].isconnected():
+            # Chiusura connessione
+            try:
+                deviceState["sock"].close()
+            except:
+                pass
+
+            deviceState["sock"] = None
+
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastWifiAttempt"]) > 60000:
+                # Impostazione colore
+                rgbColor("yellow")
+                # Connessione wifi
+                connWifi(3)
+                # Impostazione flag
+                updateFlag("lastWifiAttempt", ticks_ms())
+
+                # Impostazione colore
+                rgbColor("green")
+        elif not deviceState["token"]:
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastAuthAttempt"]) > 60000:
+                # Impostazione colore
+                rgbColor("yellow")
+                # Autenticatione
+                authenticationConfig()
+                # Impostazione flag
+                updateFlag("lastAuthAttempt", ticks_ms())
+
+                # Impostazione colore
+                rgbColor("green")
+        elif not deviceState["sock"]:
+            # Controllo tempo passato
+            if ticks_diff(ticks_ms(), deviceState["flags"]["lastSockAttempt"]) > 60000:
+                # Impostazione colore
+                rgbColor("yellow")
+                # Connessione socket
+                connSocket()
+                # Impostazione flag
+                updateFlag("lastSockAttempt", ticks_ms())
+                # Impostazione colore
+                rgbColor("green")
+
+        # Controllo connessione socket
+        if deviceState["sock"]:
+            # Gestore connessione socket
+            socketHandler()
             
         # Controllo misurazione
         if ticks_diff(ticks_ms(), deviceState["flags"]["lastMeasurement"]) > 600000:
