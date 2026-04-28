@@ -59,8 +59,8 @@ def getStreamHandler(url: str, name: str, token = None):
         # Ritorno l'oggetto response per la lettura sequenziale
         return response
         
-    except Exception as e:
-        raise Exception(f"Stream request error: {name} " + str(e))
+    except:
+        raise
         
     finally:
         # Pulizia memoria
@@ -130,8 +130,8 @@ def getHandler(url: str, name: str, token = None) :
         
         # Ritorno dati
         return resData["data"]
-    except Exception as e:
-        raise Exception(f"Get request error: {name} " + str(e))
+    except:
+        raise
 
     finally:
         # Pulizia memoria
@@ -203,8 +203,8 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         
         # Ritorno dati
         return resData["data"]
-    except Exception as e:
-        raise Exception(f"Post request error: {name} " + str(e))
+    except:
+        raise
 
     finally:
         # Pulizia memoria
@@ -237,7 +237,7 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
             # Aggiornamento notifiche
             writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications, True)
         else:
-            raise CriticalError("Send notifications error: " + str(e))
+            raise CriticalError(e)
 
 # Funzione invio irrigazione
 def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, humIAfter: float, humE: float, lum: float, temp: float, loadingData=False):
@@ -283,7 +283,7 @@ def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, l
             # Aggiornamento irrigazioni
             writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements, True)
         else:
-            raise CriticalError("Send measurements error: " + str(e))
+            raise CriticalError(e)
 
 # Funzione login
 def login():
@@ -350,47 +350,55 @@ def loadData():
         # Ritorno dati
         return [wifiInfo, serverInfo, settings, deviceInfo]
     except Exception as e:
-        raise CriticalError("Load data error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione caricamento dati salvati
 def loadSavedData():
     try:        
-        # Caricamento informazione misurazioni
-        measurements = readFile("measurements")
-            
         # Caricamento informazioni irrigazioni
         irrigations = readFile("irrigations")
-
-        # Caricamento informazione notifiche
-        notifications = readFile("notifications")
         
         # Iterazione irrigazioni
         for irrigation in irrigations:
             # Invio Irrigazione
             sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
 
+        # Pulizia irrigazioni
+        del irrigations
+
+        # Aggiornamento irrigazioni
+        writeFile("irrigations", [])
+
+        # Caricamento informazione misurazioni
+        measurements = readFile("measurements")
+
         # Iterazione misurazioni
         for measurement in measurements:
             # Invio misurazioni
             sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
+
+        # Pulizia misurazioni
+        del measurements
+
+        # Aggiornamento misurazioni
+        writeFile("measurements", [])
+
+        # Caricamento informazione notifiche
+        notifications = readFile("notifications")
 
         # Iterazione notifiche
         for notification in notifications:
             # Invio notifiche
             sendNotifications(notification["title"], notification["description"], notification["type"], True)
 
-
-        # Aggiornamento misurazioni
-        writeFile("measurements", [])
-            
-        # Aggiornamento irrigazioni
-        writeFile("irrigations", [])
+        # Pulizia notifiche
+        del notifications
 
         # Aggiornamento notifiche
         writeFile("notifications", [])
 
     except Exception as e:
-        raise CriticalError("Load saved data error" + str(e))
+        raise CriticalError(e)
 
 # Funzione connessione wifi
 def connWifi(tentatives=10):
@@ -431,7 +439,7 @@ def connWifi(tentatives=10):
         
         print("Wifi connection failed")
     except Exception as e:
-        raise CriticalError("Connect wifi error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione connessione socket
 def connSocket():
@@ -478,7 +486,7 @@ def connSocket():
         # Impostazione connessione socket
         deviceState["sock"] = s
     except Exception as e:
-        raise CriticalError("Socket connection error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione controllo esistenza file
 def exists(path):
@@ -509,7 +517,7 @@ def getLatestVersion():
         # Ritorno versione
         return firmwareVersion
     except Exception as e:
-        raise CriticalError("Get latest version error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione installazione versione firmware
 def installVersion(versionId: str):
@@ -564,7 +572,7 @@ def installVersion(versionId: str):
         except: pass
         
         # Rilancio errore critico
-        raise CriticalError("Device version installation error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione confronto versioni
 def checkVersions(v1: str, v2: str):
@@ -575,7 +583,7 @@ def checkVersions(v1: str, v2: str):
         # Ritorno versione
         return firmwareVersion
     except Exception as e:
-        raise CriticalError("Check versione error: " + str(e))
+        raise CriticalError(e)
 
 # ---
 
@@ -910,13 +918,16 @@ def boot():
 def criticError(e):
     # Stampa dettagli
     import sys
-    import uio
-    buf = uio.StringIO()
-    sys.print_exception(e, buf)
-    exc_str = buf.getvalue()
 
-    print("Critical error:", e)
-    print("\n", exc_str)
+    try:
+        import uio
+        buf = uio.StringIO()
+        sys.print_exception(e, buf)
+        exc_str = buf.getvalue()
+    except:
+        exc_str = str(e)
+
+    print("CRITICAL ERROR\t|\t", exc_str)
 
 
     # Pulizia hardware
@@ -935,7 +946,7 @@ def criticError(e):
     # Invio notifica
     try:
         if "deviceState" in globals() and "token" in deviceState:
-            sendNotifications("ERRORE DISPOSITIVO", str(e), "error")
+            sendNotifications("ERRORE DISPOSITIVO", exc_str[-300:], "error")
     except Exception as notify_err:
         print("Failed to send notification:", notify_err)
 

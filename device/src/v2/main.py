@@ -82,8 +82,8 @@ def getHandler(url: str, name: str, token = None) :
         
         # Ritorno dati
         return resData["data"]
-    except Exception as e:
-        raise Exception(f"Get request error: {name} " + str(e))
+    except:
+        raise
 
     finally:
         # Pulizia memoria
@@ -155,8 +155,8 @@ def postHandler(url: str, payload: dict, name: str, token = None):
         
         # Ritorno dati
         return resData["data"]
-    except Exception as e:
-        raise Exception(f"Post request error: {name} " + str(e))
+    except:
+        raise
 
     finally:
         # Pulizia memoria
@@ -189,7 +189,7 @@ def sendNotifications (title: str, description: str, _type: str, loadingData=Fal
             # Aggiornamento notifiche
             writeFile("notifications", [{"title":title, "description":description, "type":_type}] + notifications, True)
         else:
-            raise CriticalError("Send notifications error: " + str(e))
+            raise CriticalError(e)
 
 # Funzione invio irrigazione
 def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, humIAfter: float, humE: float, lum: float, temp: float, loadingData=False):
@@ -212,7 +212,7 @@ def sendIrrigations (date, irrigationTime: int, _type: str, humIBefore: float, h
             # Aggiornamento irrigazioni
             writeFile("irrigations", [{"humI1":humIBefore, "humI2":humIAfter, "humE":humE, "temp":temp, "lum":lum, "irrigationTime":irrigationTime, "date":date, "type":_type}] + irrigations, True)
         else:
-            raise CriticalError("Send irrigations error: " + str(e))
+            raise CriticalError(e)
 
 # Funzione invio misurazioni
 def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, loadingData=False):
@@ -235,7 +235,7 @@ def sendMeasurements (humI: float, humE: float, temp: float, lum: float, date, l
             # Aggiornamento irrigazioni
             writeFile("measurements", [{"humI":humI, "humE":humE, "temp":temp, "lum":lum, "currentTime":date}] + measurements, True)
         else:
-            raise CriticalError("Send measurements error: " + str(e))
+            raise CriticalError(e)
 
 # Funzione login
 def login():
@@ -317,46 +317,55 @@ def loadData():
         # Ritorno dati
         return [wifiInfo, serverInfo, settings, deviceInfo]
     except Exception as e:
-        raise CriticalError("Load data error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione caricamento dati salvati
 def loadSavedData():
     try:        
-        # Caricamento informazione misurazioni
-        measurements = readFile("measurements")
-            
         # Caricamento informazioni irrigazioni
         irrigations = readFile("irrigations")
-
-        # Caricamento informazione notifiche
-        notifications = readFile("notifications")
         
         # Iterazione irrigazioni
         for irrigation in irrigations:
             # Invio Irrigazione
             sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
 
+        # Pulizia irrigazioni
+        del irrigations
+
+        # Aggiornamento irrigazioni
+        writeFile("irrigations", [])
+
+        # Caricamento informazione misurazioni
+        measurements = readFile("measurements")
+
         # Iterazione misurazioni
         for measurement in measurements:
             # Invio misurazioni
             sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
+
+        # Pulizia misurazioni
+        del measurements
+
+        # Aggiornamento misurazioni
+        writeFile("measurements", [])
+
+        # Caricamento informazione notifiche
+        notifications = readFile("notifications")
 
         # Iterazione notifiche
         for notification in notifications:
             # Invio notifiche
             sendNotifications(notification["title"], notification["description"], notification["type"], True)
 
-        # Aggiornamento misurazioni
-        writeFile("measurements", [])
-            
-        # Aggiornamento irrigazioni
-        writeFile("irrigations", [])
+        # Pulizia notifiche
+        del notifications
 
         # Aggiornamento notifiche
         writeFile("notifications", [])
 
     except Exception as e:
-        raise CriticalError("Load saved data error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione sincronizzazione orario
 def syncTime():
@@ -415,7 +424,7 @@ def connWifi(tentatives=10):
         
         print("Wifi connection failed")
     except Exception as e:
-        raise CriticalError("Connect wifi error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione autenticazione
 def authenticationConfig():
@@ -634,7 +643,7 @@ def measurements():
         humI = sensorInMeasure()
         lum = sensorLumMeasure()
     except Exception as e:
-        raise TransientError("Measurements error: " + str(e))
+        raise TransientError(e)
 
     # Controllo misurazioni
     measurementsCheck(humI, humE, lum, temp)
@@ -695,7 +704,7 @@ def connSocket():
         # Impostazione connessione socket
         deviceState["sock"] = s
     except Exception as e:
-        raise CriticalError("Connect socket error: " + str(e))
+        raise CriticalError(e)
 
 # Funzione invio messaggi
 def wsSend(sock, msg: str):
@@ -727,7 +736,7 @@ def wsSend(sock, msg: str):
         # Invia frame completo
         sock.send(header + masked_payload)
     except Exception as e:
-        raise TransientError("Socket send error: " + str(e))
+        raise TransientError(e)
 
 # Funzione ricezione messaggi
 def wsRecv(sock, timeout=2):
@@ -765,7 +774,7 @@ def wsRecv(sock, timeout=2):
             deviceState["sock"] = None
             return None
         else:
-            raise TransientError("Socket receive error: " + str(e))
+            raise TransientError(e)
             return None
 
 # Funzione gestione socket
@@ -1038,7 +1047,7 @@ def calibrationEvent(event):
             print("Invalid sensor request\n")
 
     except Exception as e:
-        raise CriticalError("Calibration event error: " + str(e))
+        raise CriticalError(e)
 
 # ---
 
@@ -1163,13 +1172,16 @@ def main():
 def criticError(e):
     # Stampa dettagli
     import sys
-    import uio
-    buf = uio.StringIO()
-    sys.print_exception(e, buf)
-    exc_str = buf.getvalue()
 
-    print("CRITICAL ERROR\t|\t", e)
-    print("\n", exc_str)
+    try:
+        import uio
+        buf = uio.StringIO()
+        sys.print_exception(e, buf)
+        exc_str = buf.getvalue()
+    except:
+        exc_str = str(e)
+
+    print("CRITICAL ERROR\t|\t", exc_str)
 
 
     # Pulizia hardware
@@ -1188,7 +1200,7 @@ def criticError(e):
     # Invio notifica
     try:
         if "deviceState" in globals() and "token" in deviceState:
-            sendNotifications("ERRORE DISPOSITIVO", str(e), "error")
+            sendNotifications("ERRORE DISPOSITIVO", exc_str[-300:], "error")
     except Exception as notify_err:
         print("Failed to send notification:", notify_err)
 
