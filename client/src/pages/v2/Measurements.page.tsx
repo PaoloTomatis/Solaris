@@ -142,7 +142,7 @@ function Measurements() {
                             lum={measurement?.lum?.toFixed(1)}
                             humE={measurement?.humE}
                             humI={measurement?.humI?.toFixed(1)}
-                            date={new Date(measurement?.createdAt)}
+                            date={new Date(measurement?.measuredAt)}
                             key={measurement?.id}
                         />
                     ))
