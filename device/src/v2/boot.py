@@ -355,47 +355,68 @@ def loadData():
 # Funzione caricamento dati salvati
 def loadSavedData():
     try:        
+        # Dichiarazione dati mancanti
+        missed = []
+
         # Caricamento informazioni irrigazioni
         irrigations = readFile("irrigations")
-        
+
         # Iterazione irrigazioni
         for irrigation in irrigations:
-            # Invio Irrigazione
-            sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
+            try:
+                # Invio Irrigazione
+                sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
+            except Exception:
+                missed.append(irrigation)
 
         # Pulizia irrigazioni
         del irrigations
 
         # Aggiornamento irrigazioni
-        writeFile("irrigations", [])
+        writeFile("irrigations", missed)
+
+        # Pulizia dati mancanti
+        missed = []
 
         # Caricamento informazione misurazioni
         measurements = readFile("measurements")
 
         # Iterazione misurazioni
         for measurement in measurements:
-            # Invio misurazioni
-            sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
+            try:
+                # Invio misurazioni
+                sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
+            except Exception:
+                missed.append(measurement)
 
         # Pulizia misurazioni
         del measurements
 
         # Aggiornamento misurazioni
-        writeFile("measurements", [])
+        writeFile("measurements", missed)
+
+        # Pulizia dati mancanti
+        missed = []
 
         # Caricamento informazione notifiche
         notifications = readFile("notifications")
 
         # Iterazione notifiche
         for notification in notifications:
-            # Invio notifiche
-            sendNotifications(notification["title"], notification["description"], notification["type"], True)
+            try:
+                # Invio notifiche
+                sendNotifications(notification["title"], notification["description"], notification["type"], True)
+            except Exception:
+                missed.append(notification)
 
         # Pulizia notifiche
         del notifications
 
         # Aggiornamento notifiche
-        writeFile("notifications", [])
+        writeFile("notifications", missed)
+
+        # Pulizia dati mancanti
+        del missed
 
     except Exception as e:
         raise CriticalError(e)

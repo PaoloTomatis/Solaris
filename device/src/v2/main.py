@@ -59,6 +59,10 @@ def getHandler(url: str, name: str, token = None) :
             headers=headers,
             timeout=10
         )
+
+        # Controllo codice di stato
+        if response.status_code != 200:
+            raise Exception("Post request error: code ", response.status_code)
         
         # Richiesta dati
         raw = response.text
@@ -132,6 +136,10 @@ def postHandler(url: str, payload: dict, name: str, token = None):
             headers=headers,
             timeout=10
         )
+
+        # Controllo codice di stato
+        if response.status_code != 200:
+            raise Exception("Post request error: code ", response.status_code)
 
         # Richiesta dati
         raw = response.text
@@ -322,47 +330,68 @@ def loadData():
 # Funzione caricamento dati salvati
 def loadSavedData():
     try:        
+        # Dichiarazione dati mancanti
+        missed = []
+
         # Caricamento informazioni irrigazioni
         irrigations = readFile("irrigations")
-        
+
         # Iterazione irrigazioni
         for irrigation in irrigations:
-            # Invio Irrigazione
-            sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
+            try:
+                # Invio Irrigazione
+                sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
+            except Exception:
+                missed.append(irrigation)
 
         # Pulizia irrigazioni
         del irrigations
 
         # Aggiornamento irrigazioni
-        writeFile("irrigations", [])
+        writeFile("irrigations", missed)
+
+        # Pulizia dati mancanti
+        missed = []
 
         # Caricamento informazione misurazioni
         measurements = readFile("measurements")
 
         # Iterazione misurazioni
         for measurement in measurements:
-            # Invio misurazioni
-            sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
+            try:
+                # Invio misurazioni
+                sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
+            except Exception:
+                missed.append(measurement)
 
         # Pulizia misurazioni
         del measurements
 
         # Aggiornamento misurazioni
-        writeFile("measurements", [])
+        writeFile("measurements", missed)
+
+        # Pulizia dati mancanti
+        missed = []
 
         # Caricamento informazione notifiche
         notifications = readFile("notifications")
 
         # Iterazione notifiche
         for notification in notifications:
-            # Invio notifiche
-            sendNotifications(notification["title"], notification["description"], notification["type"], True)
+            try:
+                # Invio notifiche
+                sendNotifications(notification["title"], notification["description"], notification["type"], True)
+            except Exception:
+                missed.append(notification)
 
         # Pulizia notifiche
         del notifications
 
         # Aggiornamento notifiche
-        writeFile("notifications", [])
+        writeFile("notifications", missed)
+
+        # Pulizia dati mancanti
+        del missed
 
     except Exception as e:
         raise CriticalError(e)
@@ -571,24 +600,24 @@ def secureMeasurementsCheck(temp: float, humE: float):
     # Controllo temperatura
     if temp <= 2:
         # Invio avviso
-        sendNotifications("TEMPERATURA BASSA", "La temperatura della tua serra è inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        sendNotifications("TEMPERATURA BASSA", "La temperatura della tua serra e' inferiore ai 2 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         # Impostazione ultima notifica
         updateFlag("lastWarningNotification", localtime())
     elif temp >= 30:
         # Invio avviso
-        sendNotifications("TEMPERATURA ALTA", "La temperatura della tua serra è superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        sendNotifications("TEMPERATURA ALTA", "La temperatura della tua serra e' superiore ai 30 gradi, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         # Impostazione ultima notifica
         updateFlag("lastWarningNotification", localtime())
 
     # Controllo umidità esterna
     if humE <= 30:
         # Invio avviso
-        sendNotifications("UMIDITA' BASSA", "L'umidità esterna della tua serra è inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        sendNotifications("UMIDITA' BASSA", "L'umidita' esterna della tua serra e' inferiore al 30%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         # Impostazione ultima notifica
         updateFlag("lastWarningNotification", localtime())
     elif humE >= 85:
         # Invio avviso
-        sendNotifications("UMIDITA' ALTA", "L'umidità esterna della tua serra è superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
+        sendNotifications("UMIDITA' ALTA", "L'umidita' esterna della tua serra e' superiore al 85%, questo potrebbe danneggiare le tue coltivazioni!", "warning")
         # Impostazione ultima notifica
         updateFlag("lastWarningNotification", localtime())
 
@@ -842,7 +871,7 @@ def irrigation(humI: float, date, irrigationTime: int, mode: str):
         # Impostazione timer fallback
         deviceState["tim1"].init(period = irrigationTime*1000 + 2000, mode = Timer.ONE_SHOT, callback = lambda t: deviceState["sensors"]["pump"].off())
     else:
-        sendNotifications("ERRORE IRRIGAZIONE", "Non è stato possibile irrigare in quanto il tempo d'irrigazione era inferiore o uguale a 0 o il dispositivo stava già irrigando", "error")
+        sendNotifications("ERRORE IRRIGAZIONE", "Non e' stato possibile irrigare in quanto il tempo d'irrigazione era inferiore o uguale a 0 o il dispositivo stava gia' irrigando", "error")
 
 # Funzione controllo irrigazione
 def irrigationCheck(humI1: float, humI2: float, humE: float, lum: float, temp: float, date, irrigationTime: int, _type: str):
