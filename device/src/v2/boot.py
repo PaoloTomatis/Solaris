@@ -107,6 +107,10 @@ def getHandler(url: str, name: str, token = None) :
             headers=headers,
             timeout=10
         )
+
+        # Controllo codice di stato
+        if response.status_code != 200:
+            raise Exception("Post request error: code ", response.status_code)
         
         # Richiesta dati
         raw = response.text
@@ -180,6 +184,10 @@ def postHandler(url: str, payload: dict, name: str, token = None):
             headers=headers,
             timeout=10
         )
+
+        # Controllo codice di stato
+        if response.status_code != 200:
+            raise Exception("Post request error: code ", response.status_code)
 
         # Richiesta dati
         raw = response.text
