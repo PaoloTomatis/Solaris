@@ -352,75 +352,6 @@ def loadData():
     except Exception as e:
         raise CriticalError(e)
 
-# Funzione caricamento dati salvati
-def loadSavedData():
-    try:        
-        # Dichiarazione dati mancanti
-        missed = []
-
-        # Caricamento informazioni irrigazioni
-        irrigations = readFile("irrigations")
-
-        # Iterazione irrigazioni
-        for irrigation in irrigations:
-            try:
-                # Invio Irrigazione
-                sendIrrigations(irrigation["date"], irrigation["irrigationTime"], irrigation["type"], irrigation["humI1"], irrigation["humI2"], irrigation["humE"], irrigation["lum"], irrigation["temp"], True)
-            except Exception:
-                missed.append(irrigation)
-
-        # Pulizia irrigazioni
-        del irrigations
-
-        # Aggiornamento irrigazioni
-        writeFile("irrigations", missed)
-
-        # Pulizia dati mancanti
-        missed = []
-
-        # Caricamento informazione misurazioni
-        measurements = readFile("measurements")
-
-        # Iterazione misurazioni
-        for measurement in measurements:
-            try:
-                # Invio misurazioni
-                sendMeasurements(measurement["humI"], measurement["humE"], measurement["temp"], measurement["lum"], measurement["currentTime"], True)
-            except Exception:
-                missed.append(measurement)
-
-        # Pulizia misurazioni
-        del measurements
-
-        # Aggiornamento misurazioni
-        writeFile("measurements", missed)
-
-        # Pulizia dati mancanti
-        missed = []
-
-        # Caricamento informazione notifiche
-        notifications = readFile("notifications")
-
-        # Iterazione notifiche
-        for notification in notifications:
-            try:
-                # Invio notifiche
-                sendNotifications(notification["title"], notification["description"], notification["type"], True)
-            except Exception:
-                missed.append(notification)
-
-        # Pulizia notifiche
-        del notifications
-
-        # Aggiornamento notifiche
-        writeFile("notifications", missed)
-
-        # Pulizia dati mancanti
-        del missed
-
-    except Exception as e:
-        raise CriticalError(e)
-
 # Funzione connessione wifi
 def connWifi(tentatives=10):
     try:
@@ -758,10 +689,6 @@ def config():
 
     # Configurazione sensori
     networkConfig()
-
-    # Controllo connessione wifi
-    if deviceState["wifi"].isconnected() and deviceState["token"]:
-        loadSavedData()
 
     # Impostazione colore
     rgbColor("green")
